@@ -224,10 +224,44 @@
     gap: 8px; padding: 7px 0;
   }
   .row-head { font-size: 10.5px; color: var(--text-muted); font-weight: 650; text-transform: uppercase; letter-spacing: 0.03em; padding-bottom: 4px;}
-  .row { border-bottom: 1px solid var(--gridline); font-size: 13px;}
-  .row:last-child { border-bottom: none; }
-  .row .name { color: var(--text-primary); font-weight: 500; }
+  .row { font-size: 13px; }
+  .row .name { color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 6px; min-width: 0; }
   .row .computed { font-variant-numeric: tabular-nums; color: var(--text-secondary); text-align: right; }
+
+  /* ---- Editable / reorderable / removable cost rows ---- */
+  .row-outer { display: flex; align-items: center; gap: 2px; border-bottom: 1px solid var(--gridline); }
+  .row-outer.row-outer-last { border-bottom: none; }
+  .row-outer.dragging { opacity: 0.45; }
+  .row-outer.drop-before { box-shadow: inset 0 2px 0 0 var(--series-maarten); }
+  .row-outer.drop-after { box-shadow: inset 0 -2px 0 0 var(--series-maarten); }
+  .row-outer > .row, .row-outer > .loan-item { flex: 1 1 auto; min-width: 0; }
+  .drag-handle {
+    flex: none; cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none;
+    width: 24px; height: 36px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 14px; border-radius: 6px;
+  }
+  .drag-handle:hover { color: var(--text-primary); background: color-mix(in srgb, var(--text-primary) 6%, transparent); }
+  .drag-handle:active { cursor: grabbing; }
+  .btn-del-item {
+    flex: none; width: 24px; height: 36px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--text-muted); font-size: 16px; line-height: 1; cursor: pointer; border-radius: 6px;
+  }
+  .btn-del-item:hover { color: var(--status-critical); background: color-mix(in srgb, var(--status-critical) 10%, transparent); }
+  .name-input {
+    font: inherit; font-size: 13px; font-weight: 500; color: var(--text-primary);
+    background: none; border: 1px solid transparent; border-radius: 6px;
+    padding: 4px 6px; margin: -4px -6px; width: 100%; min-width: 0;
+  }
+  .name-input:hover { border-color: var(--border); }
+  .name-input:focus { border-color: var(--series-maarten); outline: none; background: var(--surface-1); }
+  .btn-add-item {
+    display: flex; align-items: center; gap: 6px; width: 100%; box-sizing: border-box;
+    margin-top: 6px; padding: 7px 10px;
+    background: none; border: 1px dashed var(--border); border-radius: 8px;
+    color: var(--text-muted); font: inherit; font-size: 12.5px; font-weight: 550; cursor: pointer;
+    transition: border-color 0.12s ease, color 0.12s ease;
+  }
+  .btn-add-item:hover { border-color: var(--series-maarten); color: var(--series-maarten); }
 
   .row-head.personal, .row.personal { grid-template-columns: 1fr 92px 92px 84px; }
   .subtotal-row.personal { grid-template-columns: 1fr 92px 92px 84px; }
@@ -468,10 +502,6 @@
   }
   .screen { display: none; }
   .screen.active { display: block; }
-  .scenario-intro {
-    background: color-mix(in srgb, var(--series-nicolas) 6%, var(--surface-1));
-    border-color: color-mix(in srgb, var(--series-nicolas) 25%, var(--border));
-  }
 
 
   /* ---- Auth gate ---- */
@@ -601,64 +631,128 @@
     <div class="row-head">
       <div>Item</div><div style="text-align:right">Amount €</div>
     </div>
-    <div id="household-rows"><div class="cat-group"><div class="cat-title">House</div><div class="row">
-          <div class="name">Mortgage</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="0"></div>
-        </div><div class="row">
-          <div class="name">Ownership fee</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="0"></div>
-        </div><div class="row">
-          <div class="name">Gas</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="0"></div>
-        </div><div class="row">
-          <div class="name">Energy</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="0"></div>
-        </div><div class="row">
-          <div class="name">County and city taxes</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="0"></div>
-        </div><div class="row">
-          <div class="name">House insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.5" value="0"></div>
-        </div><div class="subtotal-row">
+    <div id="household-rows"><div class="cat-group"><div class="cat-title">House</div><div class="row-outer" data-drag-row="0.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.0" value="Mortgage"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="0.1">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.1" value="Ownership fee"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="0.2">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.2" value="Gas"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="0.3">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.3" value="Energy"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="0.4">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.4" value="County and city taxes"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.4" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer row-outer-last" data-drag-row="0.5">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.5" value="House insurance"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.5" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.5" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><button type="button" class="btn-add-item" data-hh-add="0">+ Add cost</button><div class="subtotal-row">
         <div>Subtotal — House</div>
         <div class="computed" id="hh-cat-0">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row">
-          <div class="name">Car fuel</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="0"></div>
-        </div><div class="row">
-          <div class="name">Car insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="0"></div>
-        </div><div class="row">
-          <div class="name">Road taxes</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="0"></div>
-        </div><div class="row">
-          <div class="name">Maintenance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="0"></div>
-        </div><div class="row">
-          <div class="name">Road service contract</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="0"></div>
-        </div><div class="subtotal-row">
+      </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row-outer" data-drag-row="1.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.0" value="Car fuel"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="1.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="1.1">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.1" value="Car insurance"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="1.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="1.2">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.2" value="Road taxes"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="1.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="1.3">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.3" value="Maintenance"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="1.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer row-outer-last" data-drag-row="1.4">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.4" value="Road service contract"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="1.4" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><button type="button" class="btn-add-item" data-hh-add="1">+ Add cost</button><div class="subtotal-row">
         <div>Subtotal — Transport</div>
         <div class="computed" id="hh-cat-1">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row">
-          <div class="name">Gym</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="0"></div>
-        </div><div class="row">
-          <div class="name">Ziggo</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="0"></div>
-        </div><div class="row">
-          <div class="name">Netflix</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="0"></div>
-        </div><div class="row">
-          <div class="name">Disney+</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0"></div>
-        </div><div class="subtotal-row">
+      </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row-outer" data-drag-row="2.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.0" value="Gym"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="2.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="2.1">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.1" value="Ziggo"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="2.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="2.2">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.2" value="Netflix"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="2.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer row-outer-last" data-drag-row="2.3">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.3" value="Disney+"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="2.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><button type="button" class="btn-add-item" data-hh-add="2">+ Add cost</button><div class="subtotal-row">
         <div>Subtotal — Subscriptions (joint)</div>
         <div class="computed" id="hh-cat-2">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row">
-          <div class="name">Max — Insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="0"></div>
-        </div><div class="subtotal-row">
+      </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row-outer row-outer-last" data-drag-row="3.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="3.0" value="Max — Insurance"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="3.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><button type="button" class="btn-add-item" data-hh-add="3">+ Add cost</button><div class="subtotal-row">
         <div>Subtotal — Pets</div>
         <div class="computed" id="hh-cat-3">€&nbsp;0,00</div>
       </div></div></div>
@@ -733,64 +827,96 @@
     <div class="row-head personal">
       <div>Item</div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
     </div>
-    <div id="personal-rows"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row personal">
-            <div class="name">Health insurance</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="0"></div>
-            <div class="computed" id="pc-0-0-t">€&nbsp;0,00</div>
-          </div><div class="row personal">
-            <div class="name">Health costs</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="0"></div>
-            <div class="computed" id="pc-0-1-t">€&nbsp;0,00</div>
-          </div><div class="row personal">
-            <div class="name">Other insurance</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0"></div>
-            <div class="computed" id="pc-0-2-t">€&nbsp;0,00</div>
-          </div><div class="subtotal-row personal">
+    <div id="personal-rows"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row-outer" data-drag-row="0.0">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="0.0" value="Health insurance"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="0"></div>
+              <div class="computed" id="pc-0-0-t">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="0.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><div class="row-outer" data-drag-row="0.1">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="0.1" value="Health costs"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="0"></div>
+              <div class="computed" id="pc-0-1-t">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="0.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><div class="row-outer row-outer-last" data-drag-row="0.2">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="0.2" value="Other insurance"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0"></div>
+              <div class="computed" id="pc-0-2-t">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="0.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><button type="button" class="btn-add-item" data-pc-add="0">+ Add cost</button><div class="subtotal-row personal">
         <div>Subtotal — Fixed costs</div>
         <div class="computed maarten" id="pc-cat-0-m">€&nbsp;0,00</div>
         <div class="computed nicolas" id="pc-cat-0-n">€&nbsp;0,00</div>
         <div class="computed" id="pc-cat-0-t">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row personal">
-            <div class="name">Phone contract</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="0"></div>
-            <div class="computed" id="pc-1-0-t">€&nbsp;0,00</div>
-          </div><div class="row personal">
-            <div class="name">Spotify</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="0"></div>
-            <div class="computed" id="pc-1-1-t">€&nbsp;0,00</div>
-          </div><div class="row personal">
-            <div class="name">World of Warcraft</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="0"></div>
-            <div class="computed" id="pc-1-2-t">€&nbsp;0,00</div>
-          </div><div class="subtotal-row personal">
+      </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row-outer" data-drag-row="1.0">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="1.0" value="Phone contract"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="0"></div>
+              <div class="computed" id="pc-1-0-t">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="1.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><div class="row-outer" data-drag-row="1.1">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="1.1" value="Spotify"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="0"></div>
+              <div class="computed" id="pc-1-1-t">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="1.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><div class="row-outer row-outer-last" data-drag-row="1.2">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="1.2" value="World of Warcraft"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="0"></div>
+              <div class="computed" id="pc-1-2-t">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="1.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><button type="button" class="btn-add-item" data-pc-add="1">+ Add cost</button><div class="subtotal-row personal">
         <div>Subtotal — Subscriptions</div>
         <div class="computed maarten" id="pc-cat-1-m">€&nbsp;0,00</div>
         <div class="computed nicolas" id="pc-cat-1-n">€&nbsp;0,00</div>
         <div class="computed" id="pc-cat-1-t">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row personal">
-            <div class="name">Groceries</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="0"></div>
-            <div class="computed" id="pc-2-0-t">€&nbsp;0,00</div>
-          </div><div class="row personal">
-            <div class="name">Saving</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="0"></div>
-            <div class="computed" id="pc-2-1-t">€&nbsp;0,00</div>
-          </div><div class="subtotal-row personal">
+      </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row-outer" data-drag-row="2.0">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="2.0" value="Groceries"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="0"></div>
+              <div class="computed" id="pc-2-0-t">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="2.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><div class="row-outer row-outer-last" data-drag-row="2.1">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="2.1" value="Saving"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="0"></div>
+              <div class="computed" id="pc-2-1-t">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="2.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><button type="button" class="btn-add-item" data-pc-add="2">+ Add cost</button><div class="subtotal-row personal">
         <div>Subtotal — Other</div>
         <div class="computed maarten" id="pc-cat-2-m">€&nbsp;0,00</div>
         <div class="computed nicolas" id="pc-cat-2-n">€&nbsp;0,00</div>
         <div class="computed" id="pc-cat-2-t">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="loan-item"><div class="row personal">
+      </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="row-outer" data-drag-row="3.0"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
-            Student loan
+            <input class="name-input" type="text" data-pc-label="3.0" value="Student loan">
             <span class="debt-ring" id="debt-ring-3-0-nicolas" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
@@ -827,9 +953,9 @@
     </div>
           </div>
           <div class="computed" id="pc-3-0-t">€&nbsp;0,00</div>
-        </div></div><div class="loan-item"><div class="row personal">
+        </div></div><button type="button" class="btn-del-item" data-pc-del="3.0" title="Remove this loan" aria-label="Remove this loan">×</button></div><div class="row-outer row-outer-last" data-drag-row="3.1"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
-            Credit card
+            <input class="name-input" type="text" data-pc-label="3.1" value="Credit card">
             <span class="debt-ring" id="debt-ring-3-1-nicolas" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
@@ -866,7 +992,7 @@
     </div>
           </div>
           <div class="computed" id="pc-3-1-t">€&nbsp;0,00</div>
-        </div></div><div class="subtotal-row personal">
+        </div></div><button type="button" class="btn-del-item" data-pc-del="3.1" title="Remove this loan" aria-label="Remove this loan">×</button></div><button type="button" class="btn-add-item" data-pc-add="3">+ Add loan</button><div class="subtotal-row personal">
         <div>Subtotal — Loans</div>
         <div class="computed maarten" id="pc-cat-3-m">€&nbsp;0,00</div>
         <div class="computed nicolas" id="pc-cat-3-n">€&nbsp;0,00</div>
@@ -989,12 +1115,6 @@
 
 <div id="screen-b" class="screen">
 
-  <!-- SCENARIO INTRO -->
-  <section class="card scenario-intro">
-    <h2>Potential new house calculation</h2>
-    <p class="desc">A separate what-if scenario, fully independent from the current budget: a €1.700 mortgage (your current €700 plus roughly what a €200k top-up adds), no ownership fee, and Nicolas contributing an even 50% of the joint costs instead of a fixed monthly transfer. Everything below is editable on its own — nothing here affects the Current Budget tab.</p>
-  </section>
-
   <!-- INCOME -->
   <section class="card">
     <h2>Income</h2>
@@ -1023,63 +1143,123 @@
     <p class="desc">Same categories as the current budget, but with a €1.700 mortgage and no ownership fee. Edit any amount and the totals below update instantly.</p>
 
     <div class="row-head">
-      <div>Item</div><div style="text-align:right">Amount €</div>
+      <div></div><div style="text-align:right">Amount €</div>
     </div>
-    <div id="household-rows-b"><div class="cat-group"><div class="cat-title">House</div><div class="row">
-          <div class="name">Mortgage</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="0"></div>
-        </div><div class="row">
-          <div class="name">Gas</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="0"></div>
-        </div><div class="row">
-          <div class="name">Energy</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="0"></div>
-        </div><div class="row">
-          <div class="name">County and city taxes</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="0"></div>
-        </div><div class="row">
-          <div class="name">House insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="0"></div>
-        </div><div class="subtotal-row">
+    <div id="household-rows-b"><div class="cat-group"><div class="cat-title">House</div><div class="row-outer" data-drag-row="0.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.0" value="Mortgage"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="0.1">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.1" value="Gas"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="0.2">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.2" value="Energy"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="0.3">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.3" value="County and city taxes"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer row-outer-last" data-drag-row="0.4">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.4" value="House insurance"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="0.4" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><button type="button" class="btn-add-item" data-hh-add="0">+ Add cost</button><div class="subtotal-row">
         <div>Subtotal — House</div>
         <div class="computed" id="hh-cat-0-b">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row">
-          <div class="name">Car fuel</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="0"></div>
-        </div><div class="row">
-          <div class="name">Car insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="0"></div>
-        </div><div class="row">
-          <div class="name">Road taxes</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="0"></div>
-        </div><div class="row">
-          <div class="name">Maintenance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="0"></div>
-        </div><div class="row">
-          <div class="name">Road service contract</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="0"></div>
-        </div><div class="subtotal-row">
+      </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row-outer" data-drag-row="1.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.0" value="Car fuel"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="1.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="1.1">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.1" value="Car insurance"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="1.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="1.2">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.2" value="Road taxes"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="1.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="1.3">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.3" value="Maintenance"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="1.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer row-outer-last" data-drag-row="1.4">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.4" value="Road service contract"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="1.4" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><button type="button" class="btn-add-item" data-hh-add="1">+ Add cost</button><div class="subtotal-row">
         <div>Subtotal — Transport</div>
         <div class="computed" id="hh-cat-1-b">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row">
-          <div class="name">Gym</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="0"></div>
-        </div><div class="row">
-          <div class="name">Ziggo</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="0"></div>
-        </div><div class="row">
-          <div class="name">Netflix</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="0"></div>
-        </div><div class="row">
-          <div class="name">Disney+</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0"></div>
-        </div><div class="subtotal-row">
+      </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row-outer" data-drag-row="2.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.0" value="Gym"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="2.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="2.1">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.1" value="Ziggo"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="2.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer" data-drag-row="2.2">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.2" value="Netflix"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="2.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><div class="row-outer row-outer-last" data-drag-row="2.3">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.3" value="Disney+"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="2.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><button type="button" class="btn-add-item" data-hh-add="2">+ Add cost</button><div class="subtotal-row">
         <div>Subtotal — Subscriptions (joint)</div>
         <div class="computed" id="hh-cat-2-b">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row">
-          <div class="name">Max — Insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="0"></div>
-        </div><div class="subtotal-row">
+      </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row-outer row-outer-last" data-drag-row="3.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="3.0" value="Max — Insurance"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="0"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="3.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+        </div><button type="button" class="btn-add-item" data-hh-add="3">+ Add cost</button><div class="subtotal-row">
         <div>Subtotal — Pets</div>
         <div class="computed" id="hh-cat-3-b">€&nbsp;0,00</div>
       </div></div></div>
@@ -1145,66 +1325,98 @@
       <span class="item"><span class="swatch nicolas"></span>Nicolas</span>
     </div>
     <div class="row-head personal">
-      <div>Item</div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
+      <div></div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
     </div>
-    <div id="personal-rows-b"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row personal">
-            <div class="name">Health insurance</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="0"></div>
-            <div class="computed" id="pc-0-0-t-b">€&nbsp;0,00</div>
-          </div><div class="row personal">
-            <div class="name">Health costs</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="0"></div>
-            <div class="computed" id="pc-0-1-t-b">€&nbsp;0,00</div>
-          </div><div class="row personal">
-            <div class="name">Other insurance</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0"></div>
-            <div class="computed" id="pc-0-2-t-b">€&nbsp;0,00</div>
-          </div><div class="subtotal-row personal">
+    <div id="personal-rows-b"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row-outer" data-drag-row="0.0">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="0.0" value="Health insurance"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="0"></div>
+              <div class="computed" id="pc-0-0-t-b">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="0.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><div class="row-outer" data-drag-row="0.1">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="0.1" value="Health costs"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="0"></div>
+              <div class="computed" id="pc-0-1-t-b">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="0.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><div class="row-outer row-outer-last" data-drag-row="0.2">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="0.2" value="Other insurance"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0"></div>
+              <div class="computed" id="pc-0-2-t-b">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="0.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><button type="button" class="btn-add-item" data-pc-add="0">+ Add cost</button><div class="subtotal-row personal">
         <div>Subtotal — Fixed costs</div>
         <div class="computed maarten" id="pc-cat-0-m-b">€&nbsp;0,00</div>
         <div class="computed nicolas" id="pc-cat-0-n-b">€&nbsp;0,00</div>
         <div class="computed" id="pc-cat-0-t-b">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row personal">
-            <div class="name">Phone contract</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="0"></div>
-            <div class="computed" id="pc-1-0-t-b">€&nbsp;0,00</div>
-          </div><div class="row personal">
-            <div class="name">Spotify</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="0"></div>
-            <div class="computed" id="pc-1-1-t-b">€&nbsp;0,00</div>
-          </div><div class="row personal">
-            <div class="name">World of Warcraft</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="0"></div>
-            <div class="computed" id="pc-1-2-t-b">€&nbsp;0,00</div>
-          </div><div class="subtotal-row personal">
+      </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row-outer" data-drag-row="1.0">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="1.0" value="Phone contract"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="0"></div>
+              <div class="computed" id="pc-1-0-t-b">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="1.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><div class="row-outer" data-drag-row="1.1">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="1.1" value="Spotify"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="0"></div>
+              <div class="computed" id="pc-1-1-t-b">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="1.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><div class="row-outer row-outer-last" data-drag-row="1.2">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="1.2" value="World of Warcraft"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="0"></div>
+              <div class="computed" id="pc-1-2-t-b">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="1.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><button type="button" class="btn-add-item" data-pc-add="1">+ Add cost</button><div class="subtotal-row personal">
         <div>Subtotal — Subscriptions</div>
         <div class="computed maarten" id="pc-cat-1-m-b">€&nbsp;0,00</div>
         <div class="computed nicolas" id="pc-cat-1-n-b">€&nbsp;0,00</div>
         <div class="computed" id="pc-cat-1-t-b">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row personal">
-            <div class="name">Groceries</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="0"></div>
-            <div class="computed" id="pc-2-0-t-b">€&nbsp;0,00</div>
-          </div><div class="row personal">
-            <div class="name">Saving</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="0"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="0"></div>
-            <div class="computed" id="pc-2-1-t-b">€&nbsp;0,00</div>
-          </div><div class="subtotal-row personal">
+      </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row-outer" data-drag-row="2.0">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="2.0" value="Groceries"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="0"></div>
+              <div class="computed" id="pc-2-0-t-b">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="2.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><div class="row-outer row-outer-last" data-drag-row="2.1">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="2.1" value="Saving"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="0"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="0"></div>
+              <div class="computed" id="pc-2-1-t-b">€&nbsp;0,00</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="2.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          </div><button type="button" class="btn-add-item" data-pc-add="2">+ Add cost</button><div class="subtotal-row personal">
         <div>Subtotal — Other</div>
         <div class="computed maarten" id="pc-cat-2-m-b">€&nbsp;0,00</div>
         <div class="computed nicolas" id="pc-cat-2-n-b">€&nbsp;0,00</div>
         <div class="computed" id="pc-cat-2-t-b">€&nbsp;0,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="loan-item"><div class="row personal">
+      </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="row-outer" data-drag-row="3.0"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
-            Student loan
+            <input class="name-input" type="text" data-pc-label="3.0" value="Student loan">
             <span class="debt-ring" id="debt-ring-3-0-nicolas-b" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
@@ -1241,9 +1453,9 @@
     </div>
           </div>
           <div class="computed" id="pc-3-0-t-b">€&nbsp;0,00</div>
-        </div></div><div class="loan-item"><div class="row personal">
+        </div></div><button type="button" class="btn-del-item" data-pc-del="3.0" title="Remove this loan" aria-label="Remove this loan">×</button></div><div class="row-outer row-outer-last" data-drag-row="3.1"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
-            Credit card
+            <input class="name-input" type="text" data-pc-label="3.1" value="Credit card">
             <span class="debt-ring" id="debt-ring-3-1-nicolas-b" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
@@ -1280,7 +1492,7 @@
     </div>
           </div>
           <div class="computed" id="pc-3-1-t-b">€&nbsp;0,00</div>
-        </div></div><div class="subtotal-row personal">
+        </div></div><button type="button" class="btn-del-item" data-pc-del="3.1" title="Remove this loan" aria-label="Remove this loan">×</button></div><button type="button" class="btn-add-item" data-pc-add="3">+ Add loan</button><div class="subtotal-row personal">
         <div>Subtotal — Loans</div>
         <div class="computed maarten" id="pc-cat-3-m-b">€&nbsp;0,00</div>
         <div class="computed nicolas" id="pc-cat-3-n-b">€&nbsp;0,00</div>
@@ -1576,6 +1788,11 @@
   const EUR = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmt = (n) => EUR.format(Number.isFinite(n) ? n : 0);
   const pctFmt = (n) => (Number.isFinite(n) ? (n * 100).toFixed(1) : "0.0") + "%";
+  // Safe for dropping user-typed cost/loan names into an HTML attribute (value="...").
+  function escapeAttr(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
 
   // ---------- Computation (mirrors the spreadsheet's formulas) ----------
   // mode 'fixed': Nicolas transfers a fixed monthly amount to Maarten, who fronts the rest.
@@ -1639,14 +1856,27 @@
       group.appendChild(title);
 
       cat.items.forEach((it, ii) => {
-        const row = document.createElement('div');
-        row.className = 'row';
-        row.innerHTML = `
-          <div class="name">${it.label}</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="${ci}.${ii}" value="${it.amount}"></div>
+        const isLast = ii === cat.items.length - 1;
+        const rowOuter = document.createElement('div');
+        rowOuter.className = 'row-outer' + (isLast ? ' row-outer-last' : '');
+        rowOuter.setAttribute('data-drag-row', `${ci}.${ii}`);
+        rowOuter.innerHTML = `
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="${ci}.${ii}" value="${escapeAttr(it.label)}"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="${ci}.${ii}" value="${it.amount}"></div>
+          </div>
+          <button class="btn-del-item" type="button" data-hh-del="${ci}.${ii}" title="Remove this cost" aria-label="Remove this cost">×</button>
         `;
-        group.appendChild(row);
+        group.appendChild(rowOuter);
       });
+
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'btn-add-item';
+      addBtn.setAttribute('data-hh-add', String(ci));
+      addBtn.textContent = '+ Add cost';
+      group.appendChild(addBtn);
 
       const sub = document.createElement('div');
       sub.className = 'subtotal-row';
@@ -1702,16 +1932,23 @@
       const isLoans = cat.name === 'Loans';
 
       cat.items.forEach((it, ii) => {
+        const isLast = ii === cat.items.length - 1;
+        const rowOuter = document.createElement('div');
+        rowOuter.className = 'row-outer' + (isLast ? ' row-outer-last' : '');
+        rowOuter.setAttribute('data-drag-row', `${ci}.${ii}`);
+
         if (!isLoans) {
-          const row = document.createElement('div');
-          row.className = 'row personal';
-          row.innerHTML = `
-            <div class="name">${it.label}</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"></div>
-            <div class="computed" id="pc-${ci}-${ii}-t${s}">—</div>
+          rowOuter.innerHTML = `
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="${ci}.${ii}" value="${escapeAttr(it.label)}"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"></div>
+              <div class="computed" id="pc-${ci}-${ii}-t${s}">—</div>
+            </div>
+            <button class="btn-del-item" type="button" data-pc-del="${ci}.${ii}" title="Remove this cost" aria-label="Remove this cost">×</button>
           `;
-          group.appendChild(row);
+          group.appendChild(rowOuter);
           return;
         }
 
@@ -1727,7 +1964,7 @@
         row.className = 'row personal';
         row.innerHTML = `
           <div class="name">
-            ${it.label}
+            <input class="name-input" type="text" data-pc-label="${ci}.${ii}" value="${escapeAttr(it.label)}">
             <span class="debt-ring" id="debt-ring-${ci}-${ii}-nicolas${s}" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
@@ -1746,8 +1983,26 @@
         `;
         wrapper.appendChild(row);
 
-        group.appendChild(wrapper);
+        rowOuter.innerHTML = '<span class="drag-handle" title="Drag to reorder">⠿</span>';
+        rowOuter.appendChild(wrapper);
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'btn-del-item';
+        delBtn.setAttribute('data-pc-del', `${ci}.${ii}`);
+        delBtn.title = 'Remove this loan';
+        delBtn.setAttribute('aria-label', 'Remove this loan');
+        delBtn.textContent = '×';
+        rowOuter.appendChild(delBtn);
+
+        group.appendChild(rowOuter);
       });
+
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'btn-add-item';
+      addBtn.setAttribute('data-pc-add', String(ci));
+      addBtn.textContent = isLoans ? '+ Add loan' : '+ Add cost';
+      group.appendChild(addBtn);
 
       const sub = document.createElement('div');
       sub.className = 'subtotal-row personal';
@@ -1853,11 +2108,74 @@
       });
     });
 
+    // Rename a household cost — doesn't touch any totals, so a light recalc (not a full
+    // rebuild) is enough, and it keeps the input focused while you're still typing.
+    document.querySelectorAll(`#household-rows${s} [data-hh-label]`).forEach(elx => {
+      elx.addEventListener('input', e => {
+        const [ci, ii] = e.target.getAttribute('data-hh-label').split('.');
+        scope.state.household[+ci].items[+ii].label = e.target.value;
+        recalcAndRender(scope);
+      });
+    });
+
+    // Remove a household cost — the list shape changed, so this needs a full rebuild.
+    document.querySelectorAll(`#household-rows${s} [data-hh-del]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-hh-del').split('.');
+        scope.state.household[+ci].items.splice(+ii, 1);
+        fullRender(scope);
+      });
+    });
+
+    // Add a new household cost to a category, then focus its name field so you can
+    // rename it right away.
+    document.querySelectorAll(`#household-rows${s} [data-hh-add]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const ci = +elx.getAttribute('data-hh-add');
+        scope.state.household[ci].items.push({ label: 'New cost', amount: 0 });
+        fullRender(scope);
+        const newIi = scope.state.household[ci].items.length - 1;
+        const input = document.querySelector(`#household-rows${s} [data-hh-label="${ci}.${newIi}"]`);
+        if (input) { input.focus(); input.select(); }
+      });
+    });
+
     document.querySelectorAll(`#personal-rows${s} [data-pc]`).forEach(elx => {
       elx.addEventListener('input', e => {
         const [ci, ii, field] = e.target.getAttribute('data-pc').split('.');
         scope.state.personal[+ci].items[+ii][field] = parseFloat(e.target.value) || 0;
         recalcAndRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc-label]`).forEach(elx => {
+      elx.addEventListener('input', e => {
+        const [ci, ii] = e.target.getAttribute('data-pc-label').split('.');
+        scope.state.personal[+ci].items[+ii].label = e.target.value;
+        recalcAndRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc-del]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-pc-del').split('.');
+        scope.state.personal[+ci].items.splice(+ii, 1);
+        fullRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc-add]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const ci = +elx.getAttribute('data-pc-add');
+        const isLoans = scope.state.personal[ci].name === 'Loans';
+        const newItem = isLoans
+          ? { label: 'New loan', maarten: 0, nicolas: 0, debt: { nicolas: { total: 0, paid: 0, rate: 0 } } }
+          : { label: 'New cost', maarten: 0, nicolas: 0 };
+        scope.state.personal[ci].items.push(newItem);
+        fullRender(scope);
+        const newIi = scope.state.personal[ci].items.length - 1;
+        const input = document.querySelector(`#personal-rows${s} [data-pc-label="${ci}.${newIi}"]`);
+        if (input) { input.focus(); input.select(); }
       });
     });
 
@@ -2202,8 +2520,105 @@
     if (e.target === nicolasLogDialog) nicolasLogDialog.close();
   });
 
+  // ---------- Drag-to-reorder ----------
+  // Pointer Events rather than the native HTML5 drag-and-drop API, since the native API
+  // doesn't work with touch on iOS Safari — pointer events cover mouse and touch the same
+  // way, which matters since this page is used from a phone. Drag starts only from the
+  // handle (⠿), so tapping the name or amount fields is never mistaken for a drag. A row
+  // can be dropped into any category within the same table (household or personal costs
+  // don't mix), reusing fullRender() to rebuild everything afterwards — the same pattern
+  // Import/Reset already use.
+  function initDragReorder(scope, containerId, getCategories) {
+    const root = el(scope, containerId);
+    // A plain JS property, not root.dataset/setAttribute — this must never show up as a real
+    // HTML attribute, since this file's static markup gets periodically re-captured from a
+    // live-rendered snapshot (see SETUP.md) and a baked-in "already initialized" attribute
+    // would permanently disable dragging from a fresh page load.
+    if (!root || root._dragInit) return;
+    root._dragInit = true;
+
+    let drag = null;
+
+    root.addEventListener('pointerdown', (e) => {
+      const handle = e.target.closest('.drag-handle');
+      if (!handle) return;
+      const rowEl = handle.closest('[data-drag-row]');
+      if (!rowEl) return;
+      e.preventDefault();
+      const [ci, ii] = rowEl.getAttribute('data-drag-row').split('.').map(Number);
+      drag = { fromCi: ci, fromIi: ii, rowEl, startY: e.clientY, toCi: null, toIi: null };
+      rowEl.classList.add('dragging');
+      rowEl.style.position = 'relative';
+      rowEl.style.zIndex = '5';
+      try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    root.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      drag.rowEl.style.transform = `translateY(${e.clientY - drag.startY}px)`;
+
+      root.querySelectorAll('.drop-before, .drop-after').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+
+      const groups = Array.from(root.querySelectorAll('.cat-group'));
+      if (!groups.length) return;
+      let targetGroup = groups[groups.length - 1];
+      for (const g of groups) {
+        if (e.clientY < g.getBoundingClientRect().bottom) { targetGroup = g; break; }
+      }
+      const toCi = groups.indexOf(targetGroup);
+      const rowsInGroup = Array.from(targetGroup.querySelectorAll('[data-drag-row]')).filter(r => r !== drag.rowEl);
+
+      let toIi = rowsInGroup.length;
+      let indicatorEl = null, indicatorPos = null;
+      for (let i = 0; i < rowsInGroup.length; i++) {
+        const rect = rowsInGroup[i].getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) {
+          toIi = i;
+          indicatorEl = rowsInGroup[i]; indicatorPos = 'drop-before';
+          break;
+        }
+      }
+      if (!indicatorEl && rowsInGroup.length) {
+        indicatorEl = rowsInGroup[rowsInGroup.length - 1];
+        indicatorPos = 'drop-after';
+      }
+      if (indicatorEl) indicatorEl.classList.add(indicatorPos);
+
+      drag.toCi = toCi;
+      drag.toIi = toIi;
+    });
+
+    function endDrag() {
+      if (!drag) return;
+      root.querySelectorAll('.drop-before, .drop-after').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+      drag.rowEl.classList.remove('dragging');
+      drag.rowEl.style.transform = '';
+      drag.rowEl.style.position = '';
+      drag.rowEl.style.zIndex = '';
+
+      const { fromCi, fromIi, toCi, toIi } = drag;
+      drag = null;
+      if (toCi == null || (fromCi === toCi && fromIi === toIi)) return;
+
+      const categories = getCategories(scope);
+      const [item] = categories[fromCi].items.splice(fromIi, 1);
+      let insertAt = toIi;
+      if (fromCi === toCi && fromIi < toIi) insertAt -= 1;
+      categories[toCi].items.splice(insertAt, 0, item);
+      fullRender(scope);
+    }
+
+    root.addEventListener('pointerup', endDrag);
+    root.addEventListener('pointercancel', endDrag);
+  }
+
   fullRender(scopeA);
   fullRender(scopeB);
+
+  initDragReorder(scopeA, 'household-rows', sc => sc.state.household);
+  initDragReorder(scopeA, 'personal-rows', sc => sc.state.personal);
+  initDragReorder(scopeB, 'household-rows', sc => sc.state.household);
+  initDragReorder(scopeB, 'personal-rows', sc => sc.state.personal);
 })();
 </script>
 
