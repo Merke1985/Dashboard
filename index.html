@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Financiën</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root {
     color-scheme: light;
@@ -115,9 +116,65 @@
   .tile .arrow { margin-top: 16px; font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
 
   footer.note { text-align: center; margin-top: 8px; color: var(--text-muted); font-size: 12px; }
+
+  /* ---- Auth gate ---- */
+  .auth-gate {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--page);
+    padding: 20px;
+  }
+  .auth-gate.hidden { display: none; }
+  .auth-card {
+    width: 100%; max-width: 340px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 28px 26px;
+  }
+  .auth-card h1 { font-size: 18px; margin: 0 0 4px; font-weight: 650; }
+  .auth-sub { margin: 0 0 20px; font-size: 13px; color: var(--text-secondary); }
+  .auth-card label { display: block; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; }
+  .auth-card input {
+    display: block; width: 100%; margin-top: 6px;
+    font: inherit; font-size: 14px; padding: 9px 11px;
+    background: var(--surface-1); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 8px;
+  }
+  .auth-error { min-height: 16px; font-size: 12.5px; color: #d03b3b; margin-bottom: 4px; }
+  .auth-submit {
+    width: 100%; font: inherit; font-size: 14px; font-weight: 600;
+    background: var(--text-primary); color: var(--page);
+    border: none; border-radius: 8px; padding: 10px 12px; cursor: pointer; margin-top: 4px;
+  }
+  .auth-submit:disabled { opacity: 0.6; cursor: default; }
+  .auth-logout {
+    position: fixed; top: 14px; right: 20px; z-index: 30;
+    display: none;
+    font: inherit; font-size: 12px; font-weight: 550;
+    background: var(--surface-2); color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; cursor: pointer;
+  }
 </style>
 </head>
 <body>
+
+
+<button id="btn-logout" class="auth-logout" type="button">Log out</button>
+<div id="auth-gate" class="auth-gate">
+  <form id="auth-form" class="auth-card">
+    <h1>Financiën</h1>
+    <p class="auth-sub">Sign in to continue</p>
+    <label>Email
+      <input type="email" id="auth-email" autocomplete="username" required>
+    </label>
+    <label>Password
+      <input type="password" id="auth-password" autocomplete="current-password" required>
+    </label>
+    <div id="auth-error" class="auth-error"></div>
+    <button type="submit" class="auth-submit">Log in</button>
+  </form>
+</div>
 
 <header class="top">
   <div class="inner">
@@ -173,6 +230,58 @@ document.getElementById('btn-theme').addEventListener('click', () => {
   else if (current === 'light') root.removeAttribute('data-theme');
   else root.setAttribute('data-theme', 'dark');
 });
+</script>
+
+
+<script>
+(function() {
+  var SUPABASE_URL = "https://gtdzuuvlluyofkvbpusx.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0ZHp1dXZsbHV5b2ZrdmJwdXN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTUwMjAsImV4cCI6MjA2NzYzMTAyMH0.DcHwCLuyyVJvs0Ugpr7bE0Az5_tkES4kE_P0SUFOyus";
+  var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  var gate = document.getElementById('auth-gate');
+  var form = document.getElementById('auth-form');
+  var emailInput = document.getElementById('auth-email');
+  var passInput = document.getElementById('auth-password');
+  var errorEl = document.getElementById('auth-error');
+  var logoutBtn = document.getElementById('btn-logout');
+
+  function showApp() {
+    gate.classList.add('hidden');
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+  }
+  function showGate() {
+    gate.classList.remove('hidden');
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+
+  sb.auth.getSession().then(function(res) {
+    if (res.data.session) showApp(); else showGate();
+  });
+
+  sb.auth.onAuthStateChange(function(event, session) {
+    if (session) showApp(); else showGate();
+  });
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    errorEl.textContent = '';
+    var email = emailInput.value.trim();
+    var password = passInput.value;
+    var btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Logging in…';
+    sb.auth.signInWithPassword({ email: email, password: password }).then(function(res) {
+      btn.disabled = false; btn.textContent = 'Log in';
+      if (res.error) {
+        errorEl.textContent = 'Wrong email or password.';
+      }
+    });
+  });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function() { sb.auth.signOut(); });
+  }
+})();
 </script>
 
 </body>
