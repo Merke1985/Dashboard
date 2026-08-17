@@ -272,20 +272,12 @@
     border: none; border-radius: 8px; padding: 10px 12px; cursor: pointer; margin-top: 4px;
   }
   .auth-submit:disabled { opacity: 0.6; cursor: default; }
-  .auth-logout {
-    position: fixed; top: 14px; right: 20px; z-index: 30;
-    display: none;
-    font: inherit; font-size: 12px; font-weight: 550;
-    background: var(--surface-2); color: var(--text-secondary);
-    border: 1px solid var(--border); border-radius: 8px;
-    padding: 6px 10px; cursor: pointer;
-  }
+
 </style>
 </head>
 <body>
 
 
-<button id="btn-logout" class="auth-logout" type="button">Log out</button>
 <div id="auth-gate" class="auth-gate">
   <form id="auth-form" class="auth-card">
     <h1>Financiën</h1>
@@ -313,6 +305,7 @@
       <button class="ctl" id="btn-export">⭳ Export</button>
       <button class="ctl" id="btn-import">⭱ Import</button>
       <button class="ctl" id="btn-reset">↺ Reset</button>
+      <button class="ctl" id="btn-logout" style="display:none" title="Sign out">⎋ Log out</button>
       <input type="file" id="file-import" accept="application/json">
     </div>
   </div>

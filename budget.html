@@ -283,7 +283,11 @@
   /* Mirrors the row-outer's drag-handle + edit + delete button widths so the "Subtotal"
      line's amount column lines up exactly with the item rows' amount column above it. */
   .subtotal-outer { display: flex; align-items: center; gap: 2px; }
-  .subtotal-outer > .subtotal-row { flex: 1 1 auto; min-width: 0; }
+  /* .row-head needs the same flex-grow as .subtotal-row — without it, the header (Item /
+     Maarten € / Nicolas € / Total €) shrinks to its own content width instead of
+     stretching to match the item rows below, so its fixed-width columns land at the
+     wrong x-position and don't line up with the actual amounts. */
+  .subtotal-outer > .subtotal-row, .subtotal-outer > .row-head { flex: 1 1 auto; min-width: 0; }
   .btn-add-item {
     display: flex; align-items: center; gap: 6px; width: 100%; box-sizing: border-box;
     margin-top: 6px; padding: 7px 10px;
@@ -331,6 +335,19 @@
   .donut-figure { position: relative; width: 168px; height: 168px; flex: none; margin: 0 auto; }
   .donut-figure svg { width: 100%; height: 100%; }
   .donut-figure svg circle { transition: stroke-dasharray 0.25s ease, stroke-dashoffset 0.25s ease; }
+  .donut-figure svg circle[data-tip-label] { cursor: default; transition: stroke-dasharray 0.25s ease, stroke-dashoffset 0.25s ease, stroke-width 0.1s ease; }
+  .donut-figure svg circle[data-tip-label]:hover { stroke-width: 5.5; }
+  /* Single shared tooltip element, reused by every donut on the page (who-pays-what,
+     both salary-split donuts, in both scopes) — positioned under the pointer by the one
+     delegated listener bound near the bottom of the script. */
+  .chart-tooltip {
+    position: fixed; z-index: 9999; pointer-events: none;
+    transform: translate(-50%, -100%); margin-top: -10px;
+    background: var(--text-primary); color: var(--page);
+    font-size: 12.5px; font-weight: 600; padding: 6px 11px; border-radius: 7px;
+    box-shadow: var(--shadow); white-space: nowrap;
+  }
+  .chart-tooltip .tip-pct { opacity: 0.7; font-weight: 500; margin-left: 6px; }
   .donut-center {
     position: absolute; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; text-align: center; pointer-events: none; padding: 0 20px;
@@ -353,10 +370,20 @@
 
 
   .adj-control {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;
     background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
   }
-  .adj-control label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); flex: 1; min-width: 200px; }
+  /* Label + edit pencil sit together on the left, inline, so the button reads as "click
+     here to edit this line" rather than getting lost far to the right past the number —
+     and so the number field stays the trailing flex child, keeping its right edge lined
+     up with the total below (which has no button competing for that space). */
+  .adj-control .adj-label-row { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 200px; }
+  .adj-control label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
+  .adj-control .btn-edit-item {
+    flex: none; border: 1px solid var(--border); border-radius: 6px;
+    background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  }
+  .adj-control .btn-edit-item.active { border-color: color-mix(in srgb, var(--status-good) 40%, var(--border)); }
   .adj-control .num-field { width: 120px; }
   .adj-control input.num { font-size: 14px; font-weight: 650; }
 
@@ -420,6 +447,24 @@
   }
   .icon-btn:hover { background: color-mix(in srgb, var(--text-primary) 8%, transparent); color: var(--text-primary); }
   .modal-desc { font-size: 12.5px; color: var(--text-secondary); margin: 6px 0 16px; line-height: 1.5; }
+
+  /* loan info modal — read-only summary opened via the ℹ️ button next to each loan */
+  .loan-info-rows { margin-top: 14px; }
+  .loan-info-rows .line {
+    display: flex; justify-content: space-between; font-size: 13px; padding: 9px 0;
+    border-bottom: 1px solid var(--gridline); color: var(--text-secondary);
+  }
+  .loan-info-rows .line:last-child { border-bottom: none; }
+  .loan-info-rows .line span.v { font-variant-numeric: tabular-nums; color: var(--text-primary); font-weight: 600; }
+  .loan-info-rows .line.final { padding-top: 12px; margin-top: 2px; border-top: 1px solid var(--baseline); }
+  .loan-info-rows .line.final span:first-child { font-weight: 650; color: var(--text-primary); }
+  .loan-info-rows .line.final .v { font-size: 16px; font-weight: 700; }
+  .loan-info-btn {
+    flex: none; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;
+    background: none; border: none; padding: 0; cursor: pointer; font-size: 13px; line-height: 1;
+    opacity: 0.7; border-radius: 6px;
+  }
+  .loan-info-btn:hover { opacity: 1; background: color-mix(in srgb, var(--text-primary) 8%, transparent); }
 
   .log-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
   .log-summary .yr-tile {
@@ -485,6 +530,7 @@
   .loan-mini .num-field .unit { font-size: 9.5px; left: 4px; }
   .loan-mini .num-field.pct input.num { padding-right: 14px; padding-left: 4px; }
   .loan-mini .num-field.pct .unit { left: auto; right: 4px; }
+  .loan-mini .num-field.months input.num { padding-left: 4px; }
 
   .loan-mini-progress-track {
     height: 5px; border-radius: 999px; background: var(--gridline); overflow: hidden; margin-top: 1px;
@@ -880,10 +926,24 @@
   <!-- WHO PAYS WHAT -->
   <section class="card">
     <h2>Who pays what</h2>
-    <p class="desc">Maarten fronts the joint costs; Nicolas balances it out with a fixed monthly transfer. Change it below to see how the split shifts.</p>
+    <p class="desc">Maarten fronts the joint costs; Nicolas balances it out with a fixed monthly transfer, minus a correction for the interest tax return he already receives. Click the pencil to change either amount.</p>
     <div class="adj-control">
-      <label for="in-adjustment">Nicolas → Maarten, fixed monthly contribution</label>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="1" min="0" id="in-adjustment" value="0"></div>
+      <div class="adj-label-row">
+        <label for="in-adjustment">Nicolas → Maarten, fixed monthly contribution</label>
+        <button class="btn-edit-item" type="button" id="btn-adj-edit" title="Edit this amount" aria-label="Edit this amount">✎</button>
+      </div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="1" min="0" id="in-adjustment" value="0" readonly=""></div>
+    </div>
+    <div class="adj-control">
+      <div class="adj-label-row">
+        <label for="in-adjustment-correction">Correction — interest tax return Nicolas already receives</label>
+        <button class="btn-edit-item" type="button" id="btn-adj-correction-edit" title="Edit this amount" aria-label="Edit this amount">✎</button>
+      </div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="1" min="0" id="in-adjustment-correction" value="0" readonly=""></div>
+    </div>
+    <div class="grand-total" style="margin-top:0; margin-bottom:18px;">
+      <div>Net monthly contribution</div>
+      <div class="value" id="out-adjustment-net">€&nbsp;0,00</div>
     </div>
 
     <div class="tiles" style="margin-bottom:20px;">
@@ -907,9 +967,9 @@
         <svg viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
           <g id="whopays-donut-segments">
-      <circle id="whopays-donut-seg-maarten" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="whopays-donut-seg-maarten" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Maarten" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="whopays-donut-seg-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="whopays-donut-seg-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Nicolas" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     </g>
         </svg>
         <div class="donut-center">
@@ -1087,6 +1147,7 @@
       </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="row-outer" data-drag-row="3.0"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
             <input class="name-input" type="text" data-pc-label="3.0" value="Student loan" readonly="">
+            <button class="loan-info-btn" type="button" data-loan-info="a.3.0" title="Loan details" aria-label="Loan details">ℹ️</button>
             <span class="debt-ring" id="debt-ring-3-0-nicolas" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
@@ -1112,6 +1173,10 @@
         <span class="lbl">Rate</span>
         <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.0.nicolas.rate" value="0" readonly=""></div>
       </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Run time (months)</span>
+        <div class="num-field months"><input class="num" type="number" step="1" min="0" data-loan="3.0.nicolas.termMonths" value="0" readonly=""></div>
+      </div>
       <div class="loan-progress-row" id="loan-progress-row-3-0-nicolas" style="display: none;">
         <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-0-nicolas" style="width:0%"></div></div>
         <div class="loan-mini-caption">
@@ -1130,6 +1195,7 @@
       </div><div class="row-outer row-outer-last" data-drag-row="3.1"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
             <input class="name-input" type="text" data-pc-label="3.1" value="Credit card" readonly="">
+            <button class="loan-info-btn" type="button" data-loan-info="a.3.1" title="Loan details" aria-label="Loan details">ℹ️</button>
             <span class="debt-ring" id="debt-ring-3-1-nicolas" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
@@ -1154,6 +1220,10 @@
       <div class="loan-mini-field">
         <span class="lbl">Rate</span>
         <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.1.nicolas.rate" value="0" readonly=""></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Run time (months)</span>
+        <div class="num-field months"><input class="num" type="number" step="1" min="0" data-loan="3.1.nicolas.termMonths" value="0" readonly=""></div>
       </div>
       <div class="loan-progress-row" id="loan-progress-row-3-1-nicolas" style="display: none;">
         <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-1-nicolas" style="width:0%"></div></div>
@@ -1231,11 +1301,11 @@
             <svg viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
               <g id="split-donut-segments-maarten">
-      <circle id="split-donut-seg-maarten-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Joint costs" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="split-donut-seg-maarten-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Personal costs" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="split-donut-seg-maarten-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Left over" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     </g>
             </svg>
             <div class="donut-center">
@@ -1268,11 +1338,11 @@
             <svg viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
               <g id="split-donut-segments-nicolas">
-      <circle id="split-donut-seg-nicolas-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Joint costs" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="split-donut-seg-nicolas-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Personal costs" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="split-donut-seg-nicolas-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Left over" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     </g>
             </svg>
             <div class="donut-center">
@@ -1573,9 +1643,9 @@
         <svg viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
           <g id="whopays-donut-segments-b">
-      <circle id="whopays-donut-seg-maarten-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="whopays-donut-seg-maarten-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Maarten" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="whopays-donut-seg-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="whopays-donut-seg-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Nicolas" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     </g>
         </svg>
         <div class="donut-center">
@@ -1753,6 +1823,7 @@
       </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="row-outer" data-drag-row="3.0"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
             <input class="name-input" type="text" data-pc-label="3.0" value="Student loan" readonly="">
+            <button class="loan-info-btn" type="button" data-loan-info="b.3.0" title="Loan details" aria-label="Loan details">ℹ️</button>
             <span class="debt-ring" id="debt-ring-3-0-nicolas-b" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
@@ -1778,6 +1849,10 @@
         <span class="lbl">Rate</span>
         <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.0.nicolas.rate" value="0" readonly=""></div>
       </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Run time (months)</span>
+        <div class="num-field months"><input class="num" type="number" step="1" min="0" data-loan="3.0.nicolas.termMonths" value="0" readonly=""></div>
+      </div>
       <div class="loan-progress-row" id="loan-progress-row-3-0-nicolas-b" style="display: none;">
         <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-0-nicolas-b" style="width:0%"></div></div>
         <div class="loan-mini-caption">
@@ -1796,6 +1871,7 @@
       </div><div class="row-outer row-outer-last" data-drag-row="3.1"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
             <input class="name-input" type="text" data-pc-label="3.1" value="Credit card" readonly="">
+            <button class="loan-info-btn" type="button" data-loan-info="b.3.1" title="Loan details" aria-label="Loan details">ℹ️</button>
             <span class="debt-ring" id="debt-ring-3-1-nicolas-b" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
@@ -1820,6 +1896,10 @@
       <div class="loan-mini-field">
         <span class="lbl">Rate</span>
         <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.1.nicolas.rate" value="0" readonly=""></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Run time (months)</span>
+        <div class="num-field months"><input class="num" type="number" step="1" min="0" data-loan="3.1.nicolas.termMonths" value="0" readonly=""></div>
       </div>
       <div class="loan-progress-row" id="loan-progress-row-3-1-nicolas-b" style="display: none;">
         <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-1-nicolas-b" style="width:0%"></div></div>
@@ -1897,11 +1977,11 @@
             <svg viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
               <g id="split-donut-segments-maarten-b">
-      <circle id="split-donut-seg-maarten-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Joint costs" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="split-donut-seg-maarten-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Personal costs" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="split-donut-seg-maarten-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Left over" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     </g>
             </svg>
             <div class="donut-center">
@@ -1934,11 +2014,11 @@
             <svg viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
               <g id="split-donut-segments-nicolas-b">
-      <circle id="split-donut-seg-nicolas-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Joint costs" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="split-donut-seg-nicolas-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Personal costs" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="split-donut-seg-nicolas-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Left over" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     </g>
             </svg>
             <div class="donut-center">
@@ -1971,6 +2051,8 @@
 
 </main>
 
+<div id="chart-tooltip" class="chart-tooltip" hidden=""></div>
+
 <footer class="note">
   Built from your <strong>Budgetplan 2026.xlsx</strong> (Overview sheet — joint costs and personal costs).
   All figures are editable and recalculate live in your browser — nothing is sent anywhere, and nothing is saved automatically
@@ -1997,6 +2079,14 @@
   </div>
 </dialog>
 
+<dialog id="loan-info-dialog" class="modal">
+  <div class="modal-header">
+    <h3 id="loan-info-title">Loan details</h3>
+    <button class="icon-btn" id="btn-close-loan-info" type="button" aria-label="Close">✕</button>
+  </div>
+  <div class="loan-info-rows" id="loan-info-rows"></div>
+</dialog>
+
 <script>
 (function () {
   "use strict";
@@ -2010,6 +2100,7 @@
     return {
       salary: { maarten: 0, nicolas: 0 },
       adjustment: 0,
+      adjustmentCorrection: 0,
       household: [
         { name: "House", items: [
           { label: "Mortgage", amount: 0 },
@@ -2094,10 +2185,10 @@
       ]},
       { name: "Loans", items: [
         { label: "Student loan", maarten: 0, nicolas: 0, debt: {
-          nicolas: { total: 0, paid: 0, rate: 0 },
+          nicolas: { total: 0, paid: 0, rate: 0, termMonths: 0 },
         }},
         { label: "Credit card", maarten: 0, nicolas: 0, debt: {
-          nicolas: { total: 0, paid: 0, rate: 0 },
+          nicolas: { total: 0, paid: 0, rate: 0, termMonths: 0 },
         }},
       ]},
     ];
@@ -2180,6 +2271,13 @@
   }
 
   // ---------- Computation (mirrors the spreadsheet's formulas) ----------
+  // The fixed monthly contribution (in-adjustment) minus the correction for the interest
+  // tax return Nicolas already receives (in-adjustment-correction) — this net figure is
+  // what actually gets transferred and split against.
+  function netAdjustment(st) {
+    return (Number(st.adjustment) || 0) - (Number(st.adjustmentCorrection) || 0);
+  }
+
   // mode 'fixed': Nicolas transfers a fixed monthly amount to Maarten, who fronts the rest.
   // mode 'split50': joint costs are split exactly 50/50 between them, no adjustment involved.
   function compute(scope) {
@@ -2199,7 +2297,7 @@
       maartenPays = total - nicolasPays;
       adjustment = nicolasPays;
     } else {
-      adjustment = Number(st.adjustment) || 0;
+      adjustment = netAdjustment(st);
       maartenPays = total - adjustment;
       nicolasPays = adjustment;
     }
@@ -2299,6 +2397,10 @@
         <span class="lbl">Rate</span>
         <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="${ci}.${ii}.${personKey}.rate" value="${debt.rate}"${ro}></div>
       </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Run time (months)</span>
+        <div class="num-field months"><input class="num" type="number" step="1" min="0" data-loan="${ci}.${ii}.${personKey}.termMonths" value="${debt.termMonths || 0}"${ro}></div>
+      </div>
       <div class="loan-progress-row" id="loan-progress-row-${ci}-${ii}-${personKey}${s}">
         <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill ${personKey}" id="loan-progress-${ci}-${ii}-${personKey}${s}" style="width:0%"></div></div>
         <div class="loan-mini-caption">
@@ -2360,6 +2462,7 @@
         row.innerHTML = `
           <div class="name">
             <input class="name-input" type="text" data-pc-label="${ci}.${ii}" value="${escapeAttr(it.label)}"${ro}>
+            <button class="loan-info-btn" type="button" data-loan-info="${scope.key}.${ci}.${ii}" title="Loan details" aria-label="Loan details">ℹ️</button>
             <span class="debt-ring" id="debt-ring-${ci}-${ii}-nicolas${s}" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
@@ -2429,9 +2532,18 @@
     segmentsMeta.forEach((sg, i) => {
       const elx = document.getElementById(sg.id);
       if (!elx) return;
-      const pct = total > 0 ? Math.max(0, values[i]) / total * 100 : 0;
+      const rawVal = Math.max(0, values[i]);
+      const pct = total > 0 ? rawVal / total * 100 : 0;
       elx.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
       elx.setAttribute('stroke-dashoffset', String(25 - cumulative));
+      // Hover tooltip content — read by the single delegated pointermove listener set up
+      // near the bottom of the script, so it stays current across every recalc without
+      // needing to re-bind anything per segment.
+      if (sg.name) {
+        elx.setAttribute('data-tip-label', sg.name);
+        elx.setAttribute('data-tip-amount', fmt(rawVal));
+        elx.setAttribute('data-tip-pct', pctFmt(total > 0 ? rawVal / total : 0));
+      }
       cumulative += pct;
     });
   }
@@ -2491,6 +2603,11 @@
     const adjEl = el(scope, 'in-adjustment');
     if (adjEl) adjEl.addEventListener('input', e => {
       scope.state.adjustment = parseFloat(e.target.value) || 0;
+      recalcAndRender(scope);
+    });
+    const adjCorrEl = el(scope, 'in-adjustment-correction');
+    if (adjCorrEl) adjCorrEl.addEventListener('input', e => {
+      scope.state.adjustmentCorrection = parseFloat(e.target.value) || 0;
       recalcAndRender(scope);
     });
 
@@ -2645,7 +2762,7 @@
         const ci = +elx.getAttribute('data-pc-add');
         const isLoans = scope.state.personal[ci].name === 'Loans';
         const newItem = isLoans
-          ? { label: 'New loan', maarten: 0, nicolas: 0, debt: { nicolas: { total: 0, paid: 0, rate: 0 } } }
+          ? { label: 'New loan', maarten: 0, nicolas: 0, debt: { nicolas: { total: 0, paid: 0, rate: 0, termMonths: 0 } } }
           : { label: 'New cost', maarten: 0, nicolas: 0 };
         scope._editUnlocked.add(newItem);
         scope._editSnapshots.set(newItem, JSON.parse(JSON.stringify(newItem)));
@@ -2685,6 +2802,8 @@
     if (salN) salN.value = scope.state.salary.nicolas;
     const adjEl = el(scope, 'in-adjustment');
     if (adjEl) adjEl.value = scope.state.adjustment;
+    const adjCorrEl = el(scope, 'in-adjustment-correction');
+    if (adjCorrEl) adjCorrEl.value = scope.state.adjustmentCorrection;
     document.querySelectorAll(`#household-rows${s} [data-hh]`).forEach(elx => {
       const [ci, ii] = elx.getAttribute('data-hh').split('.');
       elx.value = scope.state.household[+ci].items[+ii].amount;
@@ -2695,7 +2814,9 @@
     });
     document.querySelectorAll(`#personal-rows${s} [data-loan]`).forEach(elx => {
       const [ci, ii, person, field] = elx.getAttribute('data-loan').split('.');
-      elx.value = scope.state.personal[+ci].items[+ii].debt[person][field];
+      // Older loans saved before a field existed (e.g. termMonths) won't have it in their
+      // debt object yet — default to 0 rather than leaving the input showing "undefined".
+      elx.value = scope.state.personal[+ci].items[+ii].debt[person][field] || 0;
     });
   }
 
@@ -2715,6 +2836,7 @@
     setText(`out-hh-total${s}`, fmt(r.total));
 
     // who pays what
+    setText(`out-adjustment-net${s}`, fmt(netAdjustment(scope.state)));
     setText(`out-pays-maarten${s}`, fmt(r.maartenPays));
     setText(`out-pays-nicolas${s}`, fmt(r.nicolasPays));
     setText(`out-pct-maarten${s}`, pctFmt(r.splitMaartenPct) + ' of joint costs');
@@ -2722,7 +2844,7 @@
 
     // who-pays-what donut — Maarten's share vs Nicolas's share of the joint costs
     updateDonutSegments(
-      [{ id: `whopays-donut-seg-maarten${s}` }, { id: `whopays-donut-seg-nicolas${s}` }],
+      [{ id: `whopays-donut-seg-maarten${s}`, name: 'Maarten' }, { id: `whopays-donut-seg-nicolas${s}`, name: 'Nicolas' }],
       [r.maartenPays, r.nicolasPays], r.total
     );
     setText(`whopays-donut-total${s}`, fmt(r.total));
@@ -2783,9 +2905,9 @@
     const ringTotal = joint + personal + leftPositive;
     updateDonutSegments(
       [
-        { id: `split-donut-seg-${personKey}-joint${s}` },
-        { id: `split-donut-seg-${personKey}-personal${s}` },
-        { id: `split-donut-seg-${personKey}-left${s}` },
+        { id: `split-donut-seg-${personKey}-joint${s}`, name: 'Joint costs' },
+        { id: `split-donut-seg-${personKey}-personal${s}`, name: 'Personal costs' },
+        { id: `split-donut-seg-${personKey}-left${s}`, name: 'Left over' },
       ],
       [joint, personal, leftPositive], ringTotal
     );
@@ -2888,6 +3010,57 @@
     else root.setAttribute('data-theme', 'dark');
   });
 
+  // Nicolas → Maarten contribution + tax-return correction — a plain lock/unlock toggle
+  // (pencil ↔ green check), not the full edit/discard/delete row system, since these are
+  // single fixed fields rather than a deletable list item. Bound once here (not inside
+  // bindInputs/fullRender) because these inputs are static markup, never rebuilt, so
+  // re-binding on every render would stack duplicate toggle listeners and make the button
+  // flip twice per click after just one add/delete/drag elsewhere on the page.
+  function bindAdjLockToggle(btnId, inputId) {
+    const btn = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    if (!btn || !input) return;
+    btn.addEventListener('click', () => {
+      const isLocked = input.hasAttribute('readonly');
+      if (isLocked) {
+        input.removeAttribute('readonly');
+        btn.classList.add('active');
+        btn.textContent = '✓';
+        btn.title = 'Save changes';
+        btn.setAttribute('aria-label', 'Save changes');
+        input.focus();
+      } else {
+        input.setAttribute('readonly', '');
+        btn.classList.remove('active');
+        btn.textContent = '✎';
+        btn.title = 'Edit this amount';
+        btn.setAttribute('aria-label', 'Edit this amount');
+      }
+    });
+  }
+  bindAdjLockToggle('btn-adj-edit', 'in-adjustment');
+  bindAdjLockToggle('btn-adj-correction-edit', 'in-adjustment-correction');
+
+  // ---------- Donut hover tooltips ----------
+  // One delegated listener for every donut on the page (who-pays-what, both salary-split
+  // donuts, in both scopes) — the ring segments are plain SVG circles rebuilt on every
+  // render, so binding per-circle would mean constant re-binding; delegating on the
+  // document and reading each circle's data-tip-* attributes (kept current by
+  // updateDonutSegments) sidesteps that entirely.
+  (function () {
+    const tip = document.getElementById('chart-tooltip');
+    if (!tip) return;
+    document.addEventListener('pointermove', (e) => {
+      const c = e.target.closest && e.target.closest('circle[data-tip-label]');
+      if (!c) { tip.hidden = true; return; }
+      tip.innerHTML = `${c.getAttribute('data-tip-label')}: <strong>${c.getAttribute('data-tip-amount')}</strong><span class="tip-pct">${c.getAttribute('data-tip-pct')}</span>`;
+      tip.style.left = e.clientX + 'px';
+      tip.style.top = e.clientY + 'px';
+      tip.hidden = false;
+    });
+    document.addEventListener('pointerleave', () => { tip.hidden = true; });
+  })();
+
   document.getElementById('btn-export').addEventListener('click', () => {
     const payload = Object.assign({ scenario: activeScope.key }, activeScope.state);
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -2922,7 +3095,7 @@
     const now = new Date();
     const curYear = now.getFullYear();
     const curMonth = now.getMonth() + 1; // 1–12
-    const monthlyTarget = Number(scopeA.state.adjustment) || 0;
+    const monthlyTarget = netAdjustment(scopeA.state);
     const years = [...new Set(NICOLAS_LOG.map(r => r.y))];
     const summary = document.getElementById('log-summary');
     summary.innerHTML = years.map(y => {
@@ -2949,7 +3122,7 @@
       return `
         <tr>
           <td>${MONTH_NAMES[r.m - 1]} ${r.y}</td>
-          <td class="${r.contribution < (Number(scopeA.state.adjustment) || 0) ? 'net bad' : ''}">${fmt(r.contribution)}</td>
+          <td class="${r.contribution < netAdjustment(scopeA.state) ? 'net bad' : ''}">${fmt(r.contribution)}</td>
           <td class="${r.spending ? '' : 'muted'}">${r.spending ? fmt(r.spending) : '—'}</td>
           <td class="net${net < 0 ? ' bad' : ''}">${fmt(net)}</td>
         </tr>
@@ -2966,6 +3139,46 @@
   nicolasLogDialog.addEventListener('click', (e) => {
     // click on the backdrop (the dialog element itself, outside its content) closes it
     if (e.target === nicolasLogDialog) nicolasLogDialog.close();
+  });
+
+  // ---------- Loan info modal ----------
+  // Read-only detail view for one loan (amount loaned, paid, remaining, rate, run time,
+  // monthly payment) — opened via the ℹ️ button next to the loan's name. Delegated on
+  // document rather than bound per-button, since loan rows are rebuilt on every render.
+  const loanInfoDialog = document.getElementById('loan-info-dialog');
+  function openLoanInfo(scopeKey, ci, ii) {
+    const scope = scopeKey === 'b' ? scopeB : scopeA;
+    const it = scope.state.personal[ci] && scope.state.personal[ci].items[ii];
+    if (!it || !it.debt || !it.debt.nicolas) return;
+    const debt = it.debt.nicolas;
+    const total = Number(debt.total) || 0;
+    const paid = Math.max(0, Number(debt.paid) || 0);
+    const remaining = Math.max(0, total - paid);
+    const rate = Number(debt.rate) || 0;
+    const termMonths = Number(debt.termMonths) || 0;
+    const monthly = Number(it.nicolas) || 0;
+    const monthsLeft = monthly > 0 && remaining > 0 ? Math.ceil(remaining / monthly) : null;
+
+    document.getElementById('loan-info-title').textContent = it.label || 'Loan details';
+    document.getElementById('loan-info-rows').innerHTML = `
+      <div class="line"><span>Amount loaned</span><span class="v">${fmt(total)}</span></div>
+      <div class="line"><span>Paid so far</span><span class="v">${fmt(paid)}</span></div>
+      <div class="line"><span>Remaining</span><span class="v">${fmt(remaining)}</span></div>
+      <div class="line"><span>Interest rate</span><span class="v">${rate.toFixed(1).replace('.', ',')}%</span></div>
+      <div class="line"><span>Run time</span><span class="v">${termMonths > 0 ? termMonths + ' months' : '—'}</span></div>
+      <div class="line final"><span>Monthly payment</span><span class="v">${fmt(monthly)}${monthsLeft != null ? ` <span style="font-weight:500;color:var(--text-muted);font-size:12px;">(~${monthsLeft} mo. left)</span>` : ''}</span></div>
+    `;
+    loanInfoDialog.showModal();
+  }
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest && e.target.closest('[data-loan-info]');
+    if (!btn) return;
+    const [scopeKey, ci, ii] = btn.getAttribute('data-loan-info').split('.');
+    openLoanInfo(scopeKey, +ci, +ii);
+  });
+  document.getElementById('btn-close-loan-info').addEventListener('click', () => loanInfoDialog.close());
+  loanInfoDialog.addEventListener('click', (e) => {
+    if (e.target === loanInfoDialog) loanInfoDialog.close();
   });
 
   // ---------- Drag-to-reorder ----------
