@@ -106,6 +106,7 @@
     color: var(--text-muted); margin-bottom: 4px;
   }
   .home-link:hover { color: var(--text-primary); }
+  .controls-stack { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
   .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   button.ctl {
     font: inherit; font-size: 12.5px; font-weight: 550;
@@ -117,6 +118,19 @@
   }
   button.ctl:hover { background: color-mix(in srgb, var(--text-primary) 6%, var(--surface-2)); }
   button.ctl:active { transform: translateY(0.5px); }
+  button.ctl.ctl-danger {
+    background: color-mix(in srgb, var(--status-critical) 12%, var(--surface-2));
+    color: var(--status-critical);
+    border-color: color-mix(in srgb, var(--status-critical) 35%, var(--border));
+  }
+  button.ctl.ctl-danger:hover { background: color-mix(in srgb, var(--status-critical) 22%, var(--surface-2)); }
+  button.ctl.ctl-save {
+    background: color-mix(in srgb, var(--status-good) 14%, var(--surface-2));
+    color: var(--status-good-text);
+    border-color: color-mix(in srgb, var(--status-good) 35%, var(--border));
+  }
+  button.ctl.ctl-save:hover { background: color-mix(in srgb, var(--status-good) 24%, var(--surface-2)); }
+  button.ctl:disabled { opacity: 0.55; cursor: default; }
 
   main { padding-top: 22px; }
 
@@ -533,13 +547,18 @@
       <h1>Joint Costs Dashboard 2026</h1>
       <div class="sub">Maarten &amp; Nicolas — overview of your shared household costs, live from your spreadsheet's formulas</div>
     </div>
-    <div class="controls">
-      <span class="sync-status" id="sync-status" title="Cloud sync status">☁️ …</span>
-      <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
-      <button class="ctl" id="btn-export">⭳ Export</button>
-      <button class="ctl" id="btn-import">⭱ Import</button>
-      <button class="ctl" id="btn-reset">↺ Reset</button>
-      <input type="file" id="file-import" accept="application/json" value="">
+    <div class="controls-stack">
+      <div class="controls">
+        <span class="sync-status" id="sync-status" title="Cloud sync status">☁️ …</span>
+        <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
+        <button class="ctl" id="btn-export">⭳ Export</button>
+        <button class="ctl" id="btn-import">⭱ Import</button>
+        <input type="file" id="file-import" accept="application/json" value="">
+      </div>
+      <div class="controls">
+        <button class="ctl ctl-danger" id="btn-undo">↺ Undo changes</button>
+        <button class="ctl ctl-save" id="btn-save">💾 Save</button>
+      </div>
     </div>
   </div>
   <div class="tab-bar">
@@ -2116,14 +2135,15 @@
     e.target.value = '';
   });
 
-  document.getElementById('btn-reset').addEventListener('click', () => {
-    const label = activeScope.key === 'b' ? 'the potential new house calculation' : 'the current budget';
-    if (confirm(`Discard any unsaved changes in ${label} and reload the last saved values from the database?`)) {
-      if (window.__reloadScopeFromCloud) {
-        window.__reloadScopeFromCloud(activeScope.key);
+  document.getElementById('btn-undo').addEventListener('click', () => {
+    if (confirm('Discard all unsaved changes — in both Current Budget and Potential new house — and reload the last saved values from the database?')) {
+      if (window.__undoAllChanges) {
+        window.__undoAllChanges();
       } else {
-        activeScope.state = activeScope.key === 'b' ? defaultStateB() : defaultStateA();
-        fullRender(activeScope);
+        scopeA.state = defaultStateA();
+        scopeB.state = defaultStateB();
+        fullRender(scopeA);
+        fullRender(scopeB);
       }
     }
   });
@@ -2244,15 +2264,16 @@
 
 <script>
 // ---------- Cloud sync (budget_dashboard_state in Supabase) ----------
-// Loads each scenario's real numbers from Supabase right after login, and saves edits back
-// (debounced) as you make them. Access is enforced twice: only signed-in users can reach
-// this at all (the login gate above), and only emails listed in `allowed_users` can actually
-// read or write the table (Postgres row-level security — enforced by the database itself,
-// not by this script).
+// Loads each scenario's real numbers from Supabase right after login. Edits only stay in
+// memory until you explicitly hit Save (green) — nothing autosaves — and Undo changes (red)
+// discards any unsaved edits in both scenarios and reloads what's actually in the database.
+// Access is enforced twice: only signed-in users can reach this at all (the login gate
+// above), and only emails listed in `allowed_users` can actually read or write the tables
+// (Postgres row-level security — enforced by the database itself, not by this script).
 (function() {
-  var SAVE_DEBOUNCE_MS = 900;
   var statusEl = document.getElementById('sync-status');
-  var saveTimers = {};
+  var saveBtn = document.getElementById('btn-save');
+  var undoBtn = document.getElementById('btn-undo');
   var currentUserEmail = null;
   var loadedOnce = { a: false, b: false };
 
@@ -2302,39 +2323,50 @@
     });
   }
 
-  function saveScope(sb, key) {
-    var scope = key === 'b' ? window.scopeB : window.scopeA;
-    setStatus('☁️ Saving…', 'saving');
-    sb.from('budget_dashboard_state')
-      .upsert({ scenario: key, state: scope.state, updated_by: currentUserEmail, updated_at: new Date().toISOString() })
-      .then(function(res) {
-        if (res.error) {
-          console.error('Budget cloud save failed', res.error);
-          setStatus('⚠️ Could not save', 'error');
-        } else {
-          setStatus('☁️ Synced');
-        }
-      });
-  }
-
+  // Marks the status as dirty on every edit — no autosave happens until Save is clicked.
   document.addEventListener('app:statechanged', function(e) {
-    if (!currentUserEmail) return; // not signed in — nothing to save against
+    if (!currentUserEmail) return; // not signed in yet
     var key = e.detail && e.detail.key;
-    if (!key || !loadedOnce[key]) return; // don't overwrite the DB with the empty scaffold before the real load lands
-    clearTimeout(saveTimers[key]);
-    saveTimers[key] = setTimeout(function() {
-      waitForSb(function(sb) { saveScope(sb, key); });
-    }, SAVE_DEBOUNCE_MS);
+    if (!key || !loadedOnce[key]) return; // ignore the initial zeroed-scaffold render, before the real load lands
+    setStatus('● Unsaved changes', 'saving');
   });
 
-  window.__reloadScopeFromCloud = function(key) {
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+      waitForSb(function(sb) {
+        setStatus('☁️ Saving…', 'saving');
+        saveBtn.disabled = true;
+        var now = new Date().toISOString();
+        Promise.all(['a', 'b'].map(function(key) {
+          var scope = key === 'b' ? window.scopeB : window.scopeA;
+          return sb.from('budget_dashboard_state')
+            .upsert({ scenario: key, state: scope.state, updated_by: currentUserEmail, updated_at: now });
+        })).then(function(results) {
+          saveBtn.disabled = false;
+          var failed = results.find(function(r) { return r.error; });
+          if (failed) {
+            console.error('Budget cloud save failed', failed.error);
+            setStatus('⚠️ Could not save', 'error');
+          } else {
+            setStatus('☁️ Synced');
+          }
+        });
+      });
+    });
+  }
+
+  window.__undoAllChanges = function() {
     waitForSb(function(sb) {
       setStatus('☁️ Loading…', 'saving');
-      loadScope(sb, key).then(function() { setStatus('☁️ Synced'); })
-        .catch(function(err) {
-          console.error('Budget cloud reload failed', err);
-          setStatus('⚠️ Could not load', 'error');
-        });
+      if (undoBtn) undoBtn.disabled = true;
+      Promise.all([loadScope(sb, 'a'), loadScope(sb, 'b')]).then(function() {
+        if (undoBtn) undoBtn.disabled = false;
+        setStatus('☁️ Synced');
+      }).catch(function(err) {
+        if (undoBtn) undoBtn.disabled = false;
+        console.error('Budget cloud reload failed', err);
+        setStatus('⚠️ Could not load', 'error');
+      });
     });
   };
 
