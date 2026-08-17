@@ -330,6 +330,23 @@
   }
   .grand-total .value { font-size: 18px; font-variant-numeric: tabular-nums; }
 
+  /* house fund savings goal */
+  .housefund-progress-wrap { margin-top: 20px; }
+  .housefund-progress-track {
+    height: 10px; border-radius: 999px; overflow: hidden;
+    background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  }
+  .housefund-progress-fill {
+    height: 100%; border-radius: 999px; width: 0%;
+    background: var(--status-good);
+    transition: width 0.3s ease;
+  }
+  .housefund-progress-labels {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 8px; font-size: 12px; color: var(--text-muted); font-weight: 600;
+  }
+  .housefund-progress-labels .pct { font-size: 15px; color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums; }
+
   /* donut chart */
   .donut-row { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
   .donut-figure { position: relative; width: 168px; height: 168px; flex: none; margin: 0 auto; }
@@ -373,12 +390,7 @@
     display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;
     background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
   }
-  /* Label + edit pencil sit together on the left, inline, so the button reads as "click
-     here to edit this line" rather than getting lost far to the right past the number —
-     and so the number field stays the trailing flex child, keeping its right edge lined
-     up with the total below (which has no button competing for that space). */
-  .adj-control .adj-label-row { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 200px; }
-  .adj-control label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
+  .adj-control label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); flex: 1; min-width: 200px; }
   .adj-control .btn-edit-item {
     flex: none; border: 1px solid var(--border); border-radius: 6px;
     background: color-mix(in srgb, var(--text-primary) 3%, transparent);
@@ -386,6 +398,10 @@
   .adj-control .btn-edit-item.active { border-color: color-mix(in srgb, var(--status-good) 40%, var(--border)); }
   .adj-control .num-field { width: 120px; }
   .adj-control input.num { font-size: 14px; font-weight: 650; }
+  /* The total row below reserves the same button-width slot (via an invisible spacer,
+     same trick used by the subtotal rows elsewhere) so its figure still lines up with the
+     650/43 amounts above even though the total itself has no edit button of its own. */
+  .adj-total-value-wrap { display: flex; align-items: center; gap: 10px; }
 
   /* summary two-column */
   .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -448,10 +464,10 @@
   .icon-btn:hover { background: color-mix(in srgb, var(--text-primary) 8%, transparent); color: var(--text-primary); }
   .modal-desc { font-size: 12.5px; color: var(--text-secondary); margin: 6px 0 16px; line-height: 1.5; }
 
-  /* loan info modal — read-only summary opened via the ℹ️ button next to each loan */
+  /* loan info modal — full detail + edit view opened via the ℹ️ button next to each loan */
   .loan-info-rows { margin-top: 14px; }
   .loan-info-rows .line {
-    display: flex; justify-content: space-between; font-size: 13px; padding: 9px 0;
+    display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 9px 0;
     border-bottom: 1px solid var(--gridline); color: var(--text-secondary);
   }
   .loan-info-rows .line:last-child { border-bottom: none; }
@@ -459,6 +475,21 @@
   .loan-info-rows .line.final { padding-top: 12px; margin-top: 2px; border-top: 1px solid var(--baseline); }
   .loan-info-rows .line.final span:first-child { font-weight: 650; color: var(--text-primary); }
   .loan-info-rows .line.final .v { font-size: 16px; font-weight: 700; }
+  .loan-info-field {
+    position: relative; display: inline-flex; align-items: center;
+    background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+    border: 1px solid var(--border); border-radius: 7px;
+  }
+  .loan-info-field .unit { font-size: 11px; color: var(--text-muted); padding: 0 8px; }
+  .loan-info-input {
+    font: inherit; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums;
+    width: 84px; padding: 6px 8px; text-align: right; background: none; color: var(--text-primary);
+    border: none; outline: none;
+  }
+  .loan-info-input:focus { color: var(--series-maarten); }
+  .loan-info-input::-webkit-outer-spin-button, .loan-info-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .loan-info-input[type=number] { -moz-appearance: textfield; }
+  .loan-info-field.pct .unit, .loan-info-field.months .unit { padding-left: 0; padding-right: 8px; }
   .loan-info-btn {
     flex: none; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;
     background: none; border: none; padding: 0; cursor: pointer; font-size: 13px; line-height: 1;
@@ -494,60 +525,34 @@
   table.log-table td.net.bad { color: var(--status-critical); }
   table.log-table td.muted { color: var(--text-muted); }
 
+  /* per-month itemized spending — the ℹ️ next to a month's Personal spending figure opens
+     the individual transactions (date / description / amount) that add up to it. */
+  .spending-info-btn {
+    flex: none; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
+    background: none; border: none; padding: 0; margin-left: 4px; cursor: pointer; font-size: 11px; line-height: 1;
+    opacity: 0.7; border-radius: 5px; vertical-align: -3px;
+  }
+  .spending-info-btn:hover { opacity: 1; background: color-mix(in srgb, var(--text-primary) 8%, transparent); }
+  .spending-info-summary {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    font-size: 12.5px; color: var(--text-secondary); margin: 8px 0 12px;
+  }
+  .spending-info-summary .v { font-variant-numeric: tabular-nums; font-weight: 650; color: var(--text-primary); }
+  .spending-info-summary.mismatch { color: var(--status-warning); }
+  .spending-item-table td:nth-child(2) { text-align: left; color: var(--text-primary); font-weight: 500; }
+  .spending-item-table td:first-child { font-weight: 500; }
+
   @media (max-width: 560px) {
     .row-head, .row { grid-template-columns: 1fr 96px; font-size: 12px; }
     .subtotal-row { grid-template-columns: 1fr 96px; }
     .row-head.personal, .row.personal, .subtotal-row.personal { grid-template-columns: 1fr 78px 78px 70px; }
   }
 
-  /* loan debt-tracking mini panel — appears only once a monthly amount is entered,
-     and sits directly under that person's own amount input (not a wide side card). */
+  /* loan rows — the debt breakdown itself lives in the ℹ️ info modal now (see
+     .loan-info-rows below); this just governs the row's own layout. */
   .loan-item { border-bottom: 1px solid var(--gridline); }
   .loan-item:last-child { border-bottom: none; }
-  .loan-item .row.personal { border-bottom: none; align-items: start; }
-  .loan-amt-cell { display: flex; flex-direction: column; gap: 3px; }
-  .loan-toggle-link {
-    font: inherit; font-size: 10px; font-weight: 650; white-space: nowrap;
-    display: inline-flex; align-items: center; justify-content: center; gap: 2px;
-    background: none; border: none; color: var(--text-muted); cursor: pointer;
-    padding: 1px 0 0; transition: color 0.12s ease; width: 100%;
-  }
-  .loan-toggle-link:hover { color: var(--text-primary); }
-  .loan-toggle-link .chevron { display: inline-block; transition: transform 0.15s ease; font-size: 8px; }
-  .loan-toggle-link[aria-expanded="true"] .chevron { transform: rotate(180deg); }
-  .loan-toggle-link.nicolas[aria-expanded="true"] { color: var(--series-nicolas); }
-
-  .loan-mini {
-    margin-top: 2px; padding: 7px; background: var(--surface-2); border: 1px solid var(--border);
-    border-radius: 9px; display: flex; flex-direction: column; gap: 5px; width: 100%;
-  }
-  .loan-mini[hidden] { display: none; }
-  .loan-mini-field { display: flex; flex-direction: column; gap: 2px; }
-  .loan-mini-field .lbl {
-    font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted);
-  }
-  .loan-mini .num-field input.num { font-size: 11px; padding: 4px 4px 4px 15px; }
-  .loan-mini .num-field .unit { font-size: 9.5px; left: 4px; }
-  .loan-mini .num-field.pct input.num { padding-right: 14px; padding-left: 4px; }
-  .loan-mini .num-field.pct .unit { left: auto; right: 4px; }
-  .loan-mini .num-field.months input.num { padding-left: 4px; }
-
-  .loan-mini-progress-track {
-    height: 5px; border-radius: 999px; background: var(--gridline); overflow: hidden; margin-top: 1px;
-  }
-  .loan-mini-progress-fill {
-    height: 100%; border-radius: 999px; background: var(--text-muted);
-    transition: width 0.25s ease; width: 0%;
-  }
-  .loan-mini-progress-fill.nicolas { background: var(--series-nicolas); }
-  .loan-mini-caption {
-    display: flex; flex-direction: column; gap: 1px; margin-top: 3px;
-    font-size: 9px; color: var(--text-muted); font-variant-numeric: tabular-nums; line-height: 1.3;
-  }
-  .loan-mini-caption .remaining { color: var(--text-secondary); font-weight: 650; }
-  .loan-mini-empty-hint {
-    font-size: 9px; color: var(--text-muted); font-style: italic; line-height: 1.3; margin-top: 1px;
-  }
+  .loan-item .row.personal { border-bottom: none; }
 
   /* always-visible debt payoff ring — sits next to the loan name, independent of the
      expandable "Debt" panel, so the % paid off is visible at a glance without a click. */
@@ -928,22 +933,21 @@
     <h2>Who pays what</h2>
     <p class="desc">Maarten fronts the joint costs; Nicolas balances it out with a fixed monthly transfer, minus a correction for the interest tax return he already receives. Click the pencil to change either amount.</p>
     <div class="adj-control">
-      <div class="adj-label-row">
-        <label for="in-adjustment">Nicolas → Maarten, fixed monthly contribution</label>
-        <button class="btn-edit-item" type="button" id="btn-adj-edit" title="Edit this amount" aria-label="Edit this amount">✎</button>
-      </div>
+      <label for="in-adjustment">Nicolas → Maarten, fixed monthly contribution</label>
       <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="1" min="0" id="in-adjustment" value="0" readonly=""></div>
+      <button class="btn-edit-item" type="button" id="btn-adj-edit" title="Edit this amount" aria-label="Edit this amount">✎</button>
     </div>
     <div class="adj-control">
-      <div class="adj-label-row">
-        <label for="in-adjustment-correction">Correction — interest tax return Nicolas already receives</label>
-        <button class="btn-edit-item" type="button" id="btn-adj-correction-edit" title="Edit this amount" aria-label="Edit this amount">✎</button>
-      </div>
+      <label for="in-adjustment-correction">Correction — interest tax return Nicolas already receives</label>
       <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="1" min="0" id="in-adjustment-correction" value="0" readonly=""></div>
+      <button class="btn-edit-item" type="button" id="btn-adj-correction-edit" title="Edit this amount" aria-label="Edit this amount">✎</button>
     </div>
     <div class="grand-total" style="margin-top:0; margin-bottom:18px;">
       <div>Net monthly contribution</div>
-      <div class="value" id="out-adjustment-net">€&nbsp;0,00</div>
+      <div class="adj-total-value-wrap">
+        <div class="value" id="out-adjustment-net">€&nbsp;0,00</div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+      </div>
     </div>
 
     <div class="tiles" style="margin-bottom:20px;">
@@ -1157,36 +1161,7 @@
             </span>
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.maarten" value="0" readonly=""></div>
-          <div class="loan-amt-cell">
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="0" readonly=""></div>
-            <button class="loan-toggle-link nicolas" id="loan-toggle-3-0-nicolas" type="button" data-loan-toggle="3.0.nicolas" aria-expanded="false" style="display:none">Debt <span class="chevron">▾</span></button>
-            <div class="loan-mini" id="loan-details-3-0-nicolas" hidden="">
-      <div class="loan-mini-field">
-        <span class="lbl">Total</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.0.nicolas.total" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Paid</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.0.nicolas.paid" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Rate</span>
-        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.0.nicolas.rate" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Run time (months)</span>
-        <div class="num-field months"><input class="num" type="number" step="1" min="0" data-loan="3.0.nicolas.termMonths" value="0" readonly=""></div>
-      </div>
-      <div class="loan-progress-row" id="loan-progress-row-3-0-nicolas" style="display: none;">
-        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-0-nicolas" style="width:0%"></div></div>
-        <div class="loan-mini-caption">
-          <span class="remaining" id="loan-remaining-3-0-nicolas">—</span>
-          <span id="loan-pct-3-0-nicolas">—</span>
-        </div>
-      </div>
-      <div class="loan-mini-empty-hint" id="loan-empty-3-0-nicolas">Add total debt to track</div>
-    </div>
-          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="0" readonly=""></div>
           <div class="computed" id="pc-3-0-t">€&nbsp;0,00</div>
         </div></div>
           <button class="btn-edit-item" type="button" data-pc-edit="3.0" title="Edit this loan" aria-label="Edit this loan">✎</button>
@@ -1205,36 +1180,7 @@
             </span>
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.maarten" value="0" readonly=""></div>
-          <div class="loan-amt-cell">
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.nicolas" value="0" readonly=""></div>
-            <button class="loan-toggle-link nicolas" id="loan-toggle-3-1-nicolas" type="button" data-loan-toggle="3.1.nicolas" aria-expanded="false" style="display:none">Debt <span class="chevron">▾</span></button>
-            <div class="loan-mini" id="loan-details-3-1-nicolas" hidden="">
-      <div class="loan-mini-field">
-        <span class="lbl">Total</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.1.nicolas.total" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Paid</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.1.nicolas.paid" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Rate</span>
-        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.1.nicolas.rate" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Run time (months)</span>
-        <div class="num-field months"><input class="num" type="number" step="1" min="0" data-loan="3.1.nicolas.termMonths" value="0" readonly=""></div>
-      </div>
-      <div class="loan-progress-row" id="loan-progress-row-3-1-nicolas" style="display: none;">
-        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-1-nicolas" style="width:0%"></div></div>
-        <div class="loan-mini-caption">
-          <span class="remaining" id="loan-remaining-3-1-nicolas">—</span>
-          <span id="loan-pct-3-1-nicolas">—</span>
-        </div>
-      </div>
-      <div class="loan-mini-empty-hint" id="loan-empty-3-1-nicolas">Add total debt to track</div>
-    </div>
-          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.nicolas" value="0" readonly=""></div>
           <div class="computed" id="pc-3-1-t">€&nbsp;0,00</div>
         </div></div>
           <button class="btn-edit-item" type="button" data-pc-edit="3.1" title="Edit this loan" aria-label="Edit this loan">✎</button>
@@ -1833,36 +1779,7 @@
             </span>
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.maarten" value="0" readonly=""></div>
-          <div class="loan-amt-cell">
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="0" readonly=""></div>
-            <button class="loan-toggle-link nicolas" id="loan-toggle-3-0-nicolas-b" type="button" data-loan-toggle="3.0.nicolas" aria-expanded="false" style="display:none">Debt <span class="chevron">▾</span></button>
-            <div class="loan-mini" id="loan-details-3-0-nicolas-b" hidden="">
-      <div class="loan-mini-field">
-        <span class="lbl">Total</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.0.nicolas.total" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Paid</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.0.nicolas.paid" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Rate</span>
-        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.0.nicolas.rate" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Run time (months)</span>
-        <div class="num-field months"><input class="num" type="number" step="1" min="0" data-loan="3.0.nicolas.termMonths" value="0" readonly=""></div>
-      </div>
-      <div class="loan-progress-row" id="loan-progress-row-3-0-nicolas-b" style="display: none;">
-        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-0-nicolas-b" style="width:0%"></div></div>
-        <div class="loan-mini-caption">
-          <span class="remaining" id="loan-remaining-3-0-nicolas-b">—</span>
-          <span id="loan-pct-3-0-nicolas-b">—</span>
-        </div>
-      </div>
-      <div class="loan-mini-empty-hint" id="loan-empty-3-0-nicolas-b">Add total debt to track</div>
-    </div>
-          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="0" readonly=""></div>
           <div class="computed" id="pc-3-0-t-b">€&nbsp;0,00</div>
         </div></div>
           <button class="btn-edit-item" type="button" data-pc-edit="3.0" title="Edit this loan" aria-label="Edit this loan">✎</button>
@@ -1881,36 +1798,7 @@
             </span>
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.maarten" value="0" readonly=""></div>
-          <div class="loan-amt-cell">
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.nicolas" value="0" readonly=""></div>
-            <button class="loan-toggle-link nicolas" id="loan-toggle-3-1-nicolas-b" type="button" data-loan-toggle="3.1.nicolas" aria-expanded="false" style="display:none">Debt <span class="chevron">▾</span></button>
-            <div class="loan-mini" id="loan-details-3-1-nicolas-b" hidden="">
-      <div class="loan-mini-field">
-        <span class="lbl">Total</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.1.nicolas.total" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Paid</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.1.nicolas.paid" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Rate</span>
-        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.1.nicolas.rate" value="0" readonly=""></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Run time (months)</span>
-        <div class="num-field months"><input class="num" type="number" step="1" min="0" data-loan="3.1.nicolas.termMonths" value="0" readonly=""></div>
-      </div>
-      <div class="loan-progress-row" id="loan-progress-row-3-1-nicolas-b" style="display: none;">
-        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-1-nicolas-b" style="width:0%"></div></div>
-        <div class="loan-mini-caption">
-          <span class="remaining" id="loan-remaining-3-1-nicolas-b">—</span>
-          <span id="loan-pct-3-1-nicolas-b">—</span>
-        </div>
-      </div>
-      <div class="loan-mini-empty-hint" id="loan-empty-3-1-nicolas-b">Add total debt to track</div>
-    </div>
-          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.nicolas" value="0" readonly=""></div>
           <div class="computed" id="pc-3-1-t-b">€&nbsp;0,00</div>
         </div></div>
           <button class="btn-edit-item" type="button" data-pc-edit="3.1" title="Edit this loan" aria-label="Edit this loan">✎</button>
@@ -2047,6 +1935,42 @@
     </div>
   </section>
 
+  <!-- HOUSE FUND -->
+  <section class="card">
+    <h2>House fund <span class="badge">savings goal</span></h2>
+    <p class="desc">What you're setting aside for buyer's costs (kosten koper) and a safety buffer before committing to this mortgage. Edit any number below.</p>
+
+    <div class="equation-row">
+      <div class="tile input">
+        <div class="label">Goal</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="100" min="0" id="in-housefund-goal-b" value="15000"></div>
+      </div>
+      <div class="tile input">
+        <div class="label">Saved so far</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="100" min="0" id="in-housefund-saved-b" value="0"></div>
+      </div>
+      <div class="tile input">
+        <div class="label">Saving per month</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="10" min="0" id="in-housefund-monthly-b" value="0"></div>
+      </div>
+    </div>
+
+    <div class="housefund-progress-wrap">
+      <div class="housefund-progress-track">
+        <div class="housefund-progress-fill" id="housefund-progress-fill-b" style="width:0%"></div>
+      </div>
+      <div class="housefund-progress-labels">
+        <span class="pct" id="housefund-progress-pct-b">0%</span>
+        <span id="housefund-progress-remaining-b">€&nbsp;15.000,00 to go</span>
+      </div>
+    </div>
+
+    <div class="grand-total" style="margin-top:16px;">
+      <div>Estimated time to reach goal</div>
+      <div class="value" id="housefund-eta-b">Add a monthly amount to estimate</div>
+    </div>
+  </section>
+
 </div>
 
 </main>
@@ -2065,14 +1989,14 @@
     <h3><span class="swatch nicolas"></span>Nicolas's logged contributions</h3>
     <button class="icon-btn" id="btn-close-log" type="button" aria-label="Close">✕</button>
   </div>
-  <p class="modal-desc">Every month you've logged: what Nicolas contributed to your account, what he spent from the joint account (groceries, eating out, drinks, etc.), and the net contribution that resulted — straight from your spreadsheet's history.</p>
+  <p class="modal-desc">Every month you've logged: what Nicolas contributed to your account, his personal spending from the joint account — money spent from the joint account unrelated to its intended (joint) use — and the net contribution that resulted, straight from your spreadsheet's history.</p>
 
   <div class="log-summary" id="log-summary"></div>
 
   <div class="log-table-wrap">
     <table class="log-table">
       <thead>
-        <tr><th>Month</th><th>Contribution</th><th>Joint spending</th><th>Net contribution</th></tr>
+        <tr><th>Month</th><th>Contribution</th><th>Personal spending</th><th>Net contribution</th></tr>
       </thead>
       <tbody id="log-table-body"></tbody>
     </table>
@@ -2085,6 +2009,22 @@
     <button class="icon-btn" id="btn-close-loan-info" type="button" aria-label="Close">✕</button>
   </div>
   <div class="loan-info-rows" id="loan-info-rows"></div>
+</dialog>
+
+<dialog id="spending-info-dialog" class="modal">
+  <div class="modal-header">
+    <h3 id="spending-info-title">Personal spending</h3>
+    <button class="icon-btn" id="btn-close-spending-info" type="button" aria-label="Close">✕</button>
+  </div>
+  <div id="spending-info-summary" class="spending-info-summary"></div>
+  <div class="log-table-wrap">
+    <table class="log-table spending-item-table">
+      <thead>
+        <tr><th>Date</th><th>Description</th><th>Amount</th></tr>
+      </thead>
+      <tbody id="spending-info-rows"></tbody>
+    </table>
+  </div>
 </dialog>
 
 <script>
@@ -2162,6 +2102,10 @@
         ]},
       ],
       personal: defaultPersonal(),
+      // Savings goal for buyer's costs + safety buffer before committing to this house —
+      // only tracked on the "Potential new house calculation" scenario, since that's the
+      // one this is actually gating.
+      houseFund: { goal: 15000, saved: 0, monthlyContribution: 0 },
     };
   }
 
@@ -2222,6 +2166,12 @@
   window.__applyScopeState = function(key, state) {
     const scope = key === 'b' ? scopeB : scopeA;
     scope.state = state;
+    // Backfill fields added after this row was last saved — older Supabase rows for
+    // scenario B won't have a houseFund yet, so give them the same default a fresh
+    // scope B starts with rather than leaving inputs/progress bar blank.
+    if (scope.key === 'b' && !scope.state.houseFund) {
+      scope.state.houseFund = { goal: 15000, saved: 0, monthlyContribution: 0 };
+    }
     fullRender(scope);
   };
 
@@ -2230,8 +2180,8 @@
   // ---------- Nicolas's logged monthly contributions (from the "Contributions Nick" sheet) ----------
   // Fixed historical record — not part of the editable budget state, and only shown for the
   // Current Budget scope. y/m identify the month; contribution = what he transferred to Maarten's
-  // account; spending = what he spent that month from the joint account used for groceries,
-  // eating out, drinks, etc. (null when none was logged).
+  // account; spending = his personal spending from the joint account that month — money spent
+  // unrelated to its intended (joint) use (null when none was logged).
   // The real history now lives in Supabase (nicolas_contributions) and is loaded after login by
   // the cloud-sync script below, which calls window.__setNicolasLog(rows) to fill this in.
   const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -2379,38 +2329,6 @@
     });
   }
 
-  // Compact debt-tracking fields for one person on one loan — sized to sit directly
-  // under that person's own monthly-amount input, not a wide side-by-side card.
-  function loanPersonMiniHTML(scope, ci, ii, personKey, debt, unlocked) {
-    const s = scope.sfx;
-    const ro = unlocked ? '' : ' readonly';
-    return `
-      <div class="loan-mini-field">
-        <span class="lbl">Total</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="${ci}.${ii}.${personKey}.total" value="${debt.total}"${ro}></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Paid</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="${ci}.${ii}.${personKey}.paid" value="${debt.paid}"${ro}></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Rate</span>
-        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="${ci}.${ii}.${personKey}.rate" value="${debt.rate}"${ro}></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Run time (months)</span>
-        <div class="num-field months"><input class="num" type="number" step="1" min="0" data-loan="${ci}.${ii}.${personKey}.termMonths" value="${debt.termMonths || 0}"${ro}></div>
-      </div>
-      <div class="loan-progress-row" id="loan-progress-row-${ci}-${ii}-${personKey}${s}">
-        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill ${personKey}" id="loan-progress-${ci}-${ii}-${personKey}${s}" style="width:0%"></div></div>
-        <div class="loan-mini-caption">
-          <span class="remaining" id="loan-remaining-${ci}-${ii}-${personKey}${s}">—</span>
-          <span id="loan-pct-${ci}-${ii}-${personKey}${s}">—</span>
-        </div>
-      </div>
-      <div class="loan-mini-empty-hint" id="loan-empty-${ci}-${ii}-${personKey}${s}">Add total debt to track</div>
-    `;
-  }
 
   function buildPersonalRows(scope) {
     const s = scope.sfx;
@@ -2449,11 +2367,10 @@
           return;
         }
 
-        // Loans get a small "Debt" toggle under Nicolas's own monthly amount — only shown
-        // once he has an amount filled in — which expands a compact overview right there
-        // under that amount. Maarten carries no debt, so his side is a plain amount field.
-        // A small payoff-progress ring sits next to the loan name and is always visible
-        // (once a total debt amount is on record) — no need to expand the panel to see it.
+        // Loans show a small always-visible payoff-progress ring next to the name (once a
+        // total debt amount is on record), plus an ℹ️ info button that opens the full
+        // breakdown — total/paid/remaining/rate/run time — in a modal, where it's also
+        // editable. Maarten carries no debt, so his side is a plain amount field.
         const wrapper = document.createElement('div');
         wrapper.className = 'loan-item';
 
@@ -2472,11 +2389,7 @@
             </span>
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"${ro}></div>
-          <div class="loan-amt-cell">
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"${ro}></div>
-            <button class="loan-toggle-link nicolas" id="loan-toggle-${ci}-${ii}-nicolas${s}" type="button" data-loan-toggle="${ci}.${ii}.nicolas" aria-expanded="false" style="display:${Number(it.nicolas) > 0 ? '' : 'none'}">Debt <span class="chevron">▾</span></button>
-            <div class="loan-mini" id="loan-details-${ci}-${ii}-nicolas${s}" hidden>${loanPersonMiniHTML(scope, ci, ii, 'nicolas', it.debt.nicolas, unlocked)}</div>
-          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"${ro}></div>
           <div class="computed" id="pc-${ci}-${ii}-t${s}">—</div>
         `;
         wrapper.appendChild(row);
@@ -2608,6 +2521,22 @@
     const adjCorrEl = el(scope, 'in-adjustment-correction');
     if (adjCorrEl) adjCorrEl.addEventListener('input', e => {
       scope.state.adjustmentCorrection = parseFloat(e.target.value) || 0;
+      recalcAndRender(scope);
+    });
+
+    const hfGoalEl = el(scope, 'in-housefund-goal');
+    if (hfGoalEl) hfGoalEl.addEventListener('input', e => {
+      scope.state.houseFund.goal = parseFloat(e.target.value) || 0;
+      recalcAndRender(scope);
+    });
+    const hfSavedEl = el(scope, 'in-housefund-saved');
+    if (hfSavedEl) hfSavedEl.addEventListener('input', e => {
+      scope.state.houseFund.saved = parseFloat(e.target.value) || 0;
+      recalcAndRender(scope);
+    });
+    const hfMonthlyEl = el(scope, 'in-housefund-monthly');
+    if (hfMonthlyEl) hfMonthlyEl.addEventListener('input', e => {
+      scope.state.houseFund.monthlyContribution = parseFloat(e.target.value) || 0;
       recalcAndRender(scope);
     });
 
@@ -2774,24 +2703,9 @@
       });
     });
 
-    document.querySelectorAll(`#personal-rows${s} [data-loan-toggle]`).forEach(btn => {
-      btn.addEventListener('click', () => {
-        const key = btn.getAttribute('data-loan-toggle'); // "ci.ii.person"
-        const details = document.getElementById(`loan-details-${key.replace(/\./g, '-')}${s}`);
-        if (!details) return;
-        const expanded = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', String(!expanded));
-        details.hidden = expanded;
-      });
-    });
-
-    document.querySelectorAll(`#personal-rows${s} [data-loan]`).forEach(elx => {
-      elx.addEventListener('input', e => {
-        const [ci, ii, person, field] = e.target.getAttribute('data-loan').split('.');
-        scope.state.personal[+ci].items[+ii].debt[person][field] = parseFloat(e.target.value) || 0;
-        recalcAndRender(scope);
-      });
-    });
+    // Debt fields (total/paid/rate/run time) are no longer inline on the row — they live
+    // in the ℹ️ info modal now, which binds its own input listeners fresh each time it
+    // opens (see openLoanInfo), so there's nothing to bind here for [data-loan] anymore.
   }
 
   function setInputValues(scope) {
@@ -2804,6 +2718,14 @@
     if (adjEl) adjEl.value = scope.state.adjustment;
     const adjCorrEl = el(scope, 'in-adjustment-correction');
     if (adjCorrEl) adjCorrEl.value = scope.state.adjustmentCorrection;
+    if (scope.state.houseFund) {
+      const hfGoalEl = el(scope, 'in-housefund-goal');
+      if (hfGoalEl) hfGoalEl.value = scope.state.houseFund.goal;
+      const hfSavedEl = el(scope, 'in-housefund-saved');
+      if (hfSavedEl) hfSavedEl.value = scope.state.houseFund.saved;
+      const hfMonthlyEl = el(scope, 'in-housefund-monthly');
+      if (hfMonthlyEl) hfMonthlyEl.value = scope.state.houseFund.monthlyContribution;
+    }
     document.querySelectorAll(`#household-rows${s} [data-hh]`).forEach(elx => {
       const [ci, ii] = elx.getAttribute('data-hh').split('.');
       elx.value = scope.state.household[+ci].items[+ii].amount;
@@ -2812,15 +2734,44 @@
       const [ci, ii, field] = elx.getAttribute('data-pc').split('.');
       elx.value = scope.state.personal[+ci].items[+ii][field];
     });
-    document.querySelectorAll(`#personal-rows${s} [data-loan]`).forEach(elx => {
-      const [ci, ii, person, field] = elx.getAttribute('data-loan').split('.');
-      // Older loans saved before a field existed (e.g. termMonths) won't have it in their
-      // debt object yet — default to 0 rather than leaving the input showing "undefined".
-      elx.value = scope.state.personal[+ci].items[+ii].debt[person][field] || 0;
-    });
   }
 
   function setText(id, text) { const elx = document.getElementById(id); if (elx) elx.textContent = text; }
+
+  // Updates the house-fund progress bar, percentage, "remaining" label, and the
+  // estimated-time-to-goal readout. Only scenario B carries a houseFund, so this is a
+  // no-op for scope A.
+  function renderHouseFund(scope) {
+    if (!scope.state.houseFund) return;
+    const s = scope.sfx;
+    const hf = scope.state.houseFund;
+    const goal = Math.max(0, Number(hf.goal) || 0);
+    const saved = Math.max(0, Number(hf.saved) || 0);
+    const monthly = Math.max(0, Number(hf.monthlyContribution) || 0);
+    const pct = goal > 0 ? Math.min(100, (saved / goal) * 100) : 0;
+    const remaining = Math.max(0, goal - saved);
+
+    const fillEl = el(scope, 'housefund-progress-fill');
+    if (fillEl) fillEl.style.width = pct + '%';
+    setText(`housefund-progress-pct${s}`, Math.round(pct) + '%');
+    setText(`housefund-progress-remaining${s}`, remaining > 0 ? `${fmt(remaining)} to go` : 'Goal reached 🎉');
+
+    let etaText = '—';
+    if (remaining <= 0) {
+      etaText = 'Goal reached';
+    } else if (monthly > 0) {
+      const months = Math.ceil(remaining / monthly);
+      const years = Math.floor(months / 12);
+      const remMonths = months % 12;
+      const parts = [];
+      if (years > 0) parts.push(`${years} yr${years === 1 ? '' : 's'}`);
+      parts.push(`${remMonths} mo.`);
+      etaText = `~${months} mo. total (${parts.join(' ')})`;
+    } else {
+      etaText = 'Add a monthly amount to estimate';
+    }
+    setText(`housefund-eta${s}`, etaText);
+  }
 
   function recalcAndRender(scope) {
     const s = scope.sfx;
@@ -2889,6 +2840,8 @@
     updateSplitDonut(scope, 'maarten', r.maartenPays, r.personalMaartenTotal, r.moneyLeftMaarten, Number(scope.state.salary.maarten) || 0);
     updateSplitDonut(scope, 'nicolas', r.nicolasPays, r.personalNicolasTotal, r.moneyLeftNicolas, Number(scope.state.salary.nicolas) || 0);
 
+    renderHouseFund(scope);
+
     // Tell the cloud-sync script something changed, so it can debounce-save this scope's
     // state to Supabase. Harmless when fired from a fetch-triggered re-render too — it just
     // saves back the same data it loaded.
@@ -2934,44 +2887,20 @@
       if (cat.name !== 'Loans') return;
       cat.items.forEach((it, ii) => {
         ['nicolas'].forEach(person => {
-          const amount = Number(it[person]) || 0;
-          const toggle = document.getElementById(`loan-toggle-${ci}-${ii}-${person}${s}`);
-          const panel = document.getElementById(`loan-details-${ci}-${ii}-${person}${s}`);
-          if (toggle) toggle.style.display = amount > 0 ? '' : 'none';
-          if (amount <= 0 && panel && !panel.hidden) {
-            panel.hidden = true;
-            if (toggle) toggle.setAttribute('aria-expanded', 'false');
-          }
-
           const debt = it.debt && it.debt[person];
           if (!debt) return;
           const total = Number(debt.total) || 0;
           const paid = Math.max(0, Number(debt.paid) || 0);
+          // always-visible payoff-progress ring badge next to the loan name — the full
+          // breakdown (total/paid/remaining/rate/run time) lives in the ℹ️ info modal now.
           const ring = document.getElementById(`debt-ring-${ci}-${ii}-${person}${s}`);
-          const progressRow = document.getElementById(`loan-progress-row-${ci}-${ii}-${person}${s}`);
-          const emptyHint = document.getElementById(`loan-empty-${ci}-${ii}-${person}${s}`);
-          if (total <= 0) {
-            if (ring) ring.style.display = 'none';
-            if (progressRow) progressRow.style.display = 'none';
-            if (emptyHint) emptyHint.style.display = '';
-            return;
-          }
-          if (progressRow) progressRow.style.display = '';
-          if (emptyHint) emptyHint.style.display = 'none';
+          if (!ring) return;
+          if (total <= 0) { ring.style.display = 'none'; return; }
           const pct = Math.min(100, (paid / total) * 100);
-          const remaining = Math.max(0, total - paid);
-          const fillEl = document.getElementById(`loan-progress-${ci}-${ii}-${person}${s}`);
-          if (fillEl) fillEl.style.width = pct + '%';
-          setText(`loan-remaining-${ci}-${ii}-${person}${s}`, `${fmt(remaining)} left`);
-          setText(`loan-pct-${ci}-${ii}-${person}${s}`, pctFmt(pct / 100) + ' paid');
-
-          // always-visible ring badge next to the loan name
-          if (ring) {
-            ring.style.display = '';
-            const ringFill = document.getElementById(`debt-ring-fill-${ci}-${ii}-${person}${s}`);
-            if (ringFill) ringFill.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
-            setText(`debt-ring-pct-${ci}-${ii}-${person}${s}`, Math.round(pct) + '%');
-          }
+          ring.style.display = '';
+          const ringFill = document.getElementById(`debt-ring-fill-${ci}-${ii}-${person}${s}`);
+          if (ringFill) ringFill.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
+          setText(`debt-ring-pct-${ci}-${ii}-${person}${s}`, Math.round(pct) + '%');
         });
       });
     });
@@ -3119,11 +3048,15 @@
     const rowsDesc = [...NICOLAS_LOG].reverse();
     tbody.innerHTML = rowsDesc.map(r => {
       const net = r.contribution - (r.spending || 0);
+      const hasItems = Array.isArray(r.items) && r.items.length > 0;
+      const infoBtn = hasItems
+        ? ` <button class="spending-info-btn" type="button" data-spending-info="${r.y}.${r.m}" title="View itemized spending" aria-label="View itemized spending">ℹ️</button>`
+        : '';
       return `
         <tr>
           <td>${MONTH_NAMES[r.m - 1]} ${r.y}</td>
           <td class="${r.contribution < netAdjustment(scopeA.state) ? 'net bad' : ''}">${fmt(r.contribution)}</td>
-          <td class="${r.spending ? '' : 'muted'}">${r.spending ? fmt(r.spending) : '—'}</td>
+          <td class="${r.spending ? '' : 'muted'}">${r.spending ? fmt(r.spending) : '—'}${infoBtn}</td>
           <td class="net${net < 0 ? ' bad' : ''}">${fmt(net)}</td>
         </tr>
       `;
@@ -3142,32 +3075,53 @@
   });
 
   // ---------- Loan info modal ----------
-  // Read-only detail view for one loan (amount loaned, paid, remaining, rate, run time,
-  // monthly payment) — opened via the ℹ️ button next to the loan's name. Delegated on
-  // document rather than bound per-button, since loan rows are rebuilt on every render.
+  // Full detail view for one loan (amount loaned, paid, rate, run time) — opened via the
+  // ℹ️ button next to the loan's name. This is now also where those fields are edited
+  // (they used to live in an expandable panel under the row itself, which was redundant
+  // once this modal existed). Remaining and monthly-payment-left are derived and re-drawn
+  // on every input. Delegated on document rather than bound per-button, since loan rows
+  // are rebuilt on every render; the modal's own inputs are rebound fresh on every open,
+  // since its content is fully replaced each time — no stale-listener risk there.
   const loanInfoDialog = document.getElementById('loan-info-dialog');
   function openLoanInfo(scopeKey, ci, ii) {
     const scope = scopeKey === 'b' ? scopeB : scopeA;
     const it = scope.state.personal[ci] && scope.state.personal[ci].items[ii];
     if (!it || !it.debt || !it.debt.nicolas) return;
     const debt = it.debt.nicolas;
-    const total = Number(debt.total) || 0;
-    const paid = Math.max(0, Number(debt.paid) || 0);
-    const remaining = Math.max(0, total - paid);
-    const rate = Number(debt.rate) || 0;
-    const termMonths = Number(debt.termMonths) || 0;
-    const monthly = Number(it.nicolas) || 0;
-    const monthsLeft = monthly > 0 && remaining > 0 ? Math.ceil(remaining / monthly) : null;
 
     document.getElementById('loan-info-title').textContent = it.label || 'Loan details';
+    // The editable inputs are built once per open and never re-rendered afterwards —
+    // only the two derived read-only bits (Remaining, months-left) get updated on input.
+    // Rebuilding the inputs' own markup on every keystroke would reset their value mid-type
+    // and drop things like a trailing decimal point as you're typing it.
     document.getElementById('loan-info-rows').innerHTML = `
-      <div class="line"><span>Amount loaned</span><span class="v">${fmt(total)}</span></div>
-      <div class="line"><span>Paid so far</span><span class="v">${fmt(paid)}</span></div>
-      <div class="line"><span>Remaining</span><span class="v">${fmt(remaining)}</span></div>
-      <div class="line"><span>Interest rate</span><span class="v">${rate.toFixed(1).replace('.', ',')}%</span></div>
-      <div class="line"><span>Run time</span><span class="v">${termMonths > 0 ? termMonths + ' months' : '—'}</span></div>
-      <div class="line final"><span>Monthly payment</span><span class="v">${fmt(monthly)}${monthsLeft != null ? ` <span style="font-weight:500;color:var(--text-muted);font-size:12px;">(~${monthsLeft} mo. left)</span>` : ''}</span></div>
+      <div class="line"><span>Amount loaned</span><span class="v"><span class="loan-info-field"><span class="unit">€</span><input class="loan-info-input" type="number" step="0.01" min="0" data-info-field="total" value="${Number(debt.total) || 0}"></span></span></div>
+      <div class="line"><span>Paid so far</span><span class="v"><span class="loan-info-field"><span class="unit">€</span><input class="loan-info-input" type="number" step="0.01" min="0" data-info-field="paid" value="${Number(debt.paid) || 0}"></span></span></div>
+      <div class="line"><span>Remaining</span><span class="v" id="loan-info-remaining">—</span></div>
+      <div class="line"><span>Interest rate</span><span class="v"><span class="loan-info-field pct"><input class="loan-info-input" type="number" step="0.1" min="0" data-info-field="rate" value="${Number(debt.rate) || 0}"><span class="unit">%</span></span></span></div>
+      <div class="line"><span>Run time</span><span class="v"><span class="loan-info-field months"><input class="loan-info-input" type="number" step="1" min="0" data-info-field="termMonths" value="${Number(debt.termMonths) || 0}"><span class="unit">mo.</span></span></span></div>
+      <div class="line final"><span>Monthly payment</span><span class="v">${fmt(Number(it.nicolas) || 0)} <span id="loan-info-months-left" style="font-weight:500;color:var(--text-muted);font-size:12px;"></span></span></div>
     `;
+
+    function updateDerived() {
+      const total = Number(debt.total) || 0;
+      const paid = Math.max(0, Number(debt.paid) || 0);
+      const remaining = Math.max(0, total - paid);
+      const monthly = Number(it.nicolas) || 0;
+      const monthsLeft = monthly > 0 && remaining > 0 ? Math.ceil(remaining / monthly) : null;
+      document.getElementById('loan-info-remaining').textContent = fmt(remaining);
+      document.getElementById('loan-info-months-left').textContent = monthsLeft != null ? `(~${monthsLeft} mo. left)` : '';
+    }
+    updateDerived();
+
+    document.querySelectorAll('#loan-info-rows [data-info-field]').forEach(inputEl => {
+      inputEl.addEventListener('input', (e) => {
+        debt[e.target.getAttribute('data-info-field')] = parseFloat(e.target.value) || 0;
+        recalcAndRender(scope); // keeps the debt-ring and everything else on the page in sync
+        updateDerived();
+      });
+    });
+
     loanInfoDialog.showModal();
   }
   document.addEventListener('click', (e) => {
@@ -3179,6 +3133,50 @@
   document.getElementById('btn-close-loan-info').addEventListener('click', () => loanInfoDialog.close());
   loanInfoDialog.addEventListener('click', (e) => {
     if (e.target === loanInfoDialog) loanInfoDialog.close();
+  });
+
+  // ---------- Itemized spending modal (Nicolas's log) ----------
+  // Opened via the ℹ️ next to a month's Personal spending figure — lists the individual
+  // transactions that make up that month's total, and flags it clearly if they don't
+  // actually add up to the recorded total (e.g. a month only partially itemized so far).
+  const DATE_FMT = new Intl.DateTimeFormat('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const spendingInfoDialog = document.getElementById('spending-info-dialog');
+  function openSpendingInfo(y, m) {
+    const r = NICOLAS_LOG.find(row => row.y === y && row.m === m);
+    if (!r || !Array.isArray(r.items) || !r.items.length) return;
+    document.getElementById('spending-info-title').textContent = `${MONTH_NAMES[m - 1]} ${y} — Personal spending`;
+
+    const itemsSum = r.items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
+    const recorded = Number(r.spending) || 0;
+    const matches = Math.abs(itemsSum - recorded) < 0.01;
+    const summaryEl = document.getElementById('spending-info-summary');
+    summaryEl.className = 'spending-info-summary' + (matches ? '' : ' mismatch');
+    summaryEl.innerHTML = matches
+      ? `<span>${r.items.length} item${r.items.length === 1 ? '' : 's'}</span><span class="v">${fmt(itemsSum)} — matches the recorded total</span>`
+      : `<span>${r.items.length} item${r.items.length === 1 ? '' : 's'} logged so far</span><span class="v">${fmt(itemsSum)} of ${fmt(recorded)} recorded — ${fmt(recorded - itemsSum)} not yet itemized</span>`;
+
+    document.getElementById('spending-info-rows').innerHTML = r.items.map(it => {
+      const d = it.date ? new Date(it.date + 'T00:00:00') : null;
+      return `
+        <tr>
+          <td>${d && !isNaN(d) ? DATE_FMT.format(d) : '—'}</td>
+          <td>${escapeAttr(it.description || '')}</td>
+          <td>${fmt(Number(it.amount) || 0)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    spendingInfoDialog.showModal();
+  }
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest && e.target.closest('[data-spending-info]');
+    if (!btn) return;
+    const [y, m] = btn.getAttribute('data-spending-info').split('.').map(Number);
+    openSpendingInfo(y, m);
+  });
+  document.getElementById('btn-close-spending-info').addEventListener('click', () => spendingInfoDialog.close());
+  spendingInfoDialog.addEventListener('click', (e) => {
+    if (e.target === spendingInfoDialog) spendingInfoDialog.close();
   });
 
   // ---------- Drag-to-reorder ----------
@@ -3380,13 +3378,13 @@
 
   function loadNicolasLog(sb) {
     return sb.from('nicolas_contributions')
-      .select('year, month, contribution, spending')
+      .select('year, month, contribution, spending, items')
       .order('year', { ascending: true })
       .order('month', { ascending: true })
       .then(function(res) {
         if (res.error) throw res.error;
         var rows = (res.data || []).map(function(r) {
-          return { y: r.year, m: r.month, contribution: r.contribution, spending: r.spending };
+          return { y: r.year, m: r.month, contribution: r.contribution, spending: r.spending, items: r.items || null };
         });
         window.__setNicolasLog(rows);
       });
