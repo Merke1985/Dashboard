@@ -347,6 +347,42 @@
   }
   .housefund-progress-labels .pct { font-size: 15px; color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums; }
 
+  /* moving/buying cost checklist */
+  .checklist-table-wrap { overflow-x: auto; }
+  table.checklist-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.checklist-table thead th {
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--text-muted); font-weight: 650; padding: 0 8px 8px; border-bottom: 1px solid var(--gridline);
+  }
+  table.checklist-table tbody tr { border-bottom: 1px solid var(--gridline); transition: opacity 0.15s ease; }
+  table.checklist-table tbody tr.done { opacity: 0.5; }
+  table.checklist-table td { padding: 7px 8px; vertical-align: middle; }
+  table.checklist-table td.amt-col { text-align: right; }
+  .checklist-done-cb { width: 16px; height: 16px; accent-color: var(--status-good); cursor: pointer; }
+  select.checklist-cat {
+    font: inherit; font-size: 12.5px; padding: 6px 8px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary);
+  }
+  .checklist-table input.name-input { border: none; background: transparent; font: inherit; color: var(--text-primary); width: 100%; padding: 6px 4px; border-radius: 6px; }
+  .checklist-table input.name-input:focus { background: var(--surface-1); outline: 1px solid var(--border); }
+  .checklist-table .num-field { justify-content: flex-end; }
+  .checklist-table .btn-del-item { margin: 0; }
+
+  .checklist-breakdown { margin-top: 18px; }
+  .checklist-bar {
+    height: 14px; border-radius: 999px; overflow: hidden; display: flex;
+    background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  }
+  .checklist-bar-seg { height: 100%; transition: width 0.3s ease; }
+  .checklist-bar-legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 10px; }
+  .checklist-bar-legend .item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .checklist-bar-legend .dswatch { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+  .checklist-bar-legend .amt { font-weight: 650; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
+  .checklist-total-wrap { display: flex; align-items: center; gap: 12px; }
+  .checklist-total-wrap .value { font-size: 18px; font-variant-numeric: tabular-nums; }
+  #btn-checklist-to-goal-b { font-size: 11.5px; padding: 5px 10px; }
+
   /* donut chart */
   .donut-row { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
   .donut-figure { position: relative; width: 168px; height: 168px; flex: none; margin: 0 auto; }
@@ -420,6 +456,23 @@
   .person-card .line.final .v { font-size: 18px; font-weight: 700; }
   .person-card .line.final .v.good { color: var(--status-good-text); }
   .person-card .line.final .v.bad { color: var(--status-critical); }
+  .person-card .line.compare {
+    border-bottom: none; padding: 4px 0 0; font-size: 11.5px; color: var(--text-muted);
+    justify-content: flex-end; text-align: right;
+  }
+  .person-card .line.compare:empty { display: none; }
+  .person-card .line.compare .delta.good { color: var(--status-good-text); font-weight: 650; }
+  .person-card .line.compare .delta.bad { color: var(--status-critical); font-weight: 650; }
+
+  .hint.compare { margin-top: 4px; color: var(--text-muted); }
+  .hint.compare .delta.good { color: var(--status-good-text); font-weight: 650; }
+  .hint.compare .delta.bad { color: var(--status-critical); font-weight: 650; }
+
+  .bottomline-compare {
+    margin-top: 10px; font-size: 12.5px; color: var(--text-secondary);
+  }
+  .bottomline-compare .delta.good { color: var(--status-good-text); font-weight: 700; }
+  .bottomline-compare .delta.bad { color: var(--status-critical); font-weight: 700; }
 
   /* two small-multiple donuts: one per person, salary split into joint / personal / left over */
   .donut-pair { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
@@ -646,8 +699,8 @@
   <div class="inner">
     <div>
       <a class="home-link" href="index.html">← Financiën</a>
-      <h1>Joint Costs Dashboard 2026</h1>
-      <div class="sub">Maarten &amp; Nicolas — overview of your shared household costs, live from your spreadsheet's formulas</div>
+      <h1>New House Checklist</h1>
+      <div class="sub">Maarten &amp; Nicolas — savings goal, moving costs, and the budget plan for whenever you find the next place</div>
     </div>
     <div class="controls-stack">
       <div class="controls">
@@ -662,11 +715,81 @@
       </div>
     </div>
   </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-btn-goal" type="button" data-tab="goal">💰 Savings goal</button>
+    <button class="tab-btn" id="tab-btn-budget" type="button" data-tab="budget">🧮 Budget plan</button>
+  </div>
 </header>
 
 <main class="wrap">
 
-<div id="screen-a" class="screen active">
+<div id="screen-goal" class="screen active">
+
+  <!-- HOUSE FUND -->
+  <section class="card">
+    <h2>House fund <span class="badge">savings goal</span></h2>
+    <p class="desc">What you're setting aside for buyer's costs (kosten koper) and a safety buffer before committing to this mortgage. Edit any number below.</p>
+
+    <div class="equation-row">
+      <div class="tile input">
+        <div class="label">Goal</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="100" min="0" id="in-housefund-goal-b" value="15000"></div>
+      </div>
+      <div class="tile input">
+        <div class="label">Saved so far</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="100" min="0" id="in-housefund-saved-b" value="0"></div>
+      </div>
+      <div class="tile input">
+        <div class="label">Saving per month</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="10" min="0" id="in-housefund-monthly-b" value="0"></div>
+      </div>
+    </div>
+
+    <div class="housefund-progress-wrap">
+      <div class="housefund-progress-track">
+        <div class="housefund-progress-fill" id="housefund-progress-fill-b" style="width:0%"></div>
+      </div>
+      <div class="housefund-progress-labels">
+        <span class="pct" id="housefund-progress-pct-b">0%</span>
+        <span id="housefund-progress-remaining-b">€&nbsp;15.000,00 to go</span>
+      </div>
+    </div>
+
+    <div class="grand-total" style="margin-top:16px;">
+      <div>Estimated time to reach goal</div>
+      <div class="value" id="housefund-eta-b">Add a monthly amount to estimate</div>
+    </div>
+  </section>
+
+  <!-- MOVING & BUYING COST CHECKLIST -->
+  <section class="card">
+    <h2>Moving &amp; buying costs <span class="badge">checklist</span></h2>
+    <p class="desc">Everything this move is likely to cost — buyer's costs, moving, furniture, repairs, whatever else comes to mind. Tick an item off once you've sorted it or priced it for real.</p>
+
+    <div class="checklist-table-wrap">
+      <table class="checklist-table">
+        <thead>
+          <tr><th></th><th>Category</th><th>Item</th><th style="text-align:right">Amount €</th><th></th></tr>
+        </thead>
+        <tbody id="checklist-rows-b"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn-add-item" id="btn-checklist-add-b">+ Add item</button>
+
+    <div class="checklist-breakdown" id="checklist-breakdown-b"></div>
+
+    <div class="grand-total" style="margin-top:18px;">
+      <div>Checklist total</div>
+      <div class="checklist-total-wrap">
+        <div class="value" id="checklist-total-b">€&nbsp;0,00</div>
+        <button type="button" class="ctl" id="btn-checklist-to-goal-b" title="Set the Goal above to this total">↑ Use as goal</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div id="screen-budget" class="screen">
 
   <!-- INCOME -->
   <section class="card">
@@ -675,17 +798,17 @@
     <div class="equation-row">
       <div class="tile input">
         <div class="label"><span class="swatch maarten"></span>Maarten's salary</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten" value="0"></div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten-b" value="0"></div>
       </div>
       <div class="op">+</div>
       <div class="tile input">
         <div class="label"><span class="swatch nicolas"></span>Nicolas's salary</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas" value="0"></div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas-b" value="0"></div>
       </div>
       <div class="op">=</div>
       <div class="tile total">
         <div class="label">Combined household income</div>
-        <div class="value" id="out-salary-total">€&nbsp;0,00</div>
+        <div class="value" id="out-salary-total-b">€&nbsp;0,00</div>
       </div>
     </div>
   </section>
@@ -693,18 +816,18 @@
   <!-- JOINT COSTS -->
   <section class="card">
     <h2>Joint costs</h2>
-    <p class="desc">Everything you pay for together — the house, the car, and shared subscriptions. Edit any amount and the totals below update instantly.</p>
+    <p class="desc">Same categories as the current budget, but with a €1.700 mortgage and no ownership fee. Edit any amount and the totals below update instantly.</p>
 
     <div class="subtotal-outer">
       <span class="drag-handle spacer-only" aria-hidden="true"></span>
       <div class="row-head">
-        <div>Item</div><div style="text-align:right">Amount €</div>
+        <div></div><div style="text-align:right">Amount €</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
       <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
       <span class="btn-del-item spacer-only" aria-hidden="true"></span>
     </div>
-    <div id="household-rows"><div class="cat-group"><div class="cat-title">House</div><div class="row-outer" data-drag-row="0.0">
+    <div id="household-rows-b"><div class="cat-group"><div class="cat-title">House</div><div class="row-outer" data-drag-row="0.0">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="0.0" value="Mortgage" readonly=""></div>
@@ -718,7 +841,7 @@
         </div><div class="row-outer" data-drag-row="0.1">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
-            <div class="name"><input class="name-input" type="text" data-hh-label="0.1" value="Ownership fee" readonly=""></div>
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.1" value="Gas" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="0" readonly=""></div>
           </div>
           
@@ -729,7 +852,7 @@
         </div><div class="row-outer" data-drag-row="0.2">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
-            <div class="name"><input class="name-input" type="text" data-hh-label="0.2" value="Gas" readonly=""></div>
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.2" value="Energy" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="0" readonly=""></div>
           </div>
           
@@ -740,7 +863,7 @@
         </div><div class="row-outer" data-drag-row="0.3">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
-            <div class="name"><input class="name-input" type="text" data-hh-label="0.3" value="Energy" readonly=""></div>
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.3" value="County and city taxes" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="0" readonly=""></div>
           </div>
           
@@ -748,10 +871,10 @@
           <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
           <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       
-        </div><div class="row-outer" data-drag-row="0.4">
+        </div><div class="row-outer row-outer-last" data-drag-row="0.4">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
-            <div class="name"><input class="name-input" type="text" data-hh-label="0.4" value="County and city taxes" readonly=""></div>
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.4" value="House insurance" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="0" readonly=""></div>
           </div>
           
@@ -759,22 +882,11 @@
           <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
           <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       
-        </div><div class="row-outer row-outer-last" data-drag-row="0.5">
-          <span class="drag-handle" title="Drag to reorder">⠿</span>
-          <div class="row">
-            <div class="name"><input class="name-input" type="text" data-hh-label="0.5" value="House insurance" readonly=""></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.5" value="0" readonly=""></div>
-          </div>
-          
-          <button class="btn-edit-item" type="button" data-hh-edit="0.5" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
-          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
-      
         </div><button type="button" class="btn-add-item" data-hh-add="0">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
           <div>Subtotal — House</div>
-          <div class="computed" id="hh-cat-0">€&nbsp;0,00</div>
+          <div class="computed" id="hh-cat-0-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
         <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -838,7 +950,7 @@
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
           <div>Subtotal — Transport</div>
-          <div class="computed" id="hh-cat-1">€&nbsp;0,00</div>
+          <div class="computed" id="hh-cat-1-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
         <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -891,7 +1003,7 @@
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
           <div>Subtotal — Subscriptions (joint)</div>
-          <div class="computed" id="hh-cat-2">€&nbsp;0,00</div>
+          <div class="computed" id="hh-cat-2-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
         <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -911,7 +1023,7 @@
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
           <div>Subtotal — Pets</div>
-          <div class="computed" id="hh-cat-3">€&nbsp;0,00</div>
+          <div class="computed" id="hh-cat-3-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
         <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -920,45 +1032,27 @@
 
     <div class="grand-total">
       <div>Total joint costs</div>
-      <div class="value" id="out-hh-total">€&nbsp;0,00</div>
+      <div class="value" id="out-hh-total-b">€&nbsp;0,00</div>
     </div>
   </section>
 
   <!-- WHO PAYS WHAT -->
   <section class="card">
     <h2>Who pays what</h2>
-    <p class="desc">Maarten fronts the joint costs; Nicolas balances it out with a fixed monthly transfer, minus a correction for the interest tax return he already receives. Click the pencil to change either amount.</p>
-    <div class="adj-control">
-      <label for="in-adjustment">Nicolas → Maarten, fixed monthly contribution</label>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="1" min="0" id="in-adjustment" value="0" readonly=""></div>
-      <button class="btn-edit-item" type="button" id="btn-adj-edit" title="Edit this amount" aria-label="Edit this amount">✎</button>
-    </div>
-    <div class="adj-control">
-      <label for="in-adjustment-correction">Correction — interest tax return Nicolas already receives</label>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="1" min="0" id="in-adjustment-correction" value="0" readonly=""></div>
-      <button class="btn-edit-item" type="button" id="btn-adj-correction-edit" title="Edit this amount" aria-label="Edit this amount">✎</button>
-    </div>
-    <div class="grand-total" style="margin-top:0; margin-bottom:18px;">
-      <div>Net monthly contribution</div>
-      <div class="adj-total-value-wrap">
-        <div class="value" id="out-adjustment-net">€&nbsp;0,00</div>
-        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
-      </div>
-    </div>
+    <p class="desc">In this scenario Nicolas pays an even 50% of the joint costs — no fixed monthly adjustment, just a straight split.</p>
 
     <div class="tiles" style="margin-bottom:20px;">
       <div class="tile">
         <div class="label"><span class="swatch maarten"></span>Maarten pays</div>
-        <div class="value" id="out-pays-maarten">€&nbsp;0,00</div>
-        <div class="hint" id="out-pct-maarten">50.0% of joint costs</div>
+        <div class="value" id="out-pays-maarten-b">€&nbsp;0,00</div>
+        <div class="hint" id="out-pct-maarten-b">50.0% of joint costs</div>
+        <div class="hint compare" id="compare-pays-maarten-b"></div>
       </div>
       <div class="tile">
-        <div class="label-row">
-          <div class="label"><span class="swatch nicolas"></span>Nicolas pays</div>
-          <button class="log-btn" id="btn-nicolas-log" type="button" aria-haspopup="dialog">🧾 Log</button>
-        </div>
-        <div class="value" id="out-pays-nicolas">€&nbsp;0,00</div>
-        <div class="hint" id="out-pct-nicolas">50.0% of joint costs</div>
+        <div class="label"><span class="swatch nicolas"></span>Nicolas pays</div>
+        <div class="value" id="out-pays-nicolas-b">€&nbsp;0,00</div>
+        <div class="hint" id="out-pct-nicolas-b">50.0% of joint costs</div>
+        <div class="hint compare" id="compare-pays-nicolas-b"></div>
       </div>
     </div>
 
@@ -966,25 +1060,25 @@
       <div class="donut-figure">
         <svg viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
-          <g id="whopays-donut-segments">
-      <circle id="whopays-donut-seg-maarten" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Maarten" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
+          <g id="whopays-donut-segments-b">
+      <circle id="whopays-donut-seg-maarten-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Maarten" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     
-      <circle id="whopays-donut-seg-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Nicolas" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
+      <circle id="whopays-donut-seg-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Nicolas" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
     </g>
         </svg>
         <div class="donut-center">
-          <div class="val" id="whopays-donut-total">€&nbsp;0,00</div>
+          <div class="val" id="whopays-donut-total-b">€&nbsp;0,00</div>
           <div class="lbl">joint costs</div>
         </div>
       </div>
-      <div class="donut-legend" id="whopays-donut-legend">
+      <div class="donut-legend" id="whopays-donut-legend-b">
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--series-maarten)"></span>Maarten</span>
-        <span class="damt"><span class="v" id="whopays-donut-amt-maarten">€&nbsp;0,00</span><span class="p" id="whopays-donut-pct-maarten">50.0%</span></span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-maarten-b">€&nbsp;0,00</span><span class="p" id="whopays-donut-pct-maarten-b">50.0%</span></span>
       </div>
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--series-nicolas)"></span>Nicolas</span>
-        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas">€&nbsp;0,00</span><span class="p" id="whopays-donut-pct-nicolas">50.0%</span></span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas-b">€&nbsp;0,00</span><span class="p" id="whopays-donut-pct-nicolas-b">50.0%</span></span>
       </div>
     </div>
     </div>
@@ -1001,19 +1095,19 @@
     <div class="subtotal-outer">
       <span class="drag-handle spacer-only" aria-hidden="true"></span>
       <div class="row-head personal">
-        <div>Item</div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
+        <div></div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
       <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
       <span class="btn-del-item spacer-only" aria-hidden="true"></span>
     </div>
-    <div id="personal-rows"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row-outer" data-drag-row="0.0">
+    <div id="personal-rows-b"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row-outer" data-drag-row="0.0">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
               <div class="name"><input class="name-input" type="text" data-pc-label="0.0" value="Health insurance" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="0" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="0" readonly=""></div>
-              <div class="computed" id="pc-0-0-t">€&nbsp;0,00</div>
+              <div class="computed" id="pc-0-0-t-b">€&nbsp;0,00</div>
             </div>
             
           <button class="btn-edit-item" type="button" data-pc-edit="0.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
@@ -1026,7 +1120,7 @@
               <div class="name"><input class="name-input" type="text" data-pc-label="0.1" value="Health costs" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="0" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="0" readonly=""></div>
-              <div class="computed" id="pc-0-1-t">€&nbsp;0,00</div>
+              <div class="computed" id="pc-0-1-t-b">€&nbsp;0,00</div>
             </div>
             
           <button class="btn-edit-item" type="button" data-pc-edit="0.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
@@ -1039,7 +1133,7 @@
               <div class="name"><input class="name-input" type="text" data-pc-label="0.2" value="Other insurance" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="0" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0" readonly=""></div>
-              <div class="computed" id="pc-0-2-t">€&nbsp;0,00</div>
+              <div class="computed" id="pc-0-2-t-b">€&nbsp;0,00</div>
             </div>
             
           <button class="btn-edit-item" type="button" data-pc-edit="0.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
@@ -1050,9 +1144,9 @@
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
           <div>Subtotal — Fixed costs</div>
-          <div class="computed maarten" id="pc-cat-0-m">€&nbsp;0,00</div>
-          <div class="computed nicolas" id="pc-cat-0-n">€&nbsp;0,00</div>
-          <div class="computed" id="pc-cat-0-t">€&nbsp;0,00</div>
+          <div class="computed maarten" id="pc-cat-0-m-b">€&nbsp;0,00</div>
+          <div class="computed nicolas" id="pc-cat-0-n-b">€&nbsp;0,00</div>
+          <div class="computed" id="pc-cat-0-t-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
         <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1063,7 +1157,7 @@
               <div class="name"><input class="name-input" type="text" data-pc-label="1.0" value="Phone contract" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="0" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="0" readonly=""></div>
-              <div class="computed" id="pc-1-0-t">€&nbsp;0,00</div>
+              <div class="computed" id="pc-1-0-t-b">€&nbsp;0,00</div>
             </div>
             
           <button class="btn-edit-item" type="button" data-pc-edit="1.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
@@ -1076,7 +1170,7 @@
               <div class="name"><input class="name-input" type="text" data-pc-label="1.1" value="Spotify" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="0" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="0" readonly=""></div>
-              <div class="computed" id="pc-1-1-t">€&nbsp;0,00</div>
+              <div class="computed" id="pc-1-1-t-b">€&nbsp;0,00</div>
             </div>
             
           <button class="btn-edit-item" type="button" data-pc-edit="1.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
@@ -1089,7 +1183,7 @@
               <div class="name"><input class="name-input" type="text" data-pc-label="1.2" value="World of Warcraft" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="0" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="0" readonly=""></div>
-              <div class="computed" id="pc-1-2-t">€&nbsp;0,00</div>
+              <div class="computed" id="pc-1-2-t-b">€&nbsp;0,00</div>
             </div>
             
           <button class="btn-edit-item" type="button" data-pc-edit="1.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
@@ -1100,9 +1194,9 @@
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
           <div>Subtotal — Subscriptions</div>
-          <div class="computed maarten" id="pc-cat-1-m">€&nbsp;0,00</div>
-          <div class="computed nicolas" id="pc-cat-1-n">€&nbsp;0,00</div>
-          <div class="computed" id="pc-cat-1-t">€&nbsp;0,00</div>
+          <div class="computed maarten" id="pc-cat-1-m-b">€&nbsp;0,00</div>
+          <div class="computed nicolas" id="pc-cat-1-n-b">€&nbsp;0,00</div>
+          <div class="computed" id="pc-cat-1-t-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
         <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1113,7 +1207,7 @@
               <div class="name"><input class="name-input" type="text" data-pc-label="2.0" value="Groceries" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="0" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="0" readonly=""></div>
-              <div class="computed" id="pc-2-0-t">€&nbsp;0,00</div>
+              <div class="computed" id="pc-2-0-t-b">€&nbsp;0,00</div>
             </div>
             
           <button class="btn-edit-item" type="button" data-pc-edit="2.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
@@ -1126,7 +1220,7 @@
               <div class="name"><input class="name-input" type="text" data-pc-label="2.1" value="Saving" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="0" readonly=""></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="0" readonly=""></div>
-              <div class="computed" id="pc-2-1-t">€&nbsp;0,00</div>
+              <div class="computed" id="pc-2-1-t-b">€&nbsp;0,00</div>
             </div>
             
           <button class="btn-edit-item" type="button" data-pc-edit="2.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
@@ -1137,9 +1231,9 @@
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
           <div>Subtotal — Other</div>
-          <div class="computed maarten" id="pc-cat-2-m">€&nbsp;0,00</div>
-          <div class="computed nicolas" id="pc-cat-2-n">€&nbsp;0,00</div>
-          <div class="computed" id="pc-cat-2-t">€&nbsp;0,00</div>
+          <div class="computed maarten" id="pc-cat-2-m-b">€&nbsp;0,00</div>
+          <div class="computed nicolas" id="pc-cat-2-n-b">€&nbsp;0,00</div>
+          <div class="computed" id="pc-cat-2-t-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
         <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1147,18 +1241,18 @@
       </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="row-outer" data-drag-row="3.0"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
             <input class="name-input" type="text" data-pc-label="3.0" value="Student loan" readonly="">
-            <button class="loan-info-btn" type="button" data-loan-info="a.3.0" title="Loan details" aria-label="Loan details">ℹ️</button>
-            <span class="debt-ring" id="debt-ring-3-0-nicolas" style="display:none">
+            <button class="loan-info-btn" type="button" data-loan-info="b.3.0" title="Loan details" aria-label="Loan details">ℹ️</button>
+            <span class="debt-ring" id="debt-ring-3-0-nicolas-b" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
-                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-0-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
+                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-0-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
               </svg>
-              <span class="debt-ring-pct" id="debt-ring-pct-3-0-nicolas">0%</span>
+              <span class="debt-ring-pct" id="debt-ring-pct-3-0-nicolas-b">0%</span>
             </span>
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.maarten" value="0" readonly=""></div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="0" readonly=""></div>
-          <div class="computed" id="pc-3-0-t">€&nbsp;0,00</div>
+          <div class="computed" id="pc-3-0-t-b">€&nbsp;0,00</div>
         </div></div>
           <button class="btn-edit-item" type="button" data-pc-edit="3.0" title="Edit this loan" aria-label="Edit this loan">✎</button>
           <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1166,18 +1260,18 @@
       </div><div class="row-outer row-outer-last" data-drag-row="3.1"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
             <input class="name-input" type="text" data-pc-label="3.1" value="Credit card" readonly="">
-            <button class="loan-info-btn" type="button" data-loan-info="a.3.1" title="Loan details" aria-label="Loan details">ℹ️</button>
-            <span class="debt-ring" id="debt-ring-3-1-nicolas" style="display:none">
+            <button class="loan-info-btn" type="button" data-loan-info="b.3.1" title="Loan details" aria-label="Loan details">ℹ️</button>
+            <span class="debt-ring" id="debt-ring-3-1-nicolas-b" style="display:none">
               <svg viewBox="0 0 36 36" class="debt-ring-svg">
                 <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
-                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-1-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
+                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-1-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
               </svg>
-              <span class="debt-ring-pct" id="debt-ring-pct-3-1-nicolas">0%</span>
+              <span class="debt-ring-pct" id="debt-ring-pct-3-1-nicolas-b">0%</span>
             </span>
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.maarten" value="0" readonly=""></div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.nicolas" value="0" readonly=""></div>
-          <div class="computed" id="pc-3-1-t">€&nbsp;0,00</div>
+          <div class="computed" id="pc-3-1-t-b">€&nbsp;0,00</div>
         </div></div>
           <button class="btn-edit-item" type="button" data-pc-edit="3.1" title="Edit this loan" aria-label="Edit this loan">✎</button>
           <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1186,9 +1280,9 @@
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
           <div>Subtotal — Loans</div>
-          <div class="computed maarten" id="pc-cat-3-m">€&nbsp;0,00</div>
-          <div class="computed nicolas" id="pc-cat-3-n">€&nbsp;0,00</div>
-          <div class="computed" id="pc-cat-3-t">€&nbsp;0,00</div>
+          <div class="computed maarten" id="pc-cat-3-m-b">€&nbsp;0,00</div>
+          <div class="computed nicolas" id="pc-cat-3-n-b">€&nbsp;0,00</div>
+          <div class="computed" id="pc-cat-3-t-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
         <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1198,9 +1292,9 @@
       <span class="drag-handle spacer-only" aria-hidden="true"></span>
       <div class="subtotal-row personal">
         <div>Total personal costs</div>
-        <div class="computed maarten" id="out-pc-total-maarten">€&nbsp;0,00</div>
-        <div class="computed nicolas" id="out-pc-total-nicolas">€&nbsp;0,00</div>
-        <div class="computed" id="out-pc-total-total">€&nbsp;0,00</div>
+        <div class="computed maarten" id="out-pc-total-maarten-b">€&nbsp;0,00</div>
+        <div class="computed nicolas" id="out-pc-total-nicolas-b">€&nbsp;0,00</div>
+        <div class="computed" id="out-pc-total-total-b">€&nbsp;0,00</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
       <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1215,22 +1309,33 @@
     <div class="summary-grid">
       <div class="person-card">
         <h3><span class="swatch maarten"></span>Maarten</h3>
-        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary">€&nbsp;0,00</span></div>
-        <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-m-household">€&nbsp;0,00</span></div>
-        <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal">€&nbsp;0,00</span></div>
-        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left">€&nbsp;0,00</span></div>
+        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-m-household-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal-b">€&nbsp;0,00</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left-b">€&nbsp;0,00</span></div>
+        <div class="line compare" id="sum-m-left-compare-b"></div>
       </div>
       <div class="person-card">
         <h3><span class="swatch nicolas"></span>Nicolas</h3>
-        <div class="line"><span>Salary</span><span class="v" id="sum-n-salary">€&nbsp;0,00</span></div>
-        <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-n-household">€&nbsp;0,00</span></div>
-        <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal">€&nbsp;0,00</span></div>
-        <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left">€&nbsp;0,00</span></div>
+        <div class="line"><span>Salary</span><span class="v" id="sum-n-salary-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-n-household-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal-b">€&nbsp;0,00</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left-b">€&nbsp;0,00</span></div>
+        <div class="line compare" id="sum-n-left-compare-b"></div>
       </div>
     </div>
   </section>
 
-</div>
+  <!-- BOTTOM LINE -->
+  <section class="card">
+    <h2>Bottom line</h2>
+    <p class="desc">What's actually left over each month, combined, once this mortgage, the joint costs, and both your personal costs are all paid — set against what's left over in your current budget.</p>
+    <div class="grand-total" style="margin-top:0;">
+      <div>Combined money left over per month</div>
+      <div class="value" id="bottomline-left-b">€&nbsp;0,00</div>
+    </div>
+    <div class="bottomline-compare" id="bottomline-compare-b">Sign in to compare against your current budget.</div>
+  </section>
 
 </div>
 
@@ -1239,30 +1344,11 @@
 <div id="chart-tooltip" class="chart-tooltip" hidden=""></div>
 
 <footer class="note">
-  Built from your <strong>Budgetplan 2026.xlsx</strong> (Overview sheet — joint costs and personal costs).
-  All figures are editable and recalculate live in your browser — nothing is sent anywhere, and nothing is saved automatically
-  (no browser storage is used). Use <strong>Export</strong> to save your edited numbers as a file, and <strong>Import</strong> to
-  load them back later. Use <strong>Reset</strong> to restore the original spreadsheet values.
+  Your plan for the next house — a savings goal with an itemized cost checklist, and a full budget
+  simulation for what life looks like once you own it. Everything here is editable and recalculates
+  live in your browser. Nothing autosaves — hit <strong>Save</strong> when you're happy with your edits,
+  or <strong>Undo changes</strong> to throw them away and reload the last saved values.
 </footer>
-
-<dialog id="nicolas-log-dialog" class="modal">
-  <div class="modal-header">
-    <h3><span class="swatch nicolas"></span>Nicolas's logged contributions</h3>
-    <button class="icon-btn" id="btn-close-log" type="button" aria-label="Close">✕</button>
-  </div>
-  <p class="modal-desc">Every month you've logged: what Nicolas contributed to your account, his personal spending from the joint account — money spent from the joint account unrelated to its intended (joint) use — and the net contribution that resulted, straight from your spreadsheet's history.</p>
-
-  <div class="log-summary" id="log-summary"></div>
-
-  <div class="log-table-wrap">
-    <table class="log-table">
-      <thead>
-        <tr><th>Month</th><th>Contribution</th><th>Personal spending</th><th>Net contribution</th></tr>
-      </thead>
-      <tbody id="log-table-body"></tbody>
-    </table>
-  </div>
-</dialog>
 
 <dialog id="loan-info-dialog" class="modal">
   <div class="modal-header">
@@ -1272,41 +1358,22 @@
   <div class="loan-info-rows" id="loan-info-rows"></div>
 </dialog>
 
-<dialog id="spending-info-dialog" class="modal">
-  <div class="modal-header">
-    <h3 id="spending-info-title">Personal spending</h3>
-    <button class="icon-btn" id="btn-close-spending-info" type="button" aria-label="Close">✕</button>
-  </div>
-  <div id="spending-info-summary" class="spending-info-summary"></div>
-  <div class="log-table-wrap">
-    <table class="log-table spending-item-table">
-      <thead>
-        <tr><th>Date</th><th>Description</th><th>Amount</th></tr>
-      </thead>
-      <tbody id="spending-info-rows"></tbody>
-    </table>
-  </div>
-</dialog>
-
 <script>
 (function () {
   "use strict";
 
-  // ---------- Default data — Current Budget ----------
-  // The real figures now live only in Supabase (budget_dashboard_state, scenario 'a').
-  // This is just the empty scaffold shown for an instant before that fetch resolves
-  // (invisible behind the login gate) and the fallback if the row doesn't exist yet —
-  // it intentionally contains no real amounts. The "Potential new house" scenario ('b')
-  // now lives entirely on newhouse.html.
-  function defaultStateA() {
+  // ---------- Default data — Potential new house scenario ----------
+  // The real figures now live only in Supabase (budget_dashboard_state, scenario 'b'),
+  // fetched after login. This is just the empty scaffold shown for an instant before that
+  // fetch resolves (invisible behind the login gate) and the fallback if the row doesn't
+  // exist yet — it intentionally contains no real amounts (except the starter checklist
+  // items below, which are just category suggestions at €0, not real figures).
+  function defaultStateB() {
     return {
       salary: { maarten: 0, nicolas: 0 },
-      adjustment: 0,
-      adjustmentCorrection: 0,
       household: [
         { name: "House", items: [
           { label: "Mortgage", amount: 0 },
-          { label: "Ownership fee", amount: 0 },
           { label: "Gas", amount: 0 },
           { label: "Energy", amount: 0 },
           { label: "County and city taxes", amount: 0 },
@@ -1330,6 +1397,24 @@
         ]},
       ],
       personal: defaultPersonal(),
+      // Savings goal for buyer's costs + safety buffer before committing to this house.
+      // `items` is the moving/buying cost checklist — a starter set of categories/labels
+      // at €0 (not real figures) so there's something to edit rather than a blank table.
+      houseFund: {
+        goal: 15000, saved: 0, monthlyContribution: 0,
+        items: [
+          { category: "Buyer's costs", label: "Transfer tax (overdrachtsbelasting)", amount: 0, done: false },
+          { category: "Buyer's costs", label: "Notary fees", amount: 0, done: false },
+          { category: "Buyer's costs", label: "NHG guarantee fee", amount: 0, done: false },
+          { category: "Buyer's costs", label: "Mortgage advice", amount: 0, done: false },
+          { category: "Buyer's costs", label: "Valuation (taxatie)", amount: 0, done: false },
+          { category: "Moving", label: "Moving company", amount: 0, done: false },
+          { category: "Furniture & setup", label: "New furniture", amount: 0, done: false },
+          { category: "Furniture & setup", label: "Paint & small renovations", amount: 0, done: false },
+          { category: "Repairs & maintenance", label: "Roof", amount: 0, done: false },
+          { category: "Buffer", label: "Emergency buffer", amount: 0, done: false },
+        ],
+      },
     };
   }
 
@@ -1373,34 +1458,36 @@
   // unlocked, so "Discard" can restore exactly what was there before the edit. Both are
   // intentionally plain in-memory Weak collections on the scope, never touched by
   // save/load, so neither gets persisted to Supabase and both simply reset on page load.
-  const scopeA = { key: 'a', sfx: '', mode: 'fixed', state: defaultStateA(), _editUnlocked: new WeakSet(), _editSnapshots: new WeakMap() };
-  const activeScope = scopeA;
+  const scopeB = { key: 'b', sfx: '-b', mode: 'split50', state: defaultStateB(), _editUnlocked: new WeakSet(), _editSnapshots: new WeakMap() };
 
-  // Exposed (read-only in practice) so net-worth.html can pull Nicolas's current debt
-  // balances via a hidden iframe, without needing a shared backend. Nothing reads this
-  // from outside except that opt-in "sync" button on the net worth page.
-  window.scopeA = scopeA;
+  window.scopeB = scopeB;
 
   // Lets the cloud-sync script (added separately, below) load a fetched Supabase row into
-  // a scope and re-render, or revert to it when the user hits Reset — without duplicating
+  // scope B and re-render, or revert to it when the user hits Undo — without duplicating
   // any of the render logic defined in this closure.
   window.__applyScopeState = function(key, state) {
-    scopeA.state = state;
-    fullRender(scopeA);
+    scopeB.state = state;
+    // Backfill fields added after this row was last saved — older Supabase rows won't have
+    // a houseFund (or its items checklist) yet, so give them the same defaults a fresh
+    // scope starts with rather than leaving inputs/progress bar/checklist blank.
+    if (!scopeB.state.houseFund) {
+      scopeB.state.houseFund = { goal: 15000, saved: 0, monthlyContribution: 0, items: [] };
+    } else if (!Array.isArray(scopeB.state.houseFund.items)) {
+      scopeB.state.houseFund.items = [];
+    }
+    fullRender(scopeB);
+  };
+
+  // Read-only snapshot of scenario 'a' (Current Budget) — loaded separately, purely so the
+  // Budget plan tab can show "vs. what you pay/have left today" comparisons. Never edited or
+  // saved from this page; null until the cloud-sync script below loads it.
+  let currentBudgetState = null;
+  window.__applyCurrentBudgetSnapshot = function(state) {
+    currentBudgetState = state;
+    recalcAndRender(scopeB);
   };
 
   function el(scope, base) { return document.getElementById(base + scope.sfx); }
-
-  // ---------- Nicolas's logged monthly contributions (from the "Contributions Nick" sheet) ----------
-  // Fixed historical record — not part of the editable budget state, and only shown for the
-  // Current Budget scope. y/m identify the month; contribution = what he transferred to Maarten's
-  // account; spending = his personal spending from the joint account that month — money spent
-  // unrelated to its intended (joint) use (null when none was logged).
-  // The real history now lives in Supabase (nicolas_contributions) and is loaded after login by
-  // the cloud-sync script below, which calls window.__setNicolasLog(rows) to fill this in.
-  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let NICOLAS_LOG = [];
-  window.__setNicolasLog = function(rows) { NICOLAS_LOG = rows; };
 
   const EUR = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmt = (n) => EUR.format(Number.isFinite(n) ? n : 0);
@@ -1695,6 +1782,7 @@
     `;
   }
 
+
   function bindInputs(scope) {
     const s = scope.sfx;
 
@@ -1716,6 +1804,22 @@
     const adjCorrEl = el(scope, 'in-adjustment-correction');
     if (adjCorrEl) adjCorrEl.addEventListener('input', e => {
       scope.state.adjustmentCorrection = parseFloat(e.target.value) || 0;
+      recalcAndRender(scope);
+    });
+
+    const hfGoalEl = el(scope, 'in-housefund-goal');
+    if (hfGoalEl) hfGoalEl.addEventListener('input', e => {
+      scope.state.houseFund.goal = parseFloat(e.target.value) || 0;
+      recalcAndRender(scope);
+    });
+    const hfSavedEl = el(scope, 'in-housefund-saved');
+    if (hfSavedEl) hfSavedEl.addEventListener('input', e => {
+      scope.state.houseFund.saved = parseFloat(e.target.value) || 0;
+      recalcAndRender(scope);
+    });
+    const hfMonthlyEl = el(scope, 'in-housefund-monthly');
+    if (hfMonthlyEl) hfMonthlyEl.addEventListener('input', e => {
+      scope.state.houseFund.monthlyContribution = parseFloat(e.target.value) || 0;
       recalcAndRender(scope);
     });
 
@@ -1897,6 +2001,14 @@
     if (adjEl) adjEl.value = scope.state.adjustment;
     const adjCorrEl = el(scope, 'in-adjustment-correction');
     if (adjCorrEl) adjCorrEl.value = scope.state.adjustmentCorrection;
+    if (scope.state.houseFund) {
+      const hfGoalEl = el(scope, 'in-housefund-goal');
+      if (hfGoalEl) hfGoalEl.value = scope.state.houseFund.goal;
+      const hfSavedEl = el(scope, 'in-housefund-saved');
+      if (hfSavedEl) hfSavedEl.value = scope.state.houseFund.saved;
+      const hfMonthlyEl = el(scope, 'in-housefund-monthly');
+      if (hfMonthlyEl) hfMonthlyEl.value = scope.state.houseFund.monthlyContribution;
+    }
     document.querySelectorAll(`#household-rows${s} [data-hh]`).forEach(elx => {
       const [ci, ii] = elx.getAttribute('data-hh').split('.');
       elx.value = scope.state.household[+ci].items[+ii].amount;
@@ -1908,6 +2020,171 @@
   }
 
   function setText(id, text) { const elx = document.getElementById(id); if (elx) elx.textContent = text; }
+
+  // Updates the house-fund progress bar, percentage, "remaining" label, and the
+  // estimated-time-to-goal readout.
+  function renderHouseFund(scope) {
+    if (!scope.state.houseFund) return;
+    const s = scope.sfx;
+    const hf = scope.state.houseFund;
+    const goal = Math.max(0, Number(hf.goal) || 0);
+    const saved = Math.max(0, Number(hf.saved) || 0);
+    const monthly = Math.max(0, Number(hf.monthlyContribution) || 0);
+    const pct = goal > 0 ? Math.min(100, (saved / goal) * 100) : 0;
+    const remaining = Math.max(0, goal - saved);
+
+    const fillEl = el(scope, 'housefund-progress-fill');
+    if (fillEl) fillEl.style.width = pct + '%';
+    setText(`housefund-progress-pct${s}`, Math.round(pct) + '%');
+    setText(`housefund-progress-remaining${s}`, remaining > 0 ? `${fmt(remaining)} to go` : 'Goal reached 🎉');
+
+    let etaText = '—';
+    if (remaining <= 0) {
+      etaText = 'Goal reached';
+    } else if (monthly > 0) {
+      const months = Math.ceil(remaining / monthly);
+      const years = Math.floor(months / 12);
+      const remMonths = months % 12;
+      const parts = [];
+      if (years > 0) parts.push(`${years} yr${years === 1 ? '' : 's'}`);
+      parts.push(`${remMonths} mo.`);
+      etaText = `~${months} mo. total (${parts.join(' ')})`;
+    } else {
+      etaText = 'Add a monthly amount to estimate';
+    }
+    setText(`housefund-eta${s}`, etaText);
+  }
+
+  // ---------- Moving/buying cost checklist ----------
+  // Lives inside houseFund.items — an array of {category, label, amount, done}. `done` is
+  // purely a "sorted it out" tick, doesn't affect any of the money math; it just dims the
+  // row so it's easy to see what's still open at a glance.
+  const CHECKLIST_CATEGORIES = ["Buyer's costs", "Moving", "Furniture & setup", "Repairs & maintenance", "Buffer", "Other"];
+  const CHECKLIST_COLORS = {
+    "Buyer's costs": 'var(--seg-left)',
+    "Moving": 'var(--series-maarten)',
+    "Furniture & setup": 'var(--seg-personal)',
+    "Repairs & maintenance": 'var(--status-critical)',
+    "Buffer": 'var(--seg-joint)',
+    "Other": 'var(--text-muted)',
+  };
+
+  function checklistItems(scope) {
+    if (!scope.state.houseFund) return [];
+    if (!Array.isArray(scope.state.houseFund.items)) scope.state.houseFund.items = [];
+    return scope.state.houseFund.items;
+  }
+
+  function buildChecklistRows(scope) {
+    const s = scope.sfx;
+    const root = el(scope, 'checklist-rows');
+    if (!root) return;
+    const items = checklistItems(scope);
+    root.innerHTML = items.map((it, idx) => `
+      <tr data-checklist-row="${idx}" class="${it.done ? 'done' : ''}">
+        <td><input type="checkbox" class="checklist-done-cb" data-cl-done="${idx}"${it.done ? ' checked' : ''} title="Mark as sorted"></td>
+        <td><select class="checklist-cat" data-cl-cat="${idx}">${CHECKLIST_CATEGORIES.map(c => `<option value="${escapeAttr(c)}"${c === it.category ? ' selected' : ''}>${c}</option>`).join('')}</select></td>
+        <td><input class="name-input" type="text" data-cl-label="${idx}" value="${escapeAttr(it.label)}" placeholder="What's this for?"></td>
+        <td class="amt-col"><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="10" min="0" data-cl-amount="${idx}" value="${Number(it.amount) || 0}"></div></td>
+        <td><button type="button" class="btn-del-item" data-cl-del="${idx}" title="Remove this item" aria-label="Remove this item">🗑</button></td>
+      </tr>
+    `).join('');
+
+    root.querySelectorAll('[data-cl-done]').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const idx = +e.target.getAttribute('data-cl-done');
+        items[idx].done = e.target.checked;
+        e.target.closest('tr').classList.toggle('done', e.target.checked);
+        renderChecklistTotals(scope);
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+    });
+    root.querySelectorAll('[data-cl-cat]').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const idx = +e.target.getAttribute('data-cl-cat');
+        items[idx].category = e.target.value;
+        renderChecklistTotals(scope);
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+    });
+    root.querySelectorAll('[data-cl-label]').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const idx = +e.target.getAttribute('data-cl-label');
+        items[idx].label = e.target.value;
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+    });
+    root.querySelectorAll('[data-cl-amount]').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const idx = +e.target.getAttribute('data-cl-amount');
+        items[idx].amount = parseFloat(e.target.value) || 0;
+        renderChecklistTotals(scope);
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+    });
+    root.querySelectorAll('[data-cl-del]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = +e.target.closest('[data-cl-del]').getAttribute('data-cl-del');
+        items.splice(idx, 1);
+        renderChecklist(scope);
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+    });
+  }
+
+  function renderChecklistTotals(scope) {
+    const s = scope.sfx;
+    const items = checklistItems(scope);
+    const total = items.reduce((sum, it) => sum + (Number(it.amount) || 0), 0);
+    setText(`checklist-total${s}`, fmt(total));
+
+    const byCategory = {};
+    items.forEach(it => {
+      const cat = it.category || 'Other';
+      byCategory[cat] = (byCategory[cat] || 0) + (Number(it.amount) || 0);
+    });
+    const cats = CHECKLIST_CATEGORIES.filter(c => byCategory[c] > 0);
+
+    const barEl = el(scope, 'checklist-breakdown');
+    if (!barEl) return;
+    if (!cats.length) {
+      barEl.innerHTML = '<p class="desc" style="margin:0;">Add an amount to any item to see the breakdown by category.</p>';
+      return;
+    }
+    const bar = cats.map(c => `<div class="checklist-bar-seg" style="width:${total > 0 ? (byCategory[c] / total * 100) : 0}%; background:${CHECKLIST_COLORS[c] || 'var(--text-muted)'}" title="${c}: ${fmt(byCategory[c])}"></div>`).join('');
+    const legend = cats.map(c => `
+      <span class="item"><span class="dswatch" style="background:${CHECKLIST_COLORS[c] || 'var(--text-muted)'}"></span>${c} <span class="amt">${fmt(byCategory[c])}</span></span>
+    `).join('');
+    barEl.innerHTML = `<div class="checklist-bar">${bar}</div><div class="checklist-bar-legend">${legend}</div>`;
+  }
+
+  function renderChecklist(scope) {
+    buildChecklistRows(scope);
+    renderChecklistTotals(scope);
+  }
+
+  // ---------- Comparison against the Current Budget (scenario 'a', read-only) ----------
+  // currentBudgetState is loaded separately by the cloud-sync script below and is never
+  // edited from this page — it's purely a reference point so this "what-if" scenario can
+  // show how it stacks up against what you actually pay/have left today.
+  function computeCurrentBudget() {
+    if (!currentBudgetState) return null;
+    return compute({ state: currentBudgetState, mode: 'fixed' });
+  }
+
+  // Renders a small "Currently €X · +€Y more" / "−€Y less" line. `betterWhen` is 'lower' for
+  // figures where less is good (what someone pays) or 'higher' for figures where more is
+  // good (money left over) — that's what decides whether the delta is colored good or bad.
+  function compareLineHTML(currentValue, newValue, betterWhen) {
+    const delta = newValue - currentValue;
+    if (Math.abs(delta) < 0.005) {
+      return `Currently ${fmt(currentValue)} · <span class="delta">no change</span>`;
+    }
+    const isGood = betterWhen === 'lower' ? delta < 0 : delta > 0;
+    const sign = delta > 0 ? '+' : '−';
+    const word = delta > 0 ? 'more' : 'less';
+    return `Currently ${fmt(currentValue)} · <span class="delta ${isGood ? 'good' : 'bad'}">${sign}${fmt(Math.abs(delta))} ${word}</span>`;
+  }
 
   function recalcAndRender(scope) {
     const s = scope.sfx;
@@ -1928,6 +2205,18 @@
     setText(`out-pays-nicolas${s}`, fmt(r.nicolasPays));
     setText(`out-pct-maarten${s}`, pctFmt(r.splitMaartenPct) + ' of joint costs');
     setText(`out-pct-nicolas${s}`, pctFmt(r.splitNicolasPct) + ' of joint costs');
+
+    // comparison against the Current Budget — how much more/less each of you would pay
+    const current = computeCurrentBudget();
+    const compareMaartenPaysEl = document.getElementById(`compare-pays-maarten${s}`);
+    const compareNicolasPaysEl = document.getElementById(`compare-pays-nicolas${s}`);
+    if (current) {
+      if (compareMaartenPaysEl) compareMaartenPaysEl.innerHTML = compareLineHTML(current.maartenPays, r.maartenPays, 'lower');
+      if (compareNicolasPaysEl) compareNicolasPaysEl.innerHTML = compareLineHTML(current.nicolasPays, r.nicolasPays, 'lower');
+    } else {
+      if (compareMaartenPaysEl) compareMaartenPaysEl.textContent = '';
+      if (compareNicolasPaysEl) compareNicolasPaysEl.textContent = '';
+    }
 
     // who-pays-what donut — Maarten's share vs Nicolas's share of the joint costs
     updateDonutSegments(
@@ -1972,10 +2261,60 @@
     nLeftEl.textContent = fmt(r.moneyLeftNicolas);
     nLeftEl.className = 'v ' + (r.moneyLeftNicolas >= 0 ? 'good' : 'bad');
 
+    // comparison against the Current Budget — how much more/less each of you would have left
+    const sumMCompareEl = document.getElementById(`sum-m-left-compare${s}`);
+    const sumNCompareEl = document.getElementById(`sum-n-left-compare${s}`);
+    const bottomLineCompareEl = document.getElementById(`bottomline-compare${s}`);
+    setText(`bottomline-left${s}`, fmt(r.moneyLeftMaarten + r.moneyLeftNicolas));
+    if (current) {
+      if (sumMCompareEl) sumMCompareEl.innerHTML = compareLineHTML(current.moneyLeftMaarten, r.moneyLeftMaarten, 'higher');
+      if (sumNCompareEl) sumNCompareEl.innerHTML = compareLineHTML(current.moneyLeftNicolas, r.moneyLeftNicolas, 'higher');
+      if (bottomLineCompareEl) {
+        bottomLineCompareEl.innerHTML = 'Combined, ' + compareLineHTML(
+          current.moneyLeftMaarten + current.moneyLeftNicolas,
+          r.moneyLeftMaarten + r.moneyLeftNicolas,
+          'higher'
+        ) + ' left over each month than your current budget.';
+      }
+    } else {
+      if (sumMCompareEl) sumMCompareEl.textContent = '';
+      if (sumNCompareEl) sumNCompareEl.textContent = '';
+      if (bottomLineCompareEl) bottomLineCompareEl.textContent = 'Sign in to compare against your current budget.';
+    }
+
+    renderHouseFund(scope);
+
     // Tell the cloud-sync script something changed, so it can debounce-save this scope's
     // state to Supabase. Harmless when fired from a fetch-triggered re-render too — it just
     // saves back the same data it loaded.
     document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+  }
+
+  // Updates one person's salary-split donut. A negative "left over" can't form a slice,
+  // so the ring is floored to 0 there — the ring then represents whichever is larger,
+  // the salary or the actual spending — but the legend always shows the true (possibly
+  // negative) amount.
+  function updateSplitDonut(scope, personKey, joint, personal, left, salary) {
+    const s = scope.sfx;
+    const leftPositive = Math.max(0, left);
+    const ringTotal = joint + personal + leftPositive;
+    updateDonutSegments(
+      [
+        { id: `split-donut-seg-${personKey}-joint${s}`, name: 'Joint costs' },
+        { id: `split-donut-seg-${personKey}-personal${s}`, name: 'Personal costs' },
+        { id: `split-donut-seg-${personKey}-left${s}`, name: 'Left over' },
+      ],
+      [joint, personal, leftPositive], ringTotal
+    );
+    setText(`split-donut-total-${personKey}${s}`, fmt(salary));
+    setText(`split-donut-amt-${personKey}-joint${s}`, fmt(joint));
+    setText(`split-donut-amt-${personKey}-personal${s}`, fmt(personal));
+    const leftAmtEl = document.getElementById(`split-donut-amt-${personKey}-left${s}`);
+    leftAmtEl.textContent = fmt(left);
+    leftAmtEl.className = 'v' + (left < 0 ? ' bad' : '');
+    setText(`split-donut-pct-${personKey}-joint${s}`, ringTotal > 0 ? pctFmt(joint / ringTotal) : '—');
+    setText(`split-donut-pct-${personKey}-personal${s}`, ringTotal > 0 ? pctFmt(personal / ringTotal) : '—');
+    setText(`split-donut-pct-${personKey}-left${s}`, ringTotal > 0 ? pctFmt(leftPositive / ringTotal) : '—');
   }
 
   // Updates the "Debt" toggle visibility for Nicolas (only shown once he has a monthly
@@ -2015,10 +2354,23 @@
     buildWhoPaysDonut(scope);
     bindInputs(scope);
     setInputValues(scope);
+    renderChecklist(scope);
     recalcAndRender(scope);
   }
 
-  // ---------- Controls: theme, export, undo (there's only one scope now — Current Budget) ----------
+  // ---------- Screen tabs ----------
+  // Both tabs (Savings goal / Budget plan) show different views of the same scope (B) —
+  // this just toggles which one is visible, no scope switching involved.
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-tab');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
+      document.getElementById(`screen-${key}`).classList.add('active');
+    });
+  });
+
+  // ---------- Controls: theme, export, import, reset (act on whichever screen is active) ----------
   document.getElementById('btn-theme').addEventListener('click', () => {
     const root = document.documentElement;
     const current = root.getAttribute('data-theme');
@@ -2079,12 +2431,12 @@
   })();
 
   document.getElementById('btn-export').addEventListener('click', () => {
-    const payload = Object.assign({ scenario: activeScope.key }, activeScope.state);
+    const payload = Object.assign({ scenario: 'b' }, scopeB.state);
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'joint-costs-2026-values.json';
+    a.download = 'potential-new-house-values.json';
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -2096,68 +2448,10 @@
       if (window.__undoAllChanges) {
         window.__undoAllChanges();
       } else {
-        scopeA.state = defaultStateA();
-        fullRender(scopeA);
+        scopeB.state = defaultStateB();
+        fullRender(scopeB);
       }
     }
-  });
-
-  // ---------- Nicolas's logged-contributions modal (Current Budget scope only) ----------
-  function renderNicolasLog() {
-    // yearly summary — actual logged total vs. the monthly adjustment, annualized.
-    // The current calendar year's target is prorated to how many months of the year
-    // have happened so far (not the full 12), since it isn't over yet.
-    const now = new Date();
-    const curYear = now.getFullYear();
-    const curMonth = now.getMonth() + 1; // 1–12
-    const monthlyTarget = netAdjustment(scopeA.state);
-    const years = [...new Set(NICOLAS_LOG.map(r => r.y))];
-    const summary = document.getElementById('log-summary');
-    summary.innerHTML = years.map(y => {
-      const rows = NICOLAS_LOG.filter(r => r.y === y);
-      const actual = rows.reduce((s, r) => s + r.contribution - (r.spending || 0), 0);
-      const monthsInTarget = y === curYear ? curMonth : 12;
-      const target = monthlyTarget * monthsInTarget;
-      const diff = target - actual;
-      const isPartialYear = rows.length < 12;
-      return `
-        <div class="yr-tile">
-          <div class="yr">${y}${isPartialYear ? ' (partial)' : ''}</div>
-          <div class="yr-actual">${fmt(actual)}</div>
-          <div class="yr-diff ${diff > 0 ? 'bad' : 'good'}">${diff > 0 ? fmt(diff) + ' short of' : fmt(-diff) + ' over'} ${fmt(target)} target</div>
-        </div>
-      `;
-    }).join('');
-
-    // month-by-month table, most recent first
-    const tbody = document.getElementById('log-table-body');
-    const rowsDesc = [...NICOLAS_LOG].reverse();
-    tbody.innerHTML = rowsDesc.map(r => {
-      const net = r.contribution - (r.spending || 0);
-      const hasItems = Array.isArray(r.items) && r.items.length > 0;
-      const infoBtn = hasItems
-        ? ` <button class="spending-info-btn" type="button" data-spending-info="${r.y}.${r.m}" title="View itemized spending" aria-label="View itemized spending">ℹ️</button>`
-        : '';
-      return `
-        <tr>
-          <td>${MONTH_NAMES[r.m - 1]} ${r.y}</td>
-          <td class="${r.contribution < netAdjustment(scopeA.state) ? 'net bad' : ''}">${fmt(r.contribution)}</td>
-          <td class="${r.spending ? '' : 'muted'}">${r.spending ? fmt(r.spending) : '—'}${infoBtn}</td>
-          <td class="net${net < 0 ? ' bad' : ''}">${fmt(net)}</td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  const nicolasLogDialog = document.getElementById('nicolas-log-dialog');
-  document.getElementById('btn-nicolas-log').addEventListener('click', () => {
-    renderNicolasLog();
-    nicolasLogDialog.showModal();
-  });
-  document.getElementById('btn-close-log').addEventListener('click', () => nicolasLogDialog.close());
-  nicolasLogDialog.addEventListener('click', (e) => {
-    // click on the backdrop (the dialog element itself, outside its content) closes it
-    if (e.target === nicolasLogDialog) nicolasLogDialog.close();
   });
 
   // ---------- Loan info modal ----------
@@ -2170,7 +2464,7 @@
   // since its content is fully replaced each time — no stale-listener risk there.
   const loanInfoDialog = document.getElementById('loan-info-dialog');
   function openLoanInfo(scopeKey, ci, ii) {
-    const scope = scopeA; // only scope on this page now
+    const scope = scopeB; // only scope on this page
     const it = scope.state.personal[ci] && scope.state.personal[ci].items[ii];
     if (!it || !it.debt || !it.debt.nicolas) return;
     const debt = it.debt.nicolas;
@@ -2219,50 +2513,6 @@
   document.getElementById('btn-close-loan-info').addEventListener('click', () => loanInfoDialog.close());
   loanInfoDialog.addEventListener('click', (e) => {
     if (e.target === loanInfoDialog) loanInfoDialog.close();
-  });
-
-  // ---------- Itemized spending modal (Nicolas's log) ----------
-  // Opened via the ℹ️ next to a month's Personal spending figure — lists the individual
-  // transactions that make up that month's total, and flags it clearly if they don't
-  // actually add up to the recorded total (e.g. a month only partially itemized so far).
-  const DATE_FMT = new Intl.DateTimeFormat('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  const spendingInfoDialog = document.getElementById('spending-info-dialog');
-  function openSpendingInfo(y, m) {
-    const r = NICOLAS_LOG.find(row => row.y === y && row.m === m);
-    if (!r || !Array.isArray(r.items) || !r.items.length) return;
-    document.getElementById('spending-info-title').textContent = `${MONTH_NAMES[m - 1]} ${y} — Personal spending`;
-
-    const itemsSum = r.items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
-    const recorded = Number(r.spending) || 0;
-    const matches = Math.abs(itemsSum - recorded) < 0.01;
-    const summaryEl = document.getElementById('spending-info-summary');
-    summaryEl.className = 'spending-info-summary' + (matches ? '' : ' mismatch');
-    summaryEl.innerHTML = matches
-      ? `<span>${r.items.length} item${r.items.length === 1 ? '' : 's'}</span><span class="v">${fmt(itemsSum)} — matches the recorded total</span>`
-      : `<span>${r.items.length} item${r.items.length === 1 ? '' : 's'} logged so far</span><span class="v">${fmt(itemsSum)} of ${fmt(recorded)} recorded — ${fmt(recorded - itemsSum)} not yet itemized</span>`;
-
-    document.getElementById('spending-info-rows').innerHTML = r.items.map(it => {
-      const d = it.date ? new Date(it.date + 'T00:00:00') : null;
-      return `
-        <tr>
-          <td>${d && !isNaN(d) ? DATE_FMT.format(d) : '—'}</td>
-          <td>${escapeAttr(it.description || '')}</td>
-          <td>${fmt(Number(it.amount) || 0)}</td>
-        </tr>
-      `;
-    }).join('');
-
-    spendingInfoDialog.showModal();
-  }
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest && e.target.closest('[data-spending-info]');
-    if (!btn) return;
-    const [y, m] = btn.getAttribute('data-spending-info').split('.').map(Number);
-    openSpendingInfo(y, m);
-  });
-  document.getElementById('btn-close-spending-info').addEventListener('click', () => spendingInfoDialog.close());
-  spendingInfoDialog.addEventListener('click', (e) => {
-    if (e.target === spendingInfoDialog) spendingInfoDialog.close();
   });
 
   // ---------- Drag-to-reorder ----------
@@ -2360,10 +2610,25 @@
     root.addEventListener('pointercancel', endDrag);
   }
 
-  fullRender(scopeA);
+  fullRender(scopeB);
 
-  initDragReorder(scopeA, 'household-rows', sc => sc.state.household);
-  initDragReorder(scopeA, 'personal-rows', sc => sc.state.personal);
+  initDragReorder(scopeB, 'household-rows', sc => sc.state.household);
+  initDragReorder(scopeB, 'personal-rows', sc => sc.state.personal);
+
+  const clAddBtn = document.getElementById('btn-checklist-add-b');
+  if (clAddBtn) clAddBtn.addEventListener('click', () => {
+    checklistItems(scopeB).push({ category: 'Other', label: '', amount: 0, done: false });
+    renderChecklist(scopeB);
+    document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scopeB.key } }));
+  });
+  const clGoalBtn = document.getElementById('btn-checklist-to-goal-b');
+  if (clGoalBtn) clGoalBtn.addEventListener('click', () => {
+    const total = checklistItems(scopeB).reduce((sum, it) => sum + (Number(it.amount) || 0), 0);
+    scopeB.state.houseFund.goal = Math.round(total);
+    const goalInput = document.getElementById('in-housefund-goal-b');
+    if (goalInput) goalInput.value = scopeB.state.houseFund.goal;
+    recalcAndRender(scopeB);
+  });
 })();
 </script>
 
@@ -2424,10 +2689,12 @@
 
 <script>
 // ---------- Cloud sync (budget_dashboard_state in Supabase) ----------
-// Loads scenario 'a' (Current Budget) from Supabase right after login. Edits only stay in
-// memory until you explicitly hit Save (green) — nothing autosaves — and Undo changes (red)
-// discards any unsaved edits and reloads what's actually in the database. Scenario 'b' (the
-// potential new house) now lives entirely on newhouse.html — this page no longer touches it.
+// Loads scenario 'b' (the potential new house) from Supabase right after login — this is
+// the only scenario this page edits or saves. Edits only stay in memory until you explicitly
+// hit Save (green) — nothing autosaves — and Undo changes (red) discards any unsaved edits
+// and reloads what's actually in the database. Scenario 'a' (Current Budget) is also loaded,
+// read-only, purely to power the "vs. today" comparison figures on the Budget plan tab —
+// this page never writes to it; that stays budget.html's job.
 // Access is enforced twice: only signed-in users can reach this at all (the login gate
 // above), and only emails listed in `allowed_users` can actually read or write the tables
 // (Postgres row-level security — enforced by the database itself, not by this script).
@@ -2436,7 +2703,7 @@
   var saveBtn = document.getElementById('btn-save');
   var undoBtn = document.getElementById('btn-undo');
   var currentUserEmail = null;
-  var loadedOnce = { a: false };
+  var loadedOnce = { b: false };
 
   function setStatus(text, cls) {
     if (!statusEl) return;
@@ -2449,34 +2716,35 @@
     setTimeout(function() { waitForSb(cb); }, 50);
   }
 
-  function loadScope(sb, key) {
-    return sb.from('budget_dashboard_state').select('state').eq('scenario', key).maybeSingle()
+  function loadScopeB(sb) {
+    return sb.from('budget_dashboard_state').select('state').eq('scenario', 'b').maybeSingle()
       .then(function(res) {
         if (res.error) throw res.error;
         if (res.data && res.data.state) {
-          window.__applyScopeState(key, res.data.state);
+          window.__applyScopeState('b', res.data.state);
         }
-        loadedOnce[key] = true;
+        loadedOnce.b = true;
       });
   }
 
-  function loadNicolasLog(sb) {
-    return sb.from('nicolas_contributions')
-      .select('year, month, contribution, spending, items')
-      .order('year', { ascending: true })
-      .order('month', { ascending: true })
+  // Read-only — never saved back. A failure here shouldn't block the page (scope B is the
+  // main thing this page is for), so it's caught locally rather than bubbling up.
+  function loadCurrentBudgetSnapshot(sb) {
+    return sb.from('budget_dashboard_state').select('state').eq('scenario', 'a').maybeSingle()
       .then(function(res) {
         if (res.error) throw res.error;
-        var rows = (res.data || []).map(function(r) {
-          return { y: r.year, m: r.month, contribution: r.contribution, spending: r.spending, items: r.items || null };
-        });
-        window.__setNicolasLog(rows);
+        if (res.data && res.data.state) {
+          window.__applyCurrentBudgetSnapshot(res.data.state);
+        }
+      })
+      .catch(function(err) {
+        console.error('Could not load Current Budget for comparison', err);
       });
   }
 
   function loadAll(sb) {
     setStatus('☁️ Loading…', 'saving');
-    Promise.all([loadScope(sb, 'a'), loadNicolasLog(sb)]).then(function() {
+    Promise.all([loadScopeB(sb), loadCurrentBudgetSnapshot(sb)]).then(function() {
       setStatus('☁️ Synced');
     }).catch(function(err) {
       console.error('Budget cloud load failed', err);
@@ -2499,7 +2767,7 @@
         saveBtn.disabled = true;
         var now = new Date().toISOString();
         sb.from('budget_dashboard_state')
-          .upsert({ scenario: 'a', state: window.scopeA.state, updated_by: currentUserEmail, updated_at: now })
+          .upsert({ scenario: 'b', state: window.scopeB.state, updated_by: currentUserEmail, updated_at: now })
           .then(function(res) {
             saveBtn.disabled = false;
             if (res.error) {
@@ -2517,7 +2785,7 @@
     waitForSb(function(sb) {
       setStatus('☁️ Loading…', 'saving');
       if (undoBtn) undoBtn.disabled = true;
-      loadScope(sb, 'a').then(function() {
+      loadScopeB(sb).then(function() {
         if (undoBtn) undoBtn.disabled = false;
         setStatus('☁️ Synced');
       }).catch(function(err) {
@@ -2541,7 +2809,7 @@
         loadAll(sb);
       } else {
         currentUserEmail = null;
-        loadedOnce.a = false;
+        loadedOnce.b = false;
         setStatus('☁️ …');
       }
     });
