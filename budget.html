@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Joint Costs Dashboard 2026 — Maarten &amp; Nicolas</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root {
     color-scheme: light;
@@ -459,9 +459,72 @@
     border-color: color-mix(in srgb, var(--series-nicolas) 25%, var(--border));
   }
 
+
+  /* ---- Auth gate ---- */
+  .auth-gate {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--page);
+    padding: 20px;
+  }
+  .auth-gate.hidden { display: none; }
+  .auth-card {
+    width: 100%; max-width: 340px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 28px 26px;
+  }
+  .auth-card h1 { font-size: 18px; margin: 0 0 4px; font-weight: 650; }
+  .auth-sub { margin: 0 0 20px; font-size: 13px; color: var(--text-secondary); }
+  .auth-card label { display: block; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; }
+  .auth-card input {
+    display: block; width: 100%; margin-top: 6px;
+    font: inherit; font-size: 14px; padding: 9px 11px;
+    background: var(--surface-1); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 8px;
+  }
+  .auth-error { min-height: 16px; font-size: 12.5px; color: #d03b3b; margin-bottom: 4px; }
+  .auth-submit {
+    width: 100%; font: inherit; font-size: 14px; font-weight: 600;
+    background: var(--text-primary); color: var(--page);
+    border: none; border-radius: 8px; padding: 10px 12px; cursor: pointer; margin-top: 4px;
+  }
+  .auth-submit:disabled { opacity: 0.6; cursor: default; }
+  .auth-logout {
+    position: fixed; top: 14px; right: 20px; z-index: 30;
+    display: none;
+    font: inherit; font-size: 12px; font-weight: 550;
+    background: var(--surface-2); color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; cursor: pointer;
+  }
+  .sync-status {
+    font-size: 12px; color: var(--text-muted);
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 6px 4px;
+  }
+  .sync-status.saving { color: var(--text-secondary); }
+  .sync-status.error { color: #d03b3b; }
 </style>
 </head>
 <body>
+
+
+<button id="btn-logout" class="auth-logout" type="button">Log out</button>
+<div id="auth-gate" class="auth-gate">
+  <form id="auth-form" class="auth-card">
+    <h1>Financiën</h1>
+    <p class="auth-sub">Sign in to continue</p>
+    <label>Email
+      <input type="email" id="auth-email" autocomplete="username" required="">
+    </label>
+    <label>Password
+      <input type="password" id="auth-password" autocomplete="current-password" required="">
+    </label>
+    <div id="auth-error" class="auth-error"></div>
+    <button type="submit" class="auth-submit">Log in</button>
+  </form>
+</div>
 
 <header class="top">
   <div class="inner">
@@ -471,6 +534,7 @@
       <div class="sub">Maarten &amp; Nicolas — overview of your shared household costs, live from your spreadsheet's formulas</div>
     </div>
     <div class="controls">
+      <span class="sync-status" id="sync-status" title="Cloud sync status">☁️ …</span>
       <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
       <button class="ctl" id="btn-export">⭳ Export</button>
       <button class="ctl" id="btn-import">⭱ Import</button>
@@ -495,17 +559,17 @@
     <div class="equation-row">
       <div class="tile input">
         <div class="label"><span class="swatch maarten"></span>Maarten's salary</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten" value="3200"></div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten" value="0"></div>
       </div>
       <div class="op">+</div>
       <div class="tile input">
         <div class="label"><span class="swatch nicolas"></span>Nicolas's salary</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas" value="3200"></div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas" value="0"></div>
       </div>
       <div class="op">=</div>
       <div class="tile total">
         <div class="label">Combined household income</div>
-        <div class="value" id="out-salary-total">€&nbsp;6.400,00</div>
+        <div class="value" id="out-salary-total">€&nbsp;0,00</div>
       </div>
     </div>
   </section>
@@ -520,69 +584,69 @@
     </div>
     <div id="household-rows"><div class="cat-group"><div class="cat-title">House</div><div class="row">
           <div class="name">Mortgage</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="647.51"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="0"></div>
         </div><div class="row">
           <div class="name">Ownership fee</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="194.48"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="0"></div>
         </div><div class="row">
           <div class="name">Gas</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="117.24"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="0"></div>
         </div><div class="row">
           <div class="name">Energy</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="150"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="0"></div>
         </div><div class="row">
           <div class="name">County and city taxes</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="71.59"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="0"></div>
         </div><div class="row">
           <div class="name">House insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.5" value="11.97"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.5" value="0"></div>
         </div><div class="subtotal-row">
         <div>Subtotal — House</div>
-        <div class="computed" id="hh-cat-0">€&nbsp;1.192,79</div>
+        <div class="computed" id="hh-cat-0">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row">
           <div class="name">Car fuel</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="100"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="0"></div>
         </div><div class="row">
           <div class="name">Car insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="75.25"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="0"></div>
         </div><div class="row">
           <div class="name">Road taxes</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="42"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="0"></div>
         </div><div class="row">
           <div class="name">Maintenance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="50"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="0"></div>
         </div><div class="row">
           <div class="name">Road service contract</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="13.62"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="0"></div>
         </div><div class="subtotal-row">
         <div>Subtotal — Transport</div>
-        <div class="computed" id="hh-cat-1">€&nbsp;280,87</div>
+        <div class="computed" id="hh-cat-1">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row">
           <div class="name">Gym</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="167.5"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="0"></div>
         </div><div class="row">
           <div class="name">Ziggo</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="98.11"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="0"></div>
         </div><div class="row">
           <div class="name">Netflix</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="20.99"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="0"></div>
         </div><div class="row">
           <div class="name">Disney+</div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0"></div>
         </div><div class="subtotal-row">
         <div>Subtotal — Subscriptions (joint)</div>
-        <div class="computed" id="hh-cat-2">€&nbsp;286,60</div>
+        <div class="computed" id="hh-cat-2">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row">
           <div class="name">Max — Insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="43.15"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="0"></div>
         </div><div class="subtotal-row">
         <div>Subtotal — Pets</div>
-        <div class="computed" id="hh-cat-3">€&nbsp;43,15</div>
+        <div class="computed" id="hh-cat-3">€&nbsp;0,00</div>
       </div></div></div>
 
     <div class="grand-total">
       <div>Total joint costs</div>
-      <div class="value" id="out-hh-total">€&nbsp;1.803,41</div>
+      <div class="value" id="out-hh-total">€&nbsp;0,00</div>
     </div>
   </section>
 
@@ -592,22 +656,22 @@
     <p class="desc">Maarten fronts the joint costs; Nicolas balances it out with a fixed monthly transfer. Change it below to see how the split shifts.</p>
     <div class="adj-control">
       <label for="in-adjustment">Nicolas → Maarten, fixed monthly contribution</label>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="1" min="0" id="in-adjustment" value="650"></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="1" min="0" id="in-adjustment" value="0"></div>
     </div>
 
     <div class="tiles" style="margin-bottom:20px;">
       <div class="tile">
         <div class="label"><span class="swatch maarten"></span>Maarten pays</div>
-        <div class="value" id="out-pays-maarten">€&nbsp;1.153,41</div>
-        <div class="hint" id="out-pct-maarten">64.0% of joint costs</div>
+        <div class="value" id="out-pays-maarten">€&nbsp;0,00</div>
+        <div class="hint" id="out-pct-maarten">50.0% of joint costs</div>
       </div>
       <div class="tile">
         <div class="label-row">
           <div class="label"><span class="swatch nicolas"></span>Nicolas pays</div>
           <button class="log-btn" id="btn-nicolas-log" type="button" aria-haspopup="dialog">🧾 Log</button>
         </div>
-        <div class="value" id="out-pays-nicolas">€&nbsp;650,00</div>
-        <div class="hint" id="out-pct-nicolas">36.0% of joint costs</div>
+        <div class="value" id="out-pays-nicolas">€&nbsp;0,00</div>
+        <div class="hint" id="out-pct-nicolas">50.0% of joint costs</div>
       </div>
     </div>
 
@@ -616,24 +680,24 @@
         <svg viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
           <g id="whopays-donut-segments">
-      <circle id="whopays-donut-seg-maarten" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="63.95717002789161 36.04282997210839" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="whopays-donut-seg-maarten" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     
-      <circle id="whopays-donut-seg-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="36.0428299721084 63.9571700278916" stroke-dashoffset="-38.95717002789161" stroke-linecap="butt"></circle>
+      <circle id="whopays-donut-seg-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     </g>
         </svg>
         <div class="donut-center">
-          <div class="val" id="whopays-donut-total">€&nbsp;1.803,41</div>
+          <div class="val" id="whopays-donut-total">€&nbsp;0,00</div>
           <div class="lbl">joint costs</div>
         </div>
       </div>
       <div class="donut-legend" id="whopays-donut-legend">
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--series-maarten)"></span>Maarten</span>
-        <span class="damt"><span class="v" id="whopays-donut-amt-maarten">€&nbsp;1.153,41</span><span class="p" id="whopays-donut-pct-maarten">64.0%</span></span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-maarten">€&nbsp;0,00</span><span class="p" id="whopays-donut-pct-maarten">50.0%</span></span>
       </div>
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--series-nicolas)"></span>Nicolas</span>
-        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas">€&nbsp;650,00</span><span class="p" id="whopays-donut-pct-nicolas">36.0%</span></span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas">€&nbsp;0,00</span><span class="p" id="whopays-donut-pct-nicolas">50.0%</span></span>
       </div>
     </div>
     </div>
@@ -652,59 +716,59 @@
     </div>
     <div id="personal-rows"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row personal">
             <div class="name">Health insurance</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="173.4"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="155.45"></div>
-            <div class="computed" id="pc-0-0-t">€&nbsp;328,85</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="0"></div>
+            <div class="computed" id="pc-0-0-t">€&nbsp;0,00</div>
           </div><div class="row personal">
             <div class="name">Health costs</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="50"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="50"></div>
-            <div class="computed" id="pc-0-1-t">€&nbsp;100,00</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="0"></div>
+            <div class="computed" id="pc-0-1-t">€&nbsp;0,00</div>
           </div><div class="row personal">
             <div class="name">Other insurance</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="5.09"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="0"></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0"></div>
-            <div class="computed" id="pc-0-2-t">€&nbsp;5,09</div>
+            <div class="computed" id="pc-0-2-t">€&nbsp;0,00</div>
           </div><div class="subtotal-row personal">
         <div>Subtotal — Fixed costs</div>
-        <div class="computed maarten" id="pc-cat-0-m">€&nbsp;228,49</div>
-        <div class="computed nicolas" id="pc-cat-0-n">€&nbsp;205,45</div>
-        <div class="computed" id="pc-cat-0-t">€&nbsp;433,94</div>
+        <div class="computed maarten" id="pc-cat-0-m">€&nbsp;0,00</div>
+        <div class="computed nicolas" id="pc-cat-0-n">€&nbsp;0,00</div>
+        <div class="computed" id="pc-cat-0-t">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row personal">
             <div class="name">Phone contract</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="20"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="20"></div>
-            <div class="computed" id="pc-1-0-t">€&nbsp;40,00</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="0"></div>
+            <div class="computed" id="pc-1-0-t">€&nbsp;0,00</div>
           </div><div class="row personal">
             <div class="name">Spotify</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="12.99"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="12.99"></div>
-            <div class="computed" id="pc-1-1-t">€&nbsp;25,98</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="0"></div>
+            <div class="computed" id="pc-1-1-t">€&nbsp;0,00</div>
           </div><div class="row personal">
             <div class="name">World of Warcraft</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="12.99"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="12.99"></div>
-            <div class="computed" id="pc-1-2-t">€&nbsp;25,98</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="0"></div>
+            <div class="computed" id="pc-1-2-t">€&nbsp;0,00</div>
           </div><div class="subtotal-row personal">
         <div>Subtotal — Subscriptions</div>
-        <div class="computed maarten" id="pc-cat-1-m">€&nbsp;45,98</div>
-        <div class="computed nicolas" id="pc-cat-1-n">€&nbsp;45,98</div>
-        <div class="computed" id="pc-cat-1-t">€&nbsp;91,96</div>
+        <div class="computed maarten" id="pc-cat-1-m">€&nbsp;0,00</div>
+        <div class="computed nicolas" id="pc-cat-1-n">€&nbsp;0,00</div>
+        <div class="computed" id="pc-cat-1-t">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row personal">
             <div class="name">Groceries</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="550"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="550"></div>
-            <div class="computed" id="pc-2-0-t">€&nbsp;1.100,00</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="0"></div>
+            <div class="computed" id="pc-2-0-t">€&nbsp;0,00</div>
           </div><div class="row personal">
             <div class="name">Saving</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="200"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="200"></div>
-            <div class="computed" id="pc-2-1-t">€&nbsp;400,00</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="0"></div>
+            <div class="computed" id="pc-2-1-t">€&nbsp;0,00</div>
           </div><div class="subtotal-row personal">
         <div>Subtotal — Other</div>
-        <div class="computed maarten" id="pc-cat-2-m">€&nbsp;750,00</div>
-        <div class="computed nicolas" id="pc-cat-2-n">€&nbsp;750,00</div>
-        <div class="computed" id="pc-cat-2-t">€&nbsp;1.500,00</div>
+        <div class="computed maarten" id="pc-cat-2-m">€&nbsp;0,00</div>
+        <div class="computed nicolas" id="pc-cat-2-n">€&nbsp;0,00</div>
+        <div class="computed" id="pc-cat-2-t">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="loan-item"><div class="row personal">
           <div class="name">
             Student loan
@@ -718,8 +782,8 @@
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.maarten" value="0"></div>
           <div class="loan-amt-cell">
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="80"></div>
-            <button class="loan-toggle-link nicolas" id="loan-toggle-3-0-nicolas" type="button" data-loan-toggle="3.0.nicolas" aria-expanded="false" style="display:">Debt <span class="chevron">▾</span></button>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="0"></div>
+            <button class="loan-toggle-link nicolas" id="loan-toggle-3-0-nicolas" type="button" data-loan-toggle="3.0.nicolas" aria-expanded="false" style="display:none">Debt <span class="chevron">▾</span></button>
             <div class="loan-mini" id="loan-details-3-0-nicolas" hidden="">
       <div class="loan-mini-field">
         <span class="lbl">Total</span>
@@ -743,7 +807,7 @@
       <div class="loan-mini-empty-hint" id="loan-empty-3-0-nicolas">Add total debt to track</div>
     </div>
           </div>
-          <div class="computed" id="pc-3-0-t">€&nbsp;80,00</div>
+          <div class="computed" id="pc-3-0-t">€&nbsp;0,00</div>
         </div></div><div class="loan-item"><div class="row personal">
           <div class="name">
             Credit card
@@ -786,14 +850,14 @@
         </div></div><div class="subtotal-row personal">
         <div>Subtotal — Loans</div>
         <div class="computed maarten" id="pc-cat-3-m">€&nbsp;0,00</div>
-        <div class="computed nicolas" id="pc-cat-3-n">€&nbsp;80,00</div>
-        <div class="computed" id="pc-cat-3-t">€&nbsp;80,00</div>
+        <div class="computed nicolas" id="pc-cat-3-n">€&nbsp;0,00</div>
+        <div class="computed" id="pc-cat-3-t">€&nbsp;0,00</div>
       </div></div></div>
     <div class="subtotal-row personal">
       <div>Total personal costs</div>
-      <div class="computed maarten" id="out-pc-total-maarten">€&nbsp;1.024,47</div>
-      <div class="computed nicolas" id="out-pc-total-nicolas">€&nbsp;1.081,43</div>
-      <div class="computed" id="out-pc-total-total">€&nbsp;2.105,90</div>
+      <div class="computed maarten" id="out-pc-total-maarten">€&nbsp;0,00</div>
+      <div class="computed nicolas" id="out-pc-total-nicolas">€&nbsp;0,00</div>
+      <div class="computed" id="out-pc-total-total">€&nbsp;0,00</div>
     </div>
   </section>
 
@@ -804,17 +868,17 @@
     <div class="summary-grid">
       <div class="person-card">
         <h3><span class="swatch maarten"></span>Maarten</h3>
-        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary">€&nbsp;3.200,00</span></div>
-        <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-m-household">€&nbsp;1.153,41</span></div>
-        <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal">€&nbsp;1.024,47</span></div>
-        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left">€&nbsp;1.022,12</span></div>
+        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary">€&nbsp;0,00</span></div>
+        <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-m-household">€&nbsp;0,00</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal">€&nbsp;0,00</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left">€&nbsp;0,00</span></div>
       </div>
       <div class="person-card">
         <h3><span class="swatch nicolas"></span>Nicolas</h3>
-        <div class="line"><span>Salary</span><span class="v" id="sum-n-salary">€&nbsp;3.200,00</span></div>
-        <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-n-household">€&nbsp;650,00</span></div>
-        <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal">€&nbsp;1.081,43</span></div>
-        <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left">€&nbsp;1.468,57</span></div>
+        <div class="line"><span>Salary</span><span class="v" id="sum-n-salary">€&nbsp;0,00</span></div>
+        <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-n-household">€&nbsp;0,00</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal">€&nbsp;0,00</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left">€&nbsp;0,00</span></div>
       </div>
     </div>
 
@@ -832,32 +896,32 @@
             <svg viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
               <g id="split-donut-segments-maarten">
-      <circle id="split-donut-seg-maarten-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="36.044062499999995 63.955937500000005" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     
-      <circle id="split-donut-seg-maarten-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="32.0146875 67.98531249999999" stroke-dashoffset="-11.044062499999995" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     
-      <circle id="split-donut-seg-maarten-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="31.941250000000004 68.05875" stroke-dashoffset="-43.05875" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     </g>
             </svg>
             <div class="donut-center">
-              <div class="val" id="split-donut-total-maarten">€&nbsp;3.200,00</div>
+              <div class="val" id="split-donut-total-maarten">€&nbsp;0,00</div>
               <div class="lbl">salary</div>
             </div>
           </div>
           <div class="donut-legend" id="split-donut-legend-maarten">
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-joint">€&nbsp;1.153,41</span><span class="p" id="split-donut-pct-maarten-joint">36.0%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-joint">€&nbsp;0,00</span><span class="p" id="split-donut-pct-maarten-joint">—</span></span>
       </div>
     
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-personal">€&nbsp;1.024,47</span><span class="p" id="split-donut-pct-maarten-personal">32.0%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-personal">€&nbsp;0,00</span><span class="p" id="split-donut-pct-maarten-personal">—</span></span>
       </div>
     
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-left">€&nbsp;1.022,12</span><span class="p" id="split-donut-pct-maarten-left">31.9%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-left">€&nbsp;0,00</span><span class="p" id="split-donut-pct-maarten-left">—</span></span>
       </div>
     </div>
         </div>
@@ -869,32 +933,32 @@
             <svg viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
               <g id="split-donut-segments-nicolas">
-      <circle id="split-donut-seg-nicolas-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="20.3125 79.6875" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     
-      <circle id="split-donut-seg-nicolas-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="33.7946875 66.20531249999999" stroke-dashoffset="4.6875" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     
-      <circle id="split-donut-seg-nicolas-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="45.8928125 54.1071875" stroke-dashoffset="-29.107187500000002" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     </g>
             </svg>
             <div class="donut-center">
-              <div class="val" id="split-donut-total-nicolas">€&nbsp;3.200,00</div>
+              <div class="val" id="split-donut-total-nicolas">€&nbsp;0,00</div>
               <div class="lbl">salary</div>
             </div>
           </div>
           <div class="donut-legend" id="split-donut-legend-nicolas">
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-nicolas-joint">€&nbsp;650,00</span><span class="p" id="split-donut-pct-nicolas-joint">20.3%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-joint">€&nbsp;0,00</span><span class="p" id="split-donut-pct-nicolas-joint">—</span></span>
       </div>
     
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-nicolas-personal">€&nbsp;1.081,43</span><span class="p" id="split-donut-pct-nicolas-personal">33.8%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-personal">€&nbsp;0,00</span><span class="p" id="split-donut-pct-nicolas-personal">—</span></span>
       </div>
     
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
-        <span class="damt"><span class="v" id="split-donut-amt-nicolas-left">€&nbsp;1.468,57</span><span class="p" id="split-donut-pct-nicolas-left">45.9%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-left">€&nbsp;0,00</span><span class="p" id="split-donut-pct-nicolas-left">—</span></span>
       </div>
     </div>
         </div>
@@ -919,17 +983,17 @@
     <div class="equation-row">
       <div class="tile input">
         <div class="label"><span class="swatch maarten"></span>Maarten's salary</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten-b" value="3200"></div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten-b" value="0"></div>
       </div>
       <div class="op">+</div>
       <div class="tile input">
         <div class="label"><span class="swatch nicolas"></span>Nicolas's salary</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas-b" value="3200"></div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas-b" value="0"></div>
       </div>
       <div class="op">=</div>
       <div class="tile total">
         <div class="label">Combined household income</div>
-        <div class="value" id="out-salary-total-b">€&nbsp;6.400,00</div>
+        <div class="value" id="out-salary-total-b">€&nbsp;0,00</div>
       </div>
     </div>
   </section>
@@ -944,66 +1008,66 @@
     </div>
     <div id="household-rows-b"><div class="cat-group"><div class="cat-title">House</div><div class="row">
           <div class="name">Mortgage</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="1700"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="0"></div>
         </div><div class="row">
           <div class="name">Gas</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="117.24"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="0"></div>
         </div><div class="row">
           <div class="name">Energy</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="150"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="0"></div>
         </div><div class="row">
           <div class="name">County and city taxes</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="71.59"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="0"></div>
         </div><div class="row">
           <div class="name">House insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="11.97"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="0"></div>
         </div><div class="subtotal-row">
         <div>Subtotal — House</div>
-        <div class="computed" id="hh-cat-0-b">€&nbsp;2.050,80</div>
+        <div class="computed" id="hh-cat-0-b">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row">
           <div class="name">Car fuel</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="100"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="0"></div>
         </div><div class="row">
           <div class="name">Car insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="75.25"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="0"></div>
         </div><div class="row">
           <div class="name">Road taxes</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="42"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="0"></div>
         </div><div class="row">
           <div class="name">Maintenance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="50"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="0"></div>
         </div><div class="row">
           <div class="name">Road service contract</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="13.62"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="0"></div>
         </div><div class="subtotal-row">
         <div>Subtotal — Transport</div>
-        <div class="computed" id="hh-cat-1-b">€&nbsp;280,87</div>
+        <div class="computed" id="hh-cat-1-b">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row">
           <div class="name">Gym</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="167.5"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="0"></div>
         </div><div class="row">
           <div class="name">Ziggo</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="98.11"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="0"></div>
         </div><div class="row">
           <div class="name">Netflix</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="20.99"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="0"></div>
         </div><div class="row">
           <div class="name">Disney+</div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0"></div>
         </div><div class="subtotal-row">
         <div>Subtotal — Subscriptions (joint)</div>
-        <div class="computed" id="hh-cat-2-b">€&nbsp;286,60</div>
+        <div class="computed" id="hh-cat-2-b">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row">
           <div class="name">Max — Insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="43.15"></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="0"></div>
         </div><div class="subtotal-row">
         <div>Subtotal — Pets</div>
-        <div class="computed" id="hh-cat-3-b">€&nbsp;43,15</div>
+        <div class="computed" id="hh-cat-3-b">€&nbsp;0,00</div>
       </div></div></div>
 
     <div class="grand-total">
       <div>Total joint costs</div>
-      <div class="value" id="out-hh-total-b">€&nbsp;2.661,42</div>
+      <div class="value" id="out-hh-total-b">€&nbsp;0,00</div>
     </div>
   </section>
 
@@ -1015,12 +1079,12 @@
     <div class="tiles" style="margin-bottom:20px;">
       <div class="tile">
         <div class="label"><span class="swatch maarten"></span>Maarten pays</div>
-        <div class="value" id="out-pays-maarten-b">€&nbsp;1.330,71</div>
+        <div class="value" id="out-pays-maarten-b">€&nbsp;0,00</div>
         <div class="hint" id="out-pct-maarten-b">50.0% of joint costs</div>
       </div>
       <div class="tile">
         <div class="label"><span class="swatch nicolas"></span>Nicolas pays</div>
-        <div class="value" id="out-pays-nicolas-b">€&nbsp;1.330,71</div>
+        <div class="value" id="out-pays-nicolas-b">€&nbsp;0,00</div>
         <div class="hint" id="out-pct-nicolas-b">50.0% of joint costs</div>
       </div>
     </div>
@@ -1030,24 +1094,24 @@
         <svg viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
           <g id="whopays-donut-segments-b">
-      <circle id="whopays-donut-seg-maarten-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="50 50" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="whopays-donut-seg-maarten-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     
-      <circle id="whopays-donut-seg-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="50 50" stroke-dashoffset="-25" stroke-linecap="butt"></circle>
+      <circle id="whopays-donut-seg-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     </g>
         </svg>
         <div class="donut-center">
-          <div class="val" id="whopays-donut-total-b">€&nbsp;2.661,42</div>
+          <div class="val" id="whopays-donut-total-b">€&nbsp;0,00</div>
           <div class="lbl">joint costs</div>
         </div>
       </div>
       <div class="donut-legend" id="whopays-donut-legend-b">
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--series-maarten)"></span>Maarten</span>
-        <span class="damt"><span class="v" id="whopays-donut-amt-maarten-b">€&nbsp;1.330,71</span><span class="p" id="whopays-donut-pct-maarten-b">50.0%</span></span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-maarten-b">€&nbsp;0,00</span><span class="p" id="whopays-donut-pct-maarten-b">50.0%</span></span>
       </div>
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--series-nicolas)"></span>Nicolas</span>
-        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas-b">€&nbsp;1.330,71</span><span class="p" id="whopays-donut-pct-nicolas-b">50.0%</span></span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas-b">€&nbsp;0,00</span><span class="p" id="whopays-donut-pct-nicolas-b">50.0%</span></span>
       </div>
     </div>
     </div>
@@ -1066,59 +1130,59 @@
     </div>
     <div id="personal-rows-b"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row personal">
             <div class="name">Health insurance</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="173.4"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="155.45"></div>
-            <div class="computed" id="pc-0-0-t-b">€&nbsp;328,85</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="0"></div>
+            <div class="computed" id="pc-0-0-t-b">€&nbsp;0,00</div>
           </div><div class="row personal">
             <div class="name">Health costs</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="50"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="50"></div>
-            <div class="computed" id="pc-0-1-t-b">€&nbsp;100,00</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="0"></div>
+            <div class="computed" id="pc-0-1-t-b">€&nbsp;0,00</div>
           </div><div class="row personal">
             <div class="name">Other insurance</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="5.09"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="0"></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0"></div>
-            <div class="computed" id="pc-0-2-t-b">€&nbsp;5,09</div>
+            <div class="computed" id="pc-0-2-t-b">€&nbsp;0,00</div>
           </div><div class="subtotal-row personal">
         <div>Subtotal — Fixed costs</div>
-        <div class="computed maarten" id="pc-cat-0-m-b">€&nbsp;228,49</div>
-        <div class="computed nicolas" id="pc-cat-0-n-b">€&nbsp;205,45</div>
-        <div class="computed" id="pc-cat-0-t-b">€&nbsp;433,94</div>
+        <div class="computed maarten" id="pc-cat-0-m-b">€&nbsp;0,00</div>
+        <div class="computed nicolas" id="pc-cat-0-n-b">€&nbsp;0,00</div>
+        <div class="computed" id="pc-cat-0-t-b">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row personal">
             <div class="name">Phone contract</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="20"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="20"></div>
-            <div class="computed" id="pc-1-0-t-b">€&nbsp;40,00</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="0"></div>
+            <div class="computed" id="pc-1-0-t-b">€&nbsp;0,00</div>
           </div><div class="row personal">
             <div class="name">Spotify</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="12.99"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="12.99"></div>
-            <div class="computed" id="pc-1-1-t-b">€&nbsp;25,98</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="0"></div>
+            <div class="computed" id="pc-1-1-t-b">€&nbsp;0,00</div>
           </div><div class="row personal">
             <div class="name">World of Warcraft</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="12.99"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="12.99"></div>
-            <div class="computed" id="pc-1-2-t-b">€&nbsp;25,98</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="0"></div>
+            <div class="computed" id="pc-1-2-t-b">€&nbsp;0,00</div>
           </div><div class="subtotal-row personal">
         <div>Subtotal — Subscriptions</div>
-        <div class="computed maarten" id="pc-cat-1-m-b">€&nbsp;45,98</div>
-        <div class="computed nicolas" id="pc-cat-1-n-b">€&nbsp;45,98</div>
-        <div class="computed" id="pc-cat-1-t-b">€&nbsp;91,96</div>
+        <div class="computed maarten" id="pc-cat-1-m-b">€&nbsp;0,00</div>
+        <div class="computed nicolas" id="pc-cat-1-n-b">€&nbsp;0,00</div>
+        <div class="computed" id="pc-cat-1-t-b">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row personal">
             <div class="name">Groceries</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="550"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="550"></div>
-            <div class="computed" id="pc-2-0-t-b">€&nbsp;1.100,00</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="0"></div>
+            <div class="computed" id="pc-2-0-t-b">€&nbsp;0,00</div>
           </div><div class="row personal">
             <div class="name">Saving</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="200"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="200"></div>
-            <div class="computed" id="pc-2-1-t-b">€&nbsp;400,00</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="0"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="0"></div>
+            <div class="computed" id="pc-2-1-t-b">€&nbsp;0,00</div>
           </div><div class="subtotal-row personal">
         <div>Subtotal — Other</div>
-        <div class="computed maarten" id="pc-cat-2-m-b">€&nbsp;750,00</div>
-        <div class="computed nicolas" id="pc-cat-2-n-b">€&nbsp;750,00</div>
-        <div class="computed" id="pc-cat-2-t-b">€&nbsp;1.500,00</div>
+        <div class="computed maarten" id="pc-cat-2-m-b">€&nbsp;0,00</div>
+        <div class="computed nicolas" id="pc-cat-2-n-b">€&nbsp;0,00</div>
+        <div class="computed" id="pc-cat-2-t-b">€&nbsp;0,00</div>
       </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="loan-item"><div class="row personal">
           <div class="name">
             Student loan
@@ -1132,8 +1196,8 @@
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.maarten" value="0"></div>
           <div class="loan-amt-cell">
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="80"></div>
-            <button class="loan-toggle-link nicolas" id="loan-toggle-3-0-nicolas-b" type="button" data-loan-toggle="3.0.nicolas" aria-expanded="false" style="display:">Debt <span class="chevron">▾</span></button>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="0"></div>
+            <button class="loan-toggle-link nicolas" id="loan-toggle-3-0-nicolas-b" type="button" data-loan-toggle="3.0.nicolas" aria-expanded="false" style="display:none">Debt <span class="chevron">▾</span></button>
             <div class="loan-mini" id="loan-details-3-0-nicolas-b" hidden="">
       <div class="loan-mini-field">
         <span class="lbl">Total</span>
@@ -1157,7 +1221,7 @@
       <div class="loan-mini-empty-hint" id="loan-empty-3-0-nicolas-b">Add total debt to track</div>
     </div>
           </div>
-          <div class="computed" id="pc-3-0-t-b">€&nbsp;80,00</div>
+          <div class="computed" id="pc-3-0-t-b">€&nbsp;0,00</div>
         </div></div><div class="loan-item"><div class="row personal">
           <div class="name">
             Credit card
@@ -1200,14 +1264,14 @@
         </div></div><div class="subtotal-row personal">
         <div>Subtotal — Loans</div>
         <div class="computed maarten" id="pc-cat-3-m-b">€&nbsp;0,00</div>
-        <div class="computed nicolas" id="pc-cat-3-n-b">€&nbsp;80,00</div>
-        <div class="computed" id="pc-cat-3-t-b">€&nbsp;80,00</div>
+        <div class="computed nicolas" id="pc-cat-3-n-b">€&nbsp;0,00</div>
+        <div class="computed" id="pc-cat-3-t-b">€&nbsp;0,00</div>
       </div></div></div>
     <div class="subtotal-row personal">
       <div>Total personal costs</div>
-      <div class="computed maarten" id="out-pc-total-maarten-b">€&nbsp;1.024,47</div>
-      <div class="computed nicolas" id="out-pc-total-nicolas-b">€&nbsp;1.081,43</div>
-      <div class="computed" id="out-pc-total-total-b">€&nbsp;2.105,90</div>
+      <div class="computed maarten" id="out-pc-total-maarten-b">€&nbsp;0,00</div>
+      <div class="computed nicolas" id="out-pc-total-nicolas-b">€&nbsp;0,00</div>
+      <div class="computed" id="out-pc-total-total-b">€&nbsp;0,00</div>
     </div>
   </section>
 
@@ -1218,17 +1282,17 @@
     <div class="summary-grid">
       <div class="person-card">
         <h3><span class="swatch maarten"></span>Maarten</h3>
-        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary-b">€&nbsp;3.200,00</span></div>
-        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-m-household-b">€&nbsp;1.330,71</span></div>
-        <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal-b">€&nbsp;1.024,47</span></div>
-        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left-b">€&nbsp;844,82</span></div>
+        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-m-household-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal-b">€&nbsp;0,00</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left-b">€&nbsp;0,00</span></div>
       </div>
       <div class="person-card">
         <h3><span class="swatch nicolas"></span>Nicolas</h3>
-        <div class="line"><span>Salary</span><span class="v" id="sum-n-salary-b">€&nbsp;3.200,00</span></div>
-        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-n-household-b">€&nbsp;1.330,71</span></div>
-        <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal-b">€&nbsp;1.081,43</span></div>
-        <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left-b">€&nbsp;787,86</span></div>
+        <div class="line"><span>Salary</span><span class="v" id="sum-n-salary-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-n-household-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal-b">€&nbsp;0,00</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left-b">€&nbsp;0,00</span></div>
       </div>
     </div>
 
@@ -1246,32 +1310,32 @@
             <svg viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
               <g id="split-donut-segments-maarten-b">
-      <circle id="split-donut-seg-maarten-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="41.584687499999994 58.415312500000006" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     
-      <circle id="split-donut-seg-maarten-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="32.0146875 67.98531249999999" stroke-dashoffset="-16.584687499999994" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     
-      <circle id="split-donut-seg-maarten-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="26.400625000000005 73.599375" stroke-dashoffset="-48.599374999999995" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     </g>
             </svg>
             <div class="donut-center">
-              <div class="val" id="split-donut-total-maarten-b">€&nbsp;3.200,00</div>
+              <div class="val" id="split-donut-total-maarten-b">€&nbsp;0,00</div>
               <div class="lbl">salary</div>
             </div>
           </div>
           <div class="donut-legend" id="split-donut-legend-maarten-b">
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-joint-b">€&nbsp;1.330,71</span><span class="p" id="split-donut-pct-maarten-joint-b">41.6%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-joint-b">€&nbsp;0,00</span><span class="p" id="split-donut-pct-maarten-joint-b">—</span></span>
       </div>
     
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-personal-b">€&nbsp;1.024,47</span><span class="p" id="split-donut-pct-maarten-personal-b">32.0%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-personal-b">€&nbsp;0,00</span><span class="p" id="split-donut-pct-maarten-personal-b">—</span></span>
       </div>
     
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-left-b">€&nbsp;844,82</span><span class="p" id="split-donut-pct-maarten-left-b">26.4%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-left-b">€&nbsp;0,00</span><span class="p" id="split-donut-pct-maarten-left-b">—</span></span>
       </div>
     </div>
         </div>
@@ -1283,32 +1347,32 @@
             <svg viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
               <g id="split-donut-segments-nicolas-b">
-      <circle id="split-donut-seg-nicolas-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="41.584687499999994 58.415312500000006" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     
-      <circle id="split-donut-seg-nicolas-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="33.7946875 66.20531249999999" stroke-dashoffset="-16.584687499999994" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     
-      <circle id="split-donut-seg-nicolas-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="24.620625000000004 75.379375" stroke-dashoffset="-50.379374999999996" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-nicolas-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt"></circle>
     </g>
             </svg>
             <div class="donut-center">
-              <div class="val" id="split-donut-total-nicolas-b">€&nbsp;3.200,00</div>
+              <div class="val" id="split-donut-total-nicolas-b">€&nbsp;0,00</div>
               <div class="lbl">salary</div>
             </div>
           </div>
           <div class="donut-legend" id="split-donut-legend-nicolas-b">
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-nicolas-joint-b">€&nbsp;1.330,71</span><span class="p" id="split-donut-pct-nicolas-joint-b">41.6%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-joint-b">€&nbsp;0,00</span><span class="p" id="split-donut-pct-nicolas-joint-b">—</span></span>
       </div>
     
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-nicolas-personal-b">€&nbsp;1.081,43</span><span class="p" id="split-donut-pct-nicolas-personal-b">33.8%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-personal-b">€&nbsp;0,00</span><span class="p" id="split-donut-pct-nicolas-personal-b">—</span></span>
       </div>
     
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
-        <span class="damt"><span class="v" id="split-donut-amt-nicolas-left-b">€&nbsp;787,86</span><span class="p" id="split-donut-pct-nicolas-left-b">24.6%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-left-b">€&nbsp;0,00</span><span class="p" id="split-donut-pct-nicolas-left-b">—</span></span>
       </div>
     </div>
         </div>
@@ -1350,35 +1414,39 @@
 (function () {
   "use strict";
 
-  // ---------- Default data — Current Budget (from Budgetplan 2026.xlsx, Overview sheet) ----------
+  // ---------- Default data — Current Budget ----------
+  // The real figures now live only in Supabase (budget_dashboard_state, scenario 'a'/'b'),
+  // fetched after login. This is just the empty scaffold shown for an instant before that
+  // fetch resolves (invisible behind the login gate) and the fallback if a scenario row
+  // doesn't exist yet — it intentionally contains no real amounts.
   function defaultStateA() {
     return {
-      salary: { maarten: 3200, nicolas: 3200 },
-      adjustment: 650,
+      salary: { maarten: 0, nicolas: 0 },
+      adjustment: 0,
       household: [
         { name: "House", items: [
-          { label: "Mortgage", amount: 647.51 },
-          { label: "Ownership fee", amount: 194.48 },
-          { label: "Gas", amount: 117.24 },
-          { label: "Energy", amount: 150 },
-          { label: "County and city taxes", amount: 71.59 },
-          { label: "House insurance", amount: 11.97 },
+          { label: "Mortgage", amount: 0 },
+          { label: "Ownership fee", amount: 0 },
+          { label: "Gas", amount: 0 },
+          { label: "Energy", amount: 0 },
+          { label: "County and city taxes", amount: 0 },
+          { label: "House insurance", amount: 0 },
         ]},
         { name: "Transport", items: [
-          { label: "Car fuel", amount: 100 },
-          { label: "Car insurance", amount: 75.25 },
-          { label: "Road taxes", amount: 42 },
-          { label: "Maintenance", amount: 50 },
-          { label: "Road service contract", amount: 13.62 },
+          { label: "Car fuel", amount: 0 },
+          { label: "Car insurance", amount: 0 },
+          { label: "Road taxes", amount: 0 },
+          { label: "Maintenance", amount: 0 },
+          { label: "Road service contract", amount: 0 },
         ]},
         { name: "Subscriptions (joint)", items: [
-          { label: "Gym", amount: 167.5 },
-          { label: "Ziggo", amount: 98.11 },
-          { label: "Netflix", amount: 20.99 },
+          { label: "Gym", amount: 0 },
+          { label: "Ziggo", amount: 0 },
+          { label: "Netflix", amount: 0 },
           { label: "Disney+", amount: 0 },
         ]},
         { name: "Pets", items: [
-          { label: "Max — Insurance", amount: 43.15 },
+          { label: "Max — Insurance", amount: 0 },
         ]},
       ],
       personal: defaultPersonal(),
@@ -1386,36 +1454,33 @@
   }
 
   // ---------- Default data — Potential new house scenario ----------
-  // Same joint-cost categories, but the mortgage is €1.700/month (current €700 mortgage
-  // plus roughly what a €200k top-up at ~4% adds on a ~25-year term) and there is no
-  // ownership fee. Personal costs start from the same numbers as the current budget but
-  // are a fully independent, separately-editable copy.
+  // Same shape as scenario A (see note above) — no real amounts baked in here either.
   function defaultStateB() {
     return {
-      salary: { maarten: 3200, nicolas: 3200 },
+      salary: { maarten: 0, nicolas: 0 },
       household: [
         { name: "House", items: [
-          { label: "Mortgage", amount: 1700 },
-          { label: "Gas", amount: 117.24 },
-          { label: "Energy", amount: 150 },
-          { label: "County and city taxes", amount: 71.59 },
-          { label: "House insurance", amount: 11.97 },
+          { label: "Mortgage", amount: 0 },
+          { label: "Gas", amount: 0 },
+          { label: "Energy", amount: 0 },
+          { label: "County and city taxes", amount: 0 },
+          { label: "House insurance", amount: 0 },
         ]},
         { name: "Transport", items: [
-          { label: "Car fuel", amount: 100 },
-          { label: "Car insurance", amount: 75.25 },
-          { label: "Road taxes", amount: 42 },
-          { label: "Maintenance", amount: 50 },
-          { label: "Road service contract", amount: 13.62 },
+          { label: "Car fuel", amount: 0 },
+          { label: "Car insurance", amount: 0 },
+          { label: "Road taxes", amount: 0 },
+          { label: "Maintenance", amount: 0 },
+          { label: "Road service contract", amount: 0 },
         ]},
         { name: "Subscriptions (joint)", items: [
-          { label: "Gym", amount: 167.5 },
-          { label: "Ziggo", amount: 98.11 },
-          { label: "Netflix", amount: 20.99 },
+          { label: "Gym", amount: 0 },
+          { label: "Ziggo", amount: 0 },
+          { label: "Netflix", amount: 0 },
           { label: "Disney+", amount: 0 },
         ]},
         { name: "Pets", items: [
-          { label: "Max — Insurance", amount: 43.15 },
+          { label: "Max — Insurance", amount: 0 },
         ]},
       ],
       personal: defaultPersonal(),
@@ -1427,21 +1492,21 @@
   function defaultPersonal() {
     return [
       { name: "Fixed costs", items: [
-        { label: "Health insurance", maarten: 173.40, nicolas: 155.45 },
-        { label: "Health costs", maarten: 50, nicolas: 50 },
-        { label: "Other insurance", maarten: 5.09, nicolas: 0 },
+        { label: "Health insurance", maarten: 0, nicolas: 0 },
+        { label: "Health costs", maarten: 0, nicolas: 0 },
+        { label: "Other insurance", maarten: 0, nicolas: 0 },
       ]},
       { name: "Subscriptions", items: [
-        { label: "Phone contract", maarten: 20, nicolas: 20 },
-        { label: "Spotify", maarten: 12.99, nicolas: 12.99 },
-        { label: "World of Warcraft", maarten: 12.99, nicolas: 12.99 },
+        { label: "Phone contract", maarten: 0, nicolas: 0 },
+        { label: "Spotify", maarten: 0, nicolas: 0 },
+        { label: "World of Warcraft", maarten: 0, nicolas: 0 },
       ]},
       { name: "Other", items: [
-        { label: "Groceries", maarten: 550, nicolas: 550 },
-        { label: "Saving", maarten: 200, nicolas: 200 },
+        { label: "Groceries", maarten: 0, nicolas: 0 },
+        { label: "Saving", maarten: 0, nicolas: 0 },
       ]},
       { name: "Loans", items: [
-        { label: "Student loan", maarten: 0, nicolas: 80, debt: {
+        { label: "Student loan", maarten: 0, nicolas: 0, debt: {
           nicolas: { total: 0, paid: 0, rate: 0 },
         }},
         { label: "Credit card", maarten: 0, nicolas: 0, debt: {
@@ -1467,6 +1532,15 @@
   window.scopeA = scopeA;
   window.scopeB = scopeB;
 
+  // Lets the cloud-sync script (added separately, below) load a fetched Supabase row into
+  // a scope and re-render, or revert to it when the user hits Reset — without duplicating
+  // any of the render logic defined in this closure.
+  window.__applyScopeState = function(key, state) {
+    const scope = key === 'b' ? scopeB : scopeA;
+    scope.state = state;
+    fullRender(scope);
+  };
+
   function el(scope, base) { return document.getElementById(base + scope.sfx); }
 
   // ---------- Nicolas's logged monthly contributions (from the "Contributions Nick" sheet) ----------
@@ -1474,42 +1548,11 @@
   // Current Budget scope. y/m identify the month; contribution = what he transferred to Maarten's
   // account; spending = what he spent that month from the joint account used for groceries,
   // eating out, drinks, etc. (null when none was logged).
+  // The real history now lives in Supabase (nicolas_contributions) and is loaded after login by
+  // the cloud-sync script below, which calls window.__setNicolasLog(rows) to fill this in.
   const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const NICOLAS_LOG = [
-    { y: 2024, m: 1,  contribution: 600, spending: null },
-    { y: 2024, m: 2,  contribution: 650, spending: null },
-    { y: 2024, m: 3,  contribution: 650, spending: null },
-    { y: 2024, m: 4,  contribution: 600, spending: null },
-    { y: 2024, m: 5,  contribution: 650, spending: null },
-    { y: 2024, m: 6,  contribution: 650, spending: null },
-    { y: 2024, m: 7,  contribution: 600, spending: null },
-    { y: 2024, m: 8,  contribution: 650, spending: null },
-    { y: 2024, m: 9,  contribution: 650, spending: null },
-    { y: 2024, m: 10, contribution: 350, spending: null },
-    { y: 2024, m: 11, contribution: 600, spending: null },
-    { y: 2024, m: 12, contribution: 600, spending: null },
-    { y: 2025, m: 1,  contribution: 0,   spending: null },
-    { y: 2025, m: 2,  contribution: 600, spending: null },
-    { y: 2025, m: 3,  contribution: 300, spending: null },
-    { y: 2025, m: 4,  contribution: 650, spending: null },
-    { y: 2025, m: 5,  contribution: 650, spending: null },
-    { y: 2025, m: 6,  contribution: 650, spending: null },
-    { y: 2025, m: 7,  contribution: 650, spending: null },
-    { y: 2025, m: 8,  contribution: 650, spending: 210.97 },
-    { y: 2025, m: 9,  contribution: 650, spending: null },
-    { y: 2025, m: 10, contribution: 500, spending: 585.37 },
-    { y: 2025, m: 11, contribution: 100, spending: 81.5 },
-    { y: 2025, m: 12, contribution: 600, spending: null },
-    { y: 2026, m: 1,  contribution: 650, spending: null },
-    { y: 2026, m: 2,  contribution: 0,   spending: null },
-    { y: 2026, m: 3,  contribution: 300, spending: 395.36 },
-    { y: 2026, m: 4,  contribution: 650, spending: null },
-    { y: 2026, m: 5,  contribution: 650, spending: null },
-    { y: 2026, m: 6,  contribution: 650, spending: null },
-    { y: 2026, m: 7,  contribution: 650, spending: null },
-    { y: 2026, m: 8,  contribution: 650, spending: null },
-  ];
-  const MIN_EXPECTED_CONTRIBUTION = 650; // months logging less than this are flagged red
+  let NICOLAS_LOG = [];
+  window.__setNicolasLog = function(rows) { NICOLAS_LOG = rows; };
 
   const EUR = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmt = (n) => EUR.format(Number.isFinite(n) ? n : 0);
@@ -1908,6 +1951,11 @@
     // per-person salary-split donuts — joint costs / personal costs / left over
     updateSplitDonut(scope, 'maarten', r.maartenPays, r.personalMaartenTotal, r.moneyLeftMaarten, Number(scope.state.salary.maarten) || 0);
     updateSplitDonut(scope, 'nicolas', r.nicolasPays, r.personalNicolasTotal, r.moneyLeftNicolas, Number(scope.state.salary.nicolas) || 0);
+
+    // Tell the cloud-sync script something changed, so it can debounce-save this scope's
+    // state to Supabase. Harmless when fired from a fetch-triggered re-render too — it just
+    // saves back the same data it loaded.
+    document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
   }
 
   // Updates one person's salary-split donut. A negative "left over" can't form a slice,
@@ -2070,9 +2118,13 @@
 
   document.getElementById('btn-reset').addEventListener('click', () => {
     const label = activeScope.key === 'b' ? 'the potential new house calculation' : 'the current budget';
-    if (confirm(`Reset all values in ${label} to the original numbers?`)) {
-      activeScope.state = activeScope.key === 'b' ? defaultStateB() : defaultStateA();
-      fullRender(activeScope);
+    if (confirm(`Discard any unsaved changes in ${label} and reload the last saved values from the database?`)) {
+      if (window.__reloadScopeFromCloud) {
+        window.__reloadScopeFromCloud(activeScope.key);
+      } else {
+        activeScope.state = activeScope.key === 'b' ? defaultStateB() : defaultStateA();
+        fullRender(activeScope);
+      }
     }
   });
 
@@ -2111,7 +2163,7 @@
       return `
         <tr>
           <td>${MONTH_NAMES[r.m - 1]} ${r.y}</td>
-          <td class="${r.contribution < MIN_EXPECTED_CONTRIBUTION ? 'net bad' : ''}">${fmt(r.contribution)}</td>
+          <td class="${r.contribution < (Number(scopeA.state.adjustment) || 0) ? 'net bad' : ''}">${fmt(r.contribution)}</td>
           <td class="${r.spending ? '' : 'muted'}">${r.spending ? fmt(r.spending) : '—'}</td>
           <td class="net${net < 0 ? ' bad' : ''}">${fmt(net)}</td>
         </tr>
@@ -2137,5 +2189,177 @@
 
 
 
-</body>
-</html>
+
+<script>
+(function() {
+  var SUPABASE_URL = "https://gtdzuuvlluyofkvbpusx.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0ZHp1dXZsbHV5b2ZrdmJwdXN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTUwMjAsImV4cCI6MjA2NzYzMTAyMH0.DcHwCLuyyVJvs0Ugpr7bE0Az5_tkES4kE_P0SUFOyus";
+  var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.__sb = sb; // reused by the cloud-sync script below, so we only ever create one client
+
+  var gate = document.getElementById('auth-gate');
+  var form = document.getElementById('auth-form');
+  var emailInput = document.getElementById('auth-email');
+  var passInput = document.getElementById('auth-password');
+  var errorEl = document.getElementById('auth-error');
+  var logoutBtn = document.getElementById('btn-logout');
+
+  function showApp() {
+    gate.classList.add('hidden');
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+  }
+  function showGate() {
+    gate.classList.remove('hidden');
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+
+  sb.auth.getSession().then(function(res) {
+    if (res.data.session) showApp(); else showGate();
+  });
+
+  sb.auth.onAuthStateChange(function(event, session) {
+    if (session) showApp(); else showGate();
+  });
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    errorEl.textContent = '';
+    var email = emailInput.value.trim();
+    var password = passInput.value;
+    var btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Logging in…';
+    sb.auth.signInWithPassword({ email: email, password: password }).then(function(res) {
+      btn.disabled = false; btn.textContent = 'Log in';
+      if (res.error) {
+        errorEl.textContent = 'Wrong email or password.';
+      }
+    });
+  });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function() { sb.auth.signOut(); });
+  }
+})();
+</script>
+
+<script>
+// ---------- Cloud sync (budget_dashboard_state in Supabase) ----------
+// Loads each scenario's real numbers from Supabase right after login, and saves edits back
+// (debounced) as you make them. Access is enforced twice: only signed-in users can reach
+// this at all (the login gate above), and only emails listed in `allowed_users` can actually
+// read or write the table (Postgres row-level security — enforced by the database itself,
+// not by this script).
+(function() {
+  var SAVE_DEBOUNCE_MS = 900;
+  var statusEl = document.getElementById('sync-status');
+  var saveTimers = {};
+  var currentUserEmail = null;
+  var loadedOnce = { a: false, b: false };
+
+  function setStatus(text, cls) {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.className = 'sync-status' + (cls ? ' ' + cls : '');
+  }
+
+  function waitForSb(cb) {
+    if (window.__sb) { cb(window.__sb); return; }
+    setTimeout(function() { waitForSb(cb); }, 50);
+  }
+
+  function loadScope(sb, key) {
+    return sb.from('budget_dashboard_state').select('state').eq('scenario', key).maybeSingle()
+      .then(function(res) {
+        if (res.error) throw res.error;
+        if (res.data && res.data.state) {
+          window.__applyScopeState(key, res.data.state);
+        }
+        loadedOnce[key] = true;
+      });
+  }
+
+  function loadNicolasLog(sb) {
+    return sb.from('nicolas_contributions')
+      .select('year, month, contribution, spending')
+      .order('year', { ascending: true })
+      .order('month', { ascending: true })
+      .then(function(res) {
+        if (res.error) throw res.error;
+        var rows = (res.data || []).map(function(r) {
+          return { y: r.year, m: r.month, contribution: r.contribution, spending: r.spending };
+        });
+        window.__setNicolasLog(rows);
+      });
+  }
+
+  function loadAll(sb) {
+    setStatus('☁️ Loading…', 'saving');
+    Promise.all([loadScope(sb, 'a'), loadScope(sb, 'b'), loadNicolasLog(sb)]).then(function() {
+      setStatus('☁️ Synced');
+    }).catch(function(err) {
+      console.error('Budget cloud load failed', err);
+      setStatus('⚠️ Could not load', 'error');
+    });
+  }
+
+  function saveScope(sb, key) {
+    var scope = key === 'b' ? window.scopeB : window.scopeA;
+    setStatus('☁️ Saving…', 'saving');
+    sb.from('budget_dashboard_state')
+      .upsert({ scenario: key, state: scope.state, updated_by: currentUserEmail, updated_at: new Date().toISOString() })
+      .then(function(res) {
+        if (res.error) {
+          console.error('Budget cloud save failed', res.error);
+          setStatus('⚠️ Could not save', 'error');
+        } else {
+          setStatus('☁️ Synced');
+        }
+      });
+  }
+
+  document.addEventListener('app:statechanged', function(e) {
+    if (!currentUserEmail) return; // not signed in — nothing to save against
+    var key = e.detail && e.detail.key;
+    if (!key || !loadedOnce[key]) return; // don't overwrite the DB with the empty scaffold before the real load lands
+    clearTimeout(saveTimers[key]);
+    saveTimers[key] = setTimeout(function() {
+      waitForSb(function(sb) { saveScope(sb, key); });
+    }, SAVE_DEBOUNCE_MS);
+  });
+
+  window.__reloadScopeFromCloud = function(key) {
+    waitForSb(function(sb) {
+      setStatus('☁️ Loading…', 'saving');
+      loadScope(sb, key).then(function() { setStatus('☁️ Synced'); })
+        .catch(function(err) {
+          console.error('Budget cloud reload failed', err);
+          setStatus('⚠️ Could not load', 'error');
+        });
+    });
+  };
+
+  waitForSb(function(sb) {
+    sb.auth.getSession().then(function(res) {
+      if (res.data.session) {
+        currentUserEmail = res.data.session.user.email;
+        loadAll(sb);
+      }
+    });
+    sb.auth.onAuthStateChange(function(event, session) {
+      if (session) {
+        currentUserEmail = session.user.email;
+        loadAll(sb);
+      } else {
+        currentUserEmail = null;
+        loadedOnce.a = false;
+        loadedOnce.b = false;
+        setStatus('☁️ …');
+      }
+    });
+  });
+})();
+</script>
+
+
+
+</body></html>
