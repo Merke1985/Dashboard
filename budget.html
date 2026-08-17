@@ -3049,10 +3049,13 @@
       if (toCi == null || (fromCi === toCi && fromIi === toIi)) return;
 
       const categories = getCategories(scope);
+      // toIi was computed (in pointermove, above) against rowsInGroup — the target
+      // category's rows with the dragged row already filtered out — so it's already the
+      // correct index to insert at *after* removal. Adjusting it again here used to
+      // double-correct and silently cancel out single-slot moves (and land every other
+      // move one slot short of where it was dropped).
       const [item] = categories[fromCi].items.splice(fromIi, 1);
-      let insertAt = toIi;
-      if (fromCi === toCi && fromIi < toIi) insertAt -= 1;
-      categories[toCi].items.splice(insertAt, 0, item);
+      categories[toCi].items.splice(toIi, 0, item);
       fullRender(scope);
     }
 
