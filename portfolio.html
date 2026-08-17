@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -195,6 +195,7 @@
   .big { font-size: 30px; font-weight: bold; color: var(--port-dist); margin-top: 3px; }
   .row { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding: 10px 0; font-size: 13px; }
   .row:first-child { margin-top: 8px; }
+  .profit-amount { color: var(--status-good); }
   @media(max-width:720px) {
     .proggrid { grid-template-columns: 1fr; }
     .controls-grid { grid-template-columns: 1fr; }
@@ -266,7 +267,7 @@
     <div>
       <a class="home-link" href="index.html">← Financiën</a>
       <h1>Portfolio Dashboard</h1>
-      <div class="sub">ETF's, aandelen, crypto en spaargeld — live koersen, verdeling en groeiprognose</div>
+      <div class="sub">ETFs, stocks, crypto and savings — live prices, allocation and growth forecast</div>
     </div>
     <div class="controls">
       <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
@@ -276,9 +277,9 @@
 
 <div class="wrap">
 
-<div class="hero"><div class="muted">Totale waarde</div><div class="total"><span id="heroTotalAmount">€ 7.830,68</span><span class="heroChg" id="heroChg" style="display:none"></span></div><div class="muted" id="liveStatus" style="margin-top:8px">Live koersen laden…</div>
+<div class="hero"><div class="muted">Total value</div><div class="total"><span id="heroTotalAmount">€ 7.830,68</span><span class="heroChg" id="heroChg" style="display:none"></span></div><div class="muted" id="liveStatus" style="margin-top:8px">Loading live prices…</div>
 <div class="goalWrap">
-<div class="goalTop"><span>Doel: € <input type="number" id="goalInput" value="10000" min="0" step="500"></span><span id="goalPctText">0%</span></div>
+<div class="goalTop"><span>Goal: € <input type="number" id="goalInput" value="10000" min="0" step="500"></span><span id="goalPctText">0%</span></div>
 <div class="goalTrack"><div class="goalFill" id="goalFill" style="width:0%"></div></div>
 </div>
 </div>
@@ -287,59 +288,59 @@
 <h2>Portfolio</h2>
 
 <div class="group">
-<div class="head"><div class="cat"><div class="ico">◔</div><div><div class="catname">ETF's</div><div class="muted">4 posities</div></div></div><div class="headright"><b id="totEtf">€ 6.488,54</b><span class="chev">▶</span></div></div>
+<div class="head"><div class="cat"><div class="ico">◔</div><div><div class="catname">ETFs</div><div class="muted">4 positions</div></div></div><div class="headright"><b id="totEtf">€ 6.488,54</b><span class="chev">▶</span></div></div>
 <div class="items">
-<div class="item" data-shares="33.602582" data-ticker="VWRL.AS" data-ccy="EUR"><div><div class="name">Vanguard All-World — Distribuerend</div><div class="muted">33,602582 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vwrl">€ 2.746,34</div><div class="chg" id="chg-vwrl">—</div></div></div>
-<div class="item" data-shares="3.629927" data-ticker="VWCE.DE" data-ccy="EUR"><div><div class="name">Vanguard All-World — Accumulerend</div><div class="muted">3,629927 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vwce">€ 613,09</div><div class="chg" id="chg-vwce">—</div></div></div>
-<div class="item" data-shares="20.041111" data-ticker="VUSA.AS" data-ccy="EUR"><div><div class="name">Vanguard S&amp;P 500 — Distribuerend</div><div class="muted">20,041111 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vusa">€ 2.557,83</div><div class="chg" id="chg-vusa">—</div></div></div>
-<div class="item" data-shares="4.392755" data-ticker="VUAA.DE" data-ccy="EUR"><div><div class="name">Vanguard S&amp;P 500 — Accumulerend</div><div class="muted">4,392755 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vuaa">€ 571,28</div><div class="chg" id="chg-vuaa">—</div></div></div>
+<div class="item" data-shares="33.602582" data-ticker="VWRL.AS" data-ccy="EUR"><div><div class="name">Vanguard All-World — Distributing</div><div class="muted">33.602582 shares</div></div><div class="valueWrap"><div class="value" id="v-vwrl">€ 2.746,34</div><div class="chg" id="chg-vwrl">—</div></div></div>
+<div class="item" data-shares="3.629927" data-ticker="VWCE.DE" data-ccy="EUR"><div><div class="name">Vanguard All-World — Accumulating</div><div class="muted">3.629927 shares</div></div><div class="valueWrap"><div class="value" id="v-vwce">€ 613,09</div><div class="chg" id="chg-vwce">—</div></div></div>
+<div class="item" data-shares="20.041111" data-ticker="VUSA.AS" data-ccy="EUR"><div><div class="name">Vanguard S&amp;P 500 — Distributing</div><div class="muted">20.041111 shares</div></div><div class="valueWrap"><div class="value" id="v-vusa">€ 2.557,83</div><div class="chg" id="chg-vusa">—</div></div></div>
+<div class="item" data-shares="4.392755" data-ticker="VUAA.DE" data-ccy="EUR"><div><div class="name">Vanguard S&amp;P 500 — Accumulating</div><div class="muted">4.392755 shares</div></div><div class="valueWrap"><div class="value" id="v-vuaa">€ 571,28</div><div class="chg" id="chg-vuaa">—</div></div></div>
 </div>
 </div>
 
 <div class="group">
-<div class="head"><div class="cat"><div class="ico green">▥</div><div><div class="catname">Aandelen</div><div class="muted">1 positie</div></div></div><div class="headright"><b id="totStock">€ 212,21</b><span class="chev">▶</span></div></div>
+<div class="head"><div class="cat"><div class="ico green">▥</div><div><div class="catname">Stocks</div><div class="muted">1 position</div></div></div><div class="headright"><b id="totStock">€ 212,21</b><span class="chev">▶</span></div></div>
 <div class="items">
-<div class="item" data-shares="1.125466" data-ticker="NVDA" data-ccy="USD"><div><div class="name">NVIDIA</div><div class="muted">1,125466 aandelen</div></div><div class="valueWrap"><div class="value" id="v-nvda">€ 212,21</div><div class="chg" id="chg-nvda">—</div></div></div>
+<div class="item" data-shares="1.125466" data-ticker="NVDA" data-ccy="USD"><div><div class="name">NVIDIA</div><div class="muted">1.125466 shares</div></div><div class="valueWrap"><div class="value" id="v-nvda">€ 212,21</div><div class="chg" id="chg-nvda">—</div></div></div>
 </div>
 </div>
 
 <div class="group">
-<div class="head"><div class="cat"><div class="ico orange">₿</div><div><div class="catname">Crypto</div><div class="muted">2 posities</div></div></div><div class="headright"><b id="totCrypto">€ 1.090,69</b><span class="chev">▶</span></div></div>
+<div class="head"><div class="cat"><div class="ico orange">₿</div><div><div class="catname">Crypto</div><div class="muted">2 positions</div></div></div><div class="headright"><b id="totCrypto">€ 1.090,69</b><span class="chev">▶</span></div></div>
 <div class="items">
-<div class="item" data-shares="0.38487" data-coingecko="ethereum"><div><div class="name">Ethereum</div><div class="muted">0,38487 ETH</div></div><div class="valueWrap"><div class="value" id="v-eth">€ 628,66</div><div class="chg" id="chg-eth">—</div></div></div>
-<div class="item" data-shares="0.008319" data-coingecko="bitcoin"><div><div class="name">Bitcoin</div><div class="muted">0,008319 BTC</div></div><div class="valueWrap"><div class="value" id="v-btc">€ 462,03</div><div class="chg" id="chg-btc">—</div></div></div>
+<div class="item" data-shares="0.38487" data-coingecko="ethereum"><div><div class="name">Ethereum</div><div class="muted">0.38487 ETH</div></div><div class="valueWrap"><div class="value" id="v-eth">€ 628,66</div><div class="chg" id="chg-eth">—</div></div></div>
+<div class="item" data-shares="0.008319" data-coingecko="bitcoin"><div><div class="name">Bitcoin</div><div class="muted">0.008319 BTC</div></div><div class="valueWrap"><div class="value" id="v-btc">€ 462,03</div><div class="chg" id="chg-btc">—</div></div></div>
 </div>
 </div>
 
 <div class="group">
-<div class="head"><div class="cat"><div class="ico gold">▣</div><div><div class="catname">Spaargeld</div><div class="muted">Beschikbaar saldo</div></div></div><div class="headright"><b id="totCash">€ 39,24</b><span class="chev">▶</span></div></div>
+<div class="head"><div class="cat"><div class="ico gold">▣</div><div><div class="catname">Savings</div><div class="muted">Available balance</div></div></div><div class="headright"><b id="totCash">€ 39,24</b><span class="chev">▶</span></div></div>
 <div class="items">
-<div class="item"><div class="name">Beschikbaar saldo</div><div class="value">€ 39,24</div></div>
+<div class="item"><div class="name">Available balance</div><div class="value">€ 39,24</div></div>
 </div>
 </div>
 
-<h3 style="margin-top:20px">Verdeling</h3>
+<h3 style="margin-top:20px">Allocation</h3>
 <div class="donutrow">
 <div class="donut" id="donut"><div class="donutHighlight" id="donutHighlight"></div></div>
 <div class="donutTip" id="donutTip"></div>
 <div class="legend">
-<div><span><i class="dot dist"></i>ETF — Distribuerend</span><b id="pctDist">67,8%</b></div>
-<div><span><i class="dot acc"></i>ETF — Accumulerend</span><b id="pctAcc">15,1%</b></div>
-<div><span><i class="dot stock"></i>Aandelen</span><b id="pctStock">2,7%</b></div>
+<div><span><i class="dot dist"></i>ETF — Distributing</span><b id="pctDist">67,8%</b></div>
+<div><span><i class="dot acc"></i>ETF — Accumulating</span><b id="pctAcc">15,1%</b></div>
+<div><span><i class="dot stock"></i>Stocks</span><b id="pctStock">2,7%</b></div>
 <div><span><i class="dot crypto"></i>Crypto</span><b id="pctCrypto">13,9%</b></div>
-<div><span><i class="dot cash"></i>Spaargeld</span><b id="pctCash">0,5%</b></div>
+<div><span><i class="dot cash"></i>Savings</span><b id="pctCash">0,5%</b></div>
 </div></div>
 
 <div class="dividend">
-<div class="divtop"><div><h3>Volgende dividend</h3><div class="muted">Gecombineerd voor de distribuerende ETF's.</div></div><div class="divamount">± € 32</div></div>
-<div class="row"><span>Verwachte datum</span><b>1 oktober 2026</b></div>
+<div class="divtop"><div><h3>Next dividend</h3><div class="muted">Combined for the distributing ETFs.</div></div><div class="divamount">± € 32</div></div>
+<div class="row"><span>Expected date</span><b>1 October 2026</b></div>
 </div>
 </div>
 
 <div class="card">
-<h2>Prognose</h2>
+<h2>Forecast</h2>
 <div class="controls-grid">
-<div class="control"><label>Maandelijkse inleg</label><div class="pills" id="monthly" data-value="0" style="grid-template-columns:repeat(6,1fr)">
+<div class="control"><label>Monthly contribution</label><div class="pills" id="monthly" data-value="0" style="grid-template-columns:repeat(6,1fr)">
 <button type="button" class="pill active" data-val="0">€0</button>
 <button type="button" class="pill" data-val="100">€100</button>
 <button type="button" class="pill" data-val="200">€200</button>
@@ -347,11 +348,11 @@
 <button type="button" class="pill" data-val="400">€400</button>
 <button type="button" class="pill" data-val="500">€500</button>
 </div></div>
-<div class="control"><label>Aantal jaren — <span id="yearsLabel">1</span> jaar</label>
+<div class="control"><label>Number of years — <span id="yearsLabel">1</span> <span id="yearsUnit">year</span></label>
 <input type="range" id="years" min="1" max="5" step="1" value="1" class="slider">
 <div class="sliderticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 </div>
-<div class="control"><label>Verwacht rendement</label><div class="pills" id="rate" data-value="5" style="grid-template-columns:repeat(6,1fr)">
+<div class="control"><label>Expected return</label><div class="pills" id="rate" data-value="5" style="grid-template-columns:repeat(6,1fr)">
 <button type="button" class="pill active" data-val="5">5%</button>
 <button type="button" class="pill" data-val="6">6%</button>
 <button type="button" class="pill" data-val="7">7%</button>
@@ -361,10 +362,10 @@
 </div></div>
 </div>
 <div class="result">
-<div class="muted">Verwachte waarde</div><div id="future" class="big">€ 7.831</div>
-<div class="row"><span>Na</span><b id="yearsText">3 jaar</b></div>
-<div class="row"><span>Totale extra inleg</span><b id="extra">€ 0</b></div>
-<div class="row"><span>Geschatte winst</span><b id="profit">€ 0</b></div>
+<div class="muted">Expected value</div><div id="future" class="big">€ 7.831</div>
+<div class="row"><span>After</span><b id="yearsText">1 year</b></div>
+<div class="row"><span>Total extra contributions</span><b id="extra">€ 0</b></div>
+<div class="row"><span>Estimated profit</span><b id="profit" class="profit-amount">€ 0</b></div>
 </div>
 </div>
 
@@ -378,6 +379,7 @@ var r=rate/100/12,n=years*12;
 if(r===0)return start+monthly*n;
 return start*Math.pow(1+r,n)+monthly*(Math.pow(1+r,n)-1)/r;
 }
+function yearWord(n){return n===1?"year":"years";}
 function update(){
 var rate=Number(document.getElementById("rate").getAttribute("data-value"));
 var years=Number(document.getElementById("years").value);
@@ -386,8 +388,9 @@ var finalValue=calc(monthly,rate,years);
 var extra=monthly*12*years;
 var profit=finalValue-start-extra;
 document.getElementById("future").textContent=euro(finalValue);
-document.getElementById("yearsText").textContent=years+" jaar";
+document.getElementById("yearsText").textContent=years+" "+yearWord(years);
 document.getElementById("yearsLabel").textContent=years;
+document.getElementById("yearsUnit").textContent=yearWord(years);
 document.getElementById("extra").textContent=euro(extra);
 document.getElementById("profit").textContent=euro(profit);
 }
@@ -424,7 +427,7 @@ document.getElementById('btn-theme').addEventListener('click', () => {
   recomputeTotals(); // repaint the donut with the new theme's category colors
 });
 
-// ---- Live koersen ----
+// ---- Live prices ----
 var cashValue=39.24;
 function fmtEuro(n){return "€ "+n.toLocaleString("nl-NL",{minimumFractionDigits:2,maximumFractionDigits:2});}
 
@@ -445,7 +448,7 @@ var proxied="https://api.allorigins.win/raw?url="+encodeURIComponent(target);
 var data=await fetchJson(proxied);
 var meta=data.chart.result[0].meta;
 var price=meta.regularMarketPrice;
-if(typeof price!=="number")throw new Error("geen koers");
+if(typeof price!=="number")throw new Error("no price");
 var prevClose=meta.chartPreviousClose||meta.previousClose;
 var changePct=(typeof prevClose==="number"&&prevClose)?(price/prevClose-1)*100:null;
 return {price:price,changePct:changePct};
@@ -453,7 +456,7 @@ return {price:price,changePct:changePct};
 
 async function refreshLive(){
 var statusEl=document.getElementById("liveStatus");
-statusEl.textContent="Live koersen laden…";
+statusEl.textContent="Loading live prices…";
 var failed=[];
 window.dayChanges={};
 
@@ -461,7 +464,7 @@ var usdToEur=null;
 try{
 var fx=await fetchJson("https://api.frankfurter.app/latest?from=USD&to=EUR");
 usdToEur=fx.rates.EUR;
-}catch(e){failed.push("USD/EUR-koers");}
+}catch(e){failed.push("USD/EUR rate");}
 
 try{
 var cg=await fetchJson("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=eur&include_24hr_change=true");
@@ -500,9 +503,9 @@ window.dayChanges.nvda=nvda.changePct;
 recomputeTotals();
 
 if(failed.length===0){
-statusEl.textContent="Live — bijgewerkt "+new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+statusEl.textContent="Live — updated "+new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
 }else{
-statusEl.textContent="Deels live bijgewerkt (rest toont laatst bekende waarde) — "+new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+statusEl.textContent="Partially updated live (rest shows last known value) — "+new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
 }
 }
 
@@ -537,7 +540,7 @@ var heroChgEl=document.getElementById("heroChg");
 if(sumAmt===0){heroChgEl.style.display="none";return;}
 var avgPct=sumWeighted/sumAmt;
 var arrow=avgPct>0?"▲":(avgPct<0?"▼":"–");
-heroChgEl.textContent=arrow+" "+Math.abs(avgPct).toLocaleString("nl-NL",{minimumFractionDigits:1,maximumFractionDigits:1})+"% vandaag";
+heroChgEl.textContent=arrow+" "+Math.abs(avgPct).toLocaleString("nl-NL",{minimumFractionDigits:1,maximumFractionDigits:1})+"% today";
 heroChgEl.className="heroChg "+(avgPct>0?"up":(avgPct<0?"down":""));
 heroChgEl.style.display="inline-block";
 }
@@ -607,16 +610,16 @@ update();
 }
 refreshLive();
 
-// ---- Donut hover interactie (beide richtingen) ----
+// ---- Donut hover interaction (both directions) ----
 var donutEl=document.getElementById("donut");
 var highlightEl=document.getElementById("donutHighlight");
 var tipEl=document.getElementById("donutTip");
 var segMeta=[
-{pctId:"pctDist",label:"ETF — Distribuerend"},
-{pctId:"pctAcc",label:"ETF — Accumulerend"},
-{pctId:"pctStock",label:"Aandelen"},
+{pctId:"pctDist",label:"ETF — Distributing"},
+{pctId:"pctAcc",label:"ETF — Accumulating"},
+{pctId:"pctStock",label:"Stocks"},
 {pctId:"pctCrypto",label:"Crypto"},
-{pctId:"pctCash",label:"Spaargeld"}
+{pctId:"pctCash",label:"Savings"}
 ];
 function getSegments(){
 var cum=0;
