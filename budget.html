@@ -24,6 +24,7 @@
     --status-good:    #0ca30c;
     --status-good-text: #006300;
     --status-critical:#d03b3b;
+    --status-warning: #c2650a;
     --shadow: 0 1px 2px rgba(11,11,11,0.04), 0 4px 16px rgba(11,11,11,0.05);
   }
   @media (prefers-color-scheme: dark) {
@@ -46,6 +47,7 @@
       --status-good:    #0ca30c;
       --status-good-text: #0ca30c;
       --status-critical:#e66767;
+      --status-warning: #e0912e;
       --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
     }
   }
@@ -68,6 +70,7 @@
     --status-good:    #0ca30c;
     --status-good-text: #0ca30c;
     --status-critical:#e66767;
+    --status-warning: #e0912e;
     --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
   }
 
@@ -242,17 +245,25 @@
   }
   .drag-handle:hover { color: var(--text-primary); background: color-mix(in srgb, var(--text-primary) 6%, transparent); }
   .drag-handle:active { cursor: grabbing; }
-  /* Edit toggle — pencil while locked, checkmark once unlocked. Unlocking a row is what
-     reveals its (red) remove button and makes its name/amount fields editable. */
+  /* Edit/Save toggle — pencil while locked, green check once unlocked (clicking the check
+     keeps the edits and re-locks). Unlocking a row is what reveals its orange Discard and
+     red Delete buttons and makes its name/amount fields editable. */
   .btn-edit-item {
     flex: none; width: 24px; height: 36px; display: flex; align-items: center; justify-content: center;
     background: none; border: none; color: var(--text-muted); font-size: 13px; line-height: 1; cursor: pointer; border-radius: 6px;
   }
   .btn-edit-item:hover { color: var(--series-maarten); background: color-mix(in srgb, var(--series-maarten) 10%, transparent); }
   .btn-edit-item.active { color: var(--status-good-text); background: color-mix(in srgb, var(--status-good) 14%, transparent); }
+  /* Discard — throws away edits made since the row was unlocked and restores the values it
+     had before, then re-locks it. */
+  .btn-discard-item {
+    flex: none; width: 24px; height: 36px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--status-warning); font-size: 14px; font-weight: 700; line-height: 1; cursor: pointer; border-radius: 6px;
+  }
+  .btn-discard-item:hover { background: color-mix(in srgb, var(--status-warning) 12%, transparent); }
   .btn-del-item {
     flex: none; width: 24px; height: 36px; display: flex; align-items: center; justify-content: center;
-    background: none; border: none; color: var(--status-critical); font-size: 16px; line-height: 1; cursor: pointer; border-radius: 6px;
+    background: none; border: none; color: var(--status-critical); font-size: 14px; line-height: 1; cursor: pointer; border-radius: 6px;
   }
   .btn-del-item:hover { background: color-mix(in srgb, var(--status-critical) 12%, transparent); }
   /* Locked/read-only rows are never display:none — they keep reserving their button's
@@ -643,6 +654,7 @@
         <div>Item</div><div style="text-align:right">Amount €</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
       <span class="btn-del-item spacer-only" aria-hidden="true"></span>
     </div>
     <div id="household-rows"><div class="cat-group"><div class="cat-title">House</div><div class="row-outer" data-drag-row="0.0">
@@ -651,48 +663,66 @@
             <div class="name"><input class="name-input" type="text" data-hh-label="0.0" value="Mortgage" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="0.1">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="0.1" value="Ownership fee" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="0.2">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="0.2" value="Gas" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="0.3">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="0.3" value="Energy" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.3" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="0.4">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="0.4" value="County and city taxes" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.4" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.4" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer row-outer-last" data-drag-row="0.5">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="0.5" value="House insurance" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.5" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.5" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.5" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><button type="button" class="btn-add-item" data-hh-add="0">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
@@ -700,6 +730,7 @@
           <div class="computed" id="hh-cat-0">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row-outer" data-drag-row="1.0">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -707,40 +738,55 @@
             <div class="name"><input class="name-input" type="text" data-hh-label="1.0" value="Car fuel" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="1.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="1.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="1.1">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="1.1" value="Car insurance" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="1.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="1.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="1.2">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="1.2" value="Road taxes" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="1.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="1.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="1.3">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="1.3" value="Maintenance" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="1.3" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="1.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer row-outer-last" data-drag-row="1.4">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="1.4" value="Road service contract" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="1.4" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="1.4" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><button type="button" class="btn-add-item" data-hh-add="1">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
@@ -748,6 +794,7 @@
           <div class="computed" id="hh-cat-1">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row-outer" data-drag-row="2.0">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -755,32 +802,44 @@
             <div class="name"><input class="name-input" type="text" data-hh-label="2.0" value="Gym" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="2.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="2.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="2.1">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="2.1" value="Ziggo" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="2.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="2.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="2.2">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="2.2" value="Netflix" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="2.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="2.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer row-outer-last" data-drag-row="2.3">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="2.3" value="Disney+" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="2.3" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="2.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><button type="button" class="btn-add-item" data-hh-add="2">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
@@ -788,6 +847,7 @@
           <div class="computed" id="hh-cat-2">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row-outer row-outer-last" data-drag-row="3.0">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -795,8 +855,11 @@
             <div class="name"><input class="name-input" type="text" data-hh-label="3.0" value="Max — Insurance" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="3.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="3.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><button type="button" class="btn-add-item" data-hh-add="3">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
@@ -804,6 +867,7 @@
           <div class="computed" id="hh-cat-3">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div></div>
 
@@ -880,6 +944,7 @@
         <div>Item</div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
       <span class="btn-del-item spacer-only" aria-hidden="true"></span>
     </div>
     <div id="personal-rows"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row-outer" data-drag-row="0.0">
@@ -890,8 +955,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-0-0-t">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="0.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="0.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="0.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><div class="row-outer" data-drag-row="0.1">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
@@ -900,8 +968,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-0-1-t">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="0.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="0.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="0.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><div class="row-outer row-outer-last" data-drag-row="0.2">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
@@ -910,8 +981,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-0-2-t">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="0.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="0.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="0.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><button type="button" class="btn-add-item" data-pc-add="0">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
@@ -921,6 +995,7 @@
           <div class="computed" id="pc-cat-0-t">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row-outer" data-drag-row="1.0">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -930,8 +1005,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-1-0-t">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="1.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="1.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="1.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><div class="row-outer" data-drag-row="1.1">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
@@ -940,8 +1018,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-1-1-t">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="1.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="1.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="1.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><div class="row-outer row-outer-last" data-drag-row="1.2">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
@@ -950,8 +1031,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-1-2-t">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="1.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="1.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="1.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><button type="button" class="btn-add-item" data-pc-add="1">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
@@ -961,6 +1045,7 @@
           <div class="computed" id="pc-cat-1-t">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row-outer" data-drag-row="2.0">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -970,8 +1055,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-2-0-t">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="2.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="2.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="2.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><div class="row-outer row-outer-last" data-drag-row="2.1">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
@@ -980,8 +1068,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-2-1-t">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="2.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="2.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="2.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><button type="button" class="btn-add-item" data-pc-add="2">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
@@ -991,6 +1082,7 @@
           <div class="computed" id="pc-cat-2-t">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="row-outer" data-drag-row="3.0"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
@@ -1031,7 +1123,11 @@
     </div>
           </div>
           <div class="computed" id="pc-3-0-t">€&nbsp;0,00</div>
-        </div></div><button type="button" class="btn-edit-item" data-pc-edit="3.0" title="Edit this loan" aria-label="Edit this loan">✎</button><button type="button" class="btn-del-item spacer-only" data-pc-del="3.0" title="Remove this loan" aria-label="Remove this loan">×</button></div><div class="row-outer row-outer-last" data-drag-row="3.1"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
+        </div></div>
+          <button class="btn-edit-item" type="button" data-pc-edit="3.0" title="Edit this loan" aria-label="Edit this loan">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div><div class="row-outer row-outer-last" data-drag-row="3.1"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
             <input class="name-input" type="text" data-pc-label="3.1" value="Credit card" readonly="">
             <span class="debt-ring" id="debt-ring-3-1-nicolas" style="display:none">
@@ -1070,7 +1166,11 @@
     </div>
           </div>
           <div class="computed" id="pc-3-1-t">€&nbsp;0,00</div>
-        </div></div><button type="button" class="btn-edit-item" data-pc-edit="3.1" title="Edit this loan" aria-label="Edit this loan">✎</button><button type="button" class="btn-del-item spacer-only" data-pc-del="3.1" title="Remove this loan" aria-label="Remove this loan">×</button></div><button type="button" class="btn-add-item" data-pc-add="3">+ Add loan</button><div class="subtotal-outer">
+        </div></div>
+          <button class="btn-edit-item" type="button" data-pc-edit="3.1" title="Edit this loan" aria-label="Edit this loan">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div><button type="button" class="btn-add-item" data-pc-add="3">+ Add loan</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
           <div>Subtotal — Loans</div>
@@ -1079,6 +1179,7 @@
           <div class="computed" id="pc-cat-3-t">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div></div>
     <div class="subtotal-outer">
@@ -1090,6 +1191,7 @@
         <div class="computed" id="out-pc-total-total">€&nbsp;0,00</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
       <span class="btn-del-item spacer-only" aria-hidden="true"></span>
     </div>
   </section>
@@ -1236,6 +1338,7 @@
         <div></div><div style="text-align:right">Amount €</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
       <span class="btn-del-item spacer-only" aria-hidden="true"></span>
     </div>
     <div id="household-rows-b"><div class="cat-group"><div class="cat-title">House</div><div class="row-outer" data-drag-row="0.0">
@@ -1244,40 +1347,55 @@
             <div class="name"><input class="name-input" type="text" data-hh-label="0.0" value="Mortgage" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="0.1">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="0.1" value="Gas" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="0.2">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="0.2" value="Energy" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="0.3">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="0.3" value="County and city taxes" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.3" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer row-outer-last" data-drag-row="0.4">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="0.4" value="House insurance" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="0.4" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="0.4" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><button type="button" class="btn-add-item" data-hh-add="0">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
@@ -1285,6 +1403,7 @@
           <div class="computed" id="hh-cat-0-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row-outer" data-drag-row="1.0">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -1292,40 +1411,55 @@
             <div class="name"><input class="name-input" type="text" data-hh-label="1.0" value="Car fuel" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="1.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="1.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="1.1">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="1.1" value="Car insurance" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="1.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="1.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="1.2">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="1.2" value="Road taxes" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="1.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="1.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="1.3">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="1.3" value="Maintenance" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="1.3" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="1.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer row-outer-last" data-drag-row="1.4">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="1.4" value="Road service contract" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="1.4" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="1.4" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><button type="button" class="btn-add-item" data-hh-add="1">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
@@ -1333,6 +1467,7 @@
           <div class="computed" id="hh-cat-1-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row-outer" data-drag-row="2.0">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -1340,32 +1475,44 @@
             <div class="name"><input class="name-input" type="text" data-hh-label="2.0" value="Gym" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="2.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="2.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="2.1">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="2.1" value="Ziggo" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="2.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="2.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer" data-drag-row="2.2">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="2.2" value="Netflix" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="2.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="2.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><div class="row-outer row-outer-last" data-drag-row="2.3">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div class="row">
             <div class="name"><input class="name-input" type="text" data-hh-label="2.3" value="Disney+" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="2.3" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="2.3" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><button type="button" class="btn-add-item" data-hh-add="2">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
@@ -1373,6 +1520,7 @@
           <div class="computed" id="hh-cat-2-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row-outer row-outer-last" data-drag-row="3.0">
           <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -1380,8 +1528,11 @@
             <div class="name"><input class="name-input" type="text" data-hh-label="3.0" value="Max — Insurance" readonly=""></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="0" readonly=""></div>
           </div>
+          
           <button class="btn-edit-item" type="button" data-hh-edit="3.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-          <button class="btn-del-item spacer-only" type="button" data-hh-del="3.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
         </div><button type="button" class="btn-add-item" data-hh-add="3">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row">
@@ -1389,6 +1540,7 @@
           <div class="computed" id="hh-cat-3-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div></div>
 
@@ -1458,6 +1610,7 @@
         <div></div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
       <span class="btn-del-item spacer-only" aria-hidden="true"></span>
     </div>
     <div id="personal-rows-b"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row-outer" data-drag-row="0.0">
@@ -1468,8 +1621,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-0-0-t-b">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="0.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="0.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="0.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><div class="row-outer" data-drag-row="0.1">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
@@ -1478,8 +1634,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-0-1-t-b">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="0.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="0.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="0.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><div class="row-outer row-outer-last" data-drag-row="0.2">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
@@ -1488,8 +1647,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-0-2-t-b">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="0.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="0.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="0.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><button type="button" class="btn-add-item" data-pc-add="0">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
@@ -1499,6 +1661,7 @@
           <div class="computed" id="pc-cat-0-t-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row-outer" data-drag-row="1.0">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -1508,8 +1671,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-1-0-t-b">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="1.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="1.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="1.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><div class="row-outer" data-drag-row="1.1">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
@@ -1518,8 +1684,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-1-1-t-b">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="1.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="1.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="1.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><div class="row-outer row-outer-last" data-drag-row="1.2">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
@@ -1528,8 +1697,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-1-2-t-b">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="1.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="1.2" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="1.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><button type="button" class="btn-add-item" data-pc-add="1">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
@@ -1539,6 +1711,7 @@
           <div class="computed" id="pc-cat-1-t-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row-outer" data-drag-row="2.0">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -1548,8 +1721,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-2-0-t-b">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="2.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="2.0" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="2.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><div class="row-outer row-outer-last" data-drag-row="2.1">
             <span class="drag-handle" title="Drag to reorder">⠿</span>
             <div class="row personal">
@@ -1558,8 +1734,11 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="0" readonly=""></div>
               <div class="computed" id="pc-2-1-t-b">€&nbsp;0,00</div>
             </div>
-            <button class="btn-edit-item" type="button" data-pc-edit="2.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
-            <button class="btn-del-item spacer-only" type="button" data-pc-del="2.1" title="Remove this cost" aria-label="Remove this cost">×</button>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="2.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
           </div><button type="button" class="btn-add-item" data-pc-add="2">+ Add cost</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
@@ -1569,6 +1748,7 @@
           <div class="computed" id="pc-cat-2-t-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="row-outer" data-drag-row="3.0"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
@@ -1609,7 +1789,11 @@
     </div>
           </div>
           <div class="computed" id="pc-3-0-t-b">€&nbsp;0,00</div>
-        </div></div><button type="button" class="btn-edit-item" data-pc-edit="3.0" title="Edit this loan" aria-label="Edit this loan">✎</button><button type="button" class="btn-del-item spacer-only" data-pc-del="3.0" title="Remove this loan" aria-label="Remove this loan">×</button></div><div class="row-outer row-outer-last" data-drag-row="3.1"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
+        </div></div>
+          <button class="btn-edit-item" type="button" data-pc-edit="3.0" title="Edit this loan" aria-label="Edit this loan">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div><div class="row-outer row-outer-last" data-drag-row="3.1"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
           <div class="name">
             <input class="name-input" type="text" data-pc-label="3.1" value="Credit card" readonly="">
             <span class="debt-ring" id="debt-ring-3-1-nicolas-b" style="display:none">
@@ -1648,7 +1832,11 @@
     </div>
           </div>
           <div class="computed" id="pc-3-1-t-b">€&nbsp;0,00</div>
-        </div></div><button type="button" class="btn-edit-item" data-pc-edit="3.1" title="Edit this loan" aria-label="Edit this loan">✎</button><button type="button" class="btn-del-item spacer-only" data-pc-del="3.1" title="Remove this loan" aria-label="Remove this loan">×</button></div><button type="button" class="btn-add-item" data-pc-add="3">+ Add loan</button><div class="subtotal-outer">
+        </div></div>
+          <button class="btn-edit-item" type="button" data-pc-edit="3.1" title="Edit this loan" aria-label="Edit this loan">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div><button type="button" class="btn-add-item" data-pc-add="3">+ Add loan</button><div class="subtotal-outer">
         <span class="drag-handle spacer-only" aria-hidden="true"></span>
         <div class="subtotal-row personal">
           <div>Subtotal — Loans</div>
@@ -1657,6 +1845,7 @@
           <div class="computed" id="pc-cat-3-t-b">€&nbsp;0,00</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       </div></div></div>
     <div class="subtotal-outer">
@@ -1668,6 +1857,7 @@
         <div class="computed" id="out-pc-total-total-b">€&nbsp;0,00</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
       <span class="btn-del-item spacer-only" aria-hidden="true"></span>
     </div>
   </section>
@@ -1920,10 +2110,12 @@
   // suffixed with the scope's `sfx`) and is fully independent of the other.
   // _editUnlocked tracks which cost/loan item OBJECTS (by reference, not index — indices
   // shift on drag/add/delete) currently have their name/amount fields unlocked for editing.
-  // It's intentionally a plain in-memory WeakSet on the scope, never touched by save/load,
-  // so it doesn't get persisted to Supabase and simply resets on a fresh page load.
-  const scopeA = { key: 'a', sfx: '', mode: 'fixed', state: defaultStateA(), _editUnlocked: new WeakSet() };
-  const scopeB = { key: 'b', sfx: '-b', mode: 'split50', state: defaultStateB(), _editUnlocked: new WeakSet() };
+  // _editSnapshots holds a deep-cloned copy of an item's fields taken the moment it's
+  // unlocked, so "Discard" can restore exactly what was there before the edit. Both are
+  // intentionally plain in-memory Weak collections on the scope, never touched by
+  // save/load, so neither gets persisted to Supabase and both simply reset on page load.
+  const scopeA = { key: 'a', sfx: '', mode: 'fixed', state: defaultStateA(), _editUnlocked: new WeakSet(), _editSnapshots: new WeakMap() };
+  const scopeB = { key: 'b', sfx: '-b', mode: 'split50', state: defaultStateB(), _editUnlocked: new WeakSet(), _editSnapshots: new WeakMap() };
   const scopes = [scopeA, scopeB];
   let activeScope = scopeA;
 
@@ -1962,6 +2154,29 @@
   function escapeAttr(str) {
     return String(str == null ? '' : str)
       .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // Builds the 3-slot trailing action-button HTML for one cost/loan row — reused by
+  // household costs, personal costs, and loans so all three stay visually and
+  // behaviorally identical. Locked shows just the pencil (edit); unlocked swaps it for a
+  // green check (save), plus an orange discard and a red delete (bin) — always exactly
+  // 3 button-width slots either way, so the amount column never shifts.
+  // `prefix` is 'hh' or 'pc' (drives which data-* attribute bindInputs listens for),
+  // `key` is the "ci.ii" position string, `noun` is what the tooltip calls this row.
+  function rowActionButtonsHTML(prefix, key, unlocked, noun) {
+    noun = noun || 'cost';
+    if (!unlocked) {
+      return `
+          <button class="btn-edit-item" type="button" data-${prefix}-edit="${key}" title="Edit this ${noun}" aria-label="Edit this ${noun}">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      `;
+    }
+    return `
+          <button class="btn-edit-item active" type="button" data-${prefix}-save="${key}" title="Save changes" aria-label="Save changes">✓</button>
+          <button class="btn-discard-item" type="button" data-${prefix}-discard="${key}" title="Discard changes" aria-label="Discard changes">✕</button>
+          <button class="btn-del-item" type="button" data-${prefix}-del="${key}" title="Remove this ${noun}" aria-label="Remove this ${noun}">🗑</button>
+      `;
   }
 
   // ---------- Computation (mirrors the spreadsheet's formulas) ----------
@@ -2037,8 +2252,7 @@
             <div class="name"><input class="name-input" type="text" data-hh-label="${ci}.${ii}" value="${escapeAttr(it.label)}"${unlocked ? '' : ' readonly'}></div>
             <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="${ci}.${ii}" value="${it.amount}"${unlocked ? '' : ' readonly'}></div>
           </div>
-          <button class="btn-edit-item${unlocked ? ' active' : ''}" type="button" data-hh-edit="${ci}.${ii}" title="${unlocked ? 'Done editing' : 'Edit this cost'}" aria-label="${unlocked ? 'Done editing' : 'Edit this cost'}">${unlocked ? '✓' : '✎'}</button>
-          <button class="btn-del-item${unlocked ? '' : ' spacer-only'}" type="button" data-hh-del="${ci}.${ii}" title="Remove this cost" aria-label="Remove this cost">×</button>
+          ${rowActionButtonsHTML('hh', `${ci}.${ii}`, unlocked, 'cost')}
         `;
         group.appendChild(rowOuter);
       });
@@ -2059,6 +2273,7 @@
           <div class="computed" id="hh-cat-${ci}${s}">—</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       `;
       group.appendChild(sub);
@@ -2126,8 +2341,7 @@
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"${ro}></div>
               <div class="computed" id="pc-${ci}-${ii}-t${s}">—</div>
             </div>
-            <button class="btn-edit-item${unlocked ? ' active' : ''}" type="button" data-pc-edit="${ci}.${ii}" title="${unlocked ? 'Done editing' : 'Edit this cost'}" aria-label="${unlocked ? 'Done editing' : 'Edit this cost'}">${unlocked ? '✓' : '✎'}</button>
-            <button class="btn-del-item${unlocked ? '' : ' spacer-only'}" type="button" data-pc-del="${ci}.${ii}" title="Remove this cost" aria-label="Remove this cost">×</button>
+            ${rowActionButtonsHTML('pc', `${ci}.${ii}`, unlocked, 'cost')}
           `;
           group.appendChild(rowOuter);
           return;
@@ -2166,22 +2380,7 @@
 
         rowOuter.innerHTML = '<span class="drag-handle" title="Drag to reorder">⠿</span>';
         rowOuter.appendChild(wrapper);
-        const editBtn = document.createElement('button');
-        editBtn.type = 'button';
-        editBtn.className = 'btn-edit-item' + (unlocked ? ' active' : '');
-        editBtn.setAttribute('data-pc-edit', `${ci}.${ii}`);
-        editBtn.title = unlocked ? 'Done editing' : 'Edit this loan';
-        editBtn.setAttribute('aria-label', unlocked ? 'Done editing' : 'Edit this loan');
-        editBtn.textContent = unlocked ? '✓' : '✎';
-        rowOuter.appendChild(editBtn);
-        const delBtn = document.createElement('button');
-        delBtn.type = 'button';
-        delBtn.className = 'btn-del-item' + (unlocked ? '' : ' spacer-only');
-        delBtn.setAttribute('data-pc-del', `${ci}.${ii}`);
-        delBtn.title = 'Remove this loan';
-        delBtn.setAttribute('aria-label', 'Remove this loan');
-        delBtn.textContent = '×';
-        rowOuter.appendChild(delBtn);
+        rowOuter.insertAdjacentHTML('beforeend', rowActionButtonsHTML('pc', `${ci}.${ii}`, unlocked, 'loan'));
 
         group.appendChild(rowOuter);
       });
@@ -2204,6 +2403,7 @@
           <div class="computed" id="pc-cat-${ci}-t${s}">—</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
         <span class="btn-del-item spacer-only" aria-hidden="true"></span>
       `;
       group.appendChild(sub);
@@ -2321,25 +2521,56 @@
       });
     });
 
-    // Unlock/lock a household cost for editing — while locked, the name and amount are
-    // read-only and the remove button stays hidden, so nothing changes by accident.
+    // Unlock a household cost for editing — snapshots its current values first (so Discard
+    // has something to restore), then the name/amount become editable and Save/Discard/
+    // Delete replace the pencil.
     document.querySelectorAll(`#household-rows${s} [data-hh-edit]`).forEach(elx => {
       elx.addEventListener('click', () => {
         const [ci, ii] = elx.getAttribute('data-hh-edit').split('.');
         const it = scope.state.household[+ci].items[+ii];
-        if (scope._editUnlocked.has(it)) scope._editUnlocked.delete(it);
-        else scope._editUnlocked.add(it);
+        scope._editSnapshots.set(it, JSON.parse(JSON.stringify(it)));
+        scope._editUnlocked.add(it);
+        fullRender(scope);
+      });
+    });
+
+    // Save (green check) — keep whatever's currently in the fields and re-lock the row.
+    // This only commits the row out of "editing" mode; the header's own Save button is
+    // still what actually persists everything to Supabase.
+    document.querySelectorAll(`#household-rows${s} [data-hh-save]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-hh-save').split('.');
+        const it = scope.state.household[+ci].items[+ii];
+        scope._editUnlocked.delete(it);
+        scope._editSnapshots.delete(it);
+        fullRender(scope);
+      });
+    });
+
+    // Discard (orange ✕) — throw away whatever changed since the row was unlocked,
+    // restoring exactly what it looked like beforehand, then re-lock it.
+    document.querySelectorAll(`#household-rows${s} [data-hh-discard]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-hh-discard').split('.');
+        const it = scope.state.household[+ci].items[+ii];
+        const snap = scope._editSnapshots.get(it);
+        if (snap) Object.assign(it, snap);
+        scope._editUnlocked.delete(it);
+        scope._editSnapshots.delete(it);
         fullRender(scope);
       });
     });
 
     // Add a new household cost to a category, then focus its name field so you can
-    // rename it right away. New items start unlocked so you can fill them in immediately.
+    // rename it right away. New items start unlocked so you can fill them in immediately;
+    // their snapshot is the blank default, so Discard on a fresh item just clears it back
+    // to that rather than doing nothing.
     document.querySelectorAll(`#household-rows${s} [data-hh-add]`).forEach(elx => {
       elx.addEventListener('click', () => {
         const ci = +elx.getAttribute('data-hh-add');
         const newItem = { label: 'New cost', amount: 0 };
         scope._editUnlocked.add(newItem);
+        scope._editSnapshots.set(newItem, JSON.parse(JSON.stringify(newItem)));
         scope.state.household[ci].items.push(newItem);
         fullRender(scope);
         const newIi = scope.state.household[ci].items.length - 1;
@@ -2372,14 +2603,39 @@
       });
     });
 
-    // Unlock/lock a personal cost or loan for editing — same read-only-until-edit behavior
-    // as household costs above.
+    // Unlock a personal cost or loan for editing — same snapshot-then-edit behavior as
+    // household costs above.
     document.querySelectorAll(`#personal-rows${s} [data-pc-edit]`).forEach(elx => {
       elx.addEventListener('click', () => {
         const [ci, ii] = elx.getAttribute('data-pc-edit').split('.');
         const it = scope.state.personal[+ci].items[+ii];
-        if (scope._editUnlocked.has(it)) scope._editUnlocked.delete(it);
-        else scope._editUnlocked.add(it);
+        scope._editSnapshots.set(it, JSON.parse(JSON.stringify(it)));
+        scope._editUnlocked.add(it);
+        fullRender(scope);
+      });
+    });
+
+    // Save (green check) — keep the edits, re-lock the row.
+    document.querySelectorAll(`#personal-rows${s} [data-pc-save]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-pc-save').split('.');
+        const it = scope.state.personal[+ci].items[+ii];
+        scope._editUnlocked.delete(it);
+        scope._editSnapshots.delete(it);
+        fullRender(scope);
+      });
+    });
+
+    // Discard (orange ✕) — restore this item's pre-edit values (including loan debt
+    // total/paid/rate, if those were open and edited too) and re-lock it.
+    document.querySelectorAll(`#personal-rows${s} [data-pc-discard]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-pc-discard').split('.');
+        const it = scope.state.personal[+ci].items[+ii];
+        const snap = scope._editSnapshots.get(it);
+        if (snap) Object.assign(it, snap);
+        scope._editUnlocked.delete(it);
+        scope._editSnapshots.delete(it);
         fullRender(scope);
       });
     });
@@ -2392,6 +2648,7 @@
           ? { label: 'New loan', maarten: 0, nicolas: 0, debt: { nicolas: { total: 0, paid: 0, rate: 0 } } }
           : { label: 'New cost', maarten: 0, nicolas: 0 };
         scope._editUnlocked.add(newItem);
+        scope._editSnapshots.set(newItem, JSON.parse(JSON.stringify(newItem)));
         scope.state.personal[ci].items.push(newItem);
         fullRender(scope);
         const newIi = scope.state.personal[ci].items.length - 1;

@@ -91,7 +91,12 @@
 
   .wrap { max-width: 880px; margin: 0 auto; padding: 56px 20px 40px; }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+  /* Fixed 2x2 layout — always exactly two tiles per row (Budget/Mortgage, then
+     Portfolio/Net Worth) regardless of window width, rather than reflowing with it. */
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: 1fr; }
+  }
 
   .tile {
     display: block; text-decoration: none; color: inherit;
