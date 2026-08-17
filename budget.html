@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joint Costs Dashboard 2026 — Maarten &amp; Nicolas</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --surface-2:      #ffffff;
+    --page:           #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-maarten: #2a78d6;
+    --series-nicolas: #eb6834;
+    --seg-joint:      #1baf7a;
+    --seg-personal:   #eda100;
+    --seg-left:       #4a3aa7;
+    --status-good:    #0ca30c;
+    --status-good-text: #006300;
+    --status-critical:#d03b3b;
+    --shadow: 0 1px 2px rgba(11,11,11,0.04), 0 4px 16px rgba(11,11,11,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --surface-2:      #212120;
+      --page:           #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-maarten: #3987e5;
+      --series-nicolas: #d95926;
+      --seg-joint:      #199e70;
+      --seg-personal:   #c98500;
+      --seg-left:       #9085e9;
+      --status-good:    #0ca30c;
+      --status-good-text: #0ca30c;
+      --status-critical:#e66767;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --surface-2:      #212120;
+    --page:           #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-maarten: #3987e5;
+    --series-nicolas: #d95926;
+    --seg-joint:      #199e70;
+    --seg-personal:   #c98500;
+    --seg-left:       #9085e9;
+    --status-good:    #0ca30c;
+    --status-good-text: #0ca30c;
+    --status-critical:#e66767;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { padding-bottom: 64px; }
+
+  a { color: inherit; }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--page) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  header.top .inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; gap: 12px; flex-wrap: wrap;
+  }
+  header.top h1 {
+    font-size: 17px; margin: 0; font-weight: 650; letter-spacing: -0.01em;
+  }
+  header.top .sub {
+    font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;
+  }
+  .home-link {
+    display: inline-block; font-size: 12px; font-weight: 600; text-decoration: none;
+    color: var(--text-muted); margin-bottom: 4px;
+  }
+  .home-link:hover { color: var(--text-primary); }
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button.ctl {
+    font: inherit; font-size: 12.5px; font-weight: 550;
+    background: var(--surface-2); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.12s ease;
+  }
+  button.ctl:hover { background: color-mix(in srgb, var(--text-primary) 6%, var(--surface-2)); }
+  button.ctl:active { transform: translateY(0.5px); }
+
+  main { padding-top: 22px; }
+
+  section.card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px 22px;
+    margin-bottom: 20px;
+  }
+  section.card > h2 {
+    font-size: 14.5px; font-weight: 650; margin: 0 0 2px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  section.card > .desc {
+    font-size: 12.5px; color: var(--text-secondary); margin: 0 0 16px;
+    max-width: 62ch;
+  }
+  .badge {
+    font-size: 10.5px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted);
+    background: color-mix(in srgb, var(--text-muted) 12%, transparent);
+    border-radius: 5px; padding: 2px 6px;
+  }
+
+  /* legend */
+  .legend { display: flex; gap: 16px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .legend .item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); font-weight: 550; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .swatch.maarten { background: var(--series-maarten); }
+  .swatch.nicolas { background: var(--series-nicolas); }
+
+  /* stat tiles */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .tile {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .tile .label { font-size: 11.5px; color: var(--text-secondary); font-weight: 600; margin-bottom: 8px; display:flex; align-items:center; gap:6px;}
+  .tile .label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .tile .label-row .label { margin-bottom: 0; }
+  .log-btn {
+    font: inherit; font-size: 10.5px; font-weight: 650; white-space: nowrap;
+    background: color-mix(in srgb, var(--series-nicolas) 12%, var(--surface-2));
+    color: var(--series-nicolas); border: 1px solid color-mix(in srgb, var(--series-nicolas) 35%, var(--border));
+    border-radius: 999px; padding: 4px 9px; cursor: pointer; transition: background 0.12s ease;
+  }
+  .log-btn:hover { background: color-mix(in srgb, var(--series-nicolas) 20%, var(--surface-2)); }
+  .tile .value { font-size: 21px; font-weight: 650; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; }
+  .tile .value.good { color: var(--status-good-text); }
+  .tile .value.bad { color: var(--status-critical); }
+  .tile .hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .tile.input .value input {
+    font: inherit; font-size: 21px; font-weight: 650; font-variant-numeric: tabular-nums;
+    border: none; background: transparent; color: var(--text-primary);
+    width: 100%; padding: 0; outline: none; text-align: left;
+  }
+  .tile.input { position: relative; }
+  .tile.input:focus-within { outline: 2px solid var(--series-maarten); outline-offset: 2px; border-radius: 12px; }
+  .euro-prefix { color: var(--text-muted); font-weight: 600; margin-right: 4px; flex: none; }
+
+  /* income "equation" row — keeps salaries and the combined total visually tied together */
+  .equation-row { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+  .equation-row .tile { flex: 1 1 160px; }
+  .equation-row .op {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 600; color: var(--text-muted);
+    flex: 0 0 auto; width: 20px; padding-top: 22px;
+  }
+  .tile.total {
+    border-color: color-mix(in srgb, var(--series-maarten) 45%, var(--border));
+    background: color-mix(in srgb, var(--series-maarten) 7%, var(--surface-2));
+  }
+  @media (max-width: 560px) {
+    .equation-row { flex-direction: column; }
+    .equation-row .op { width: auto; padding-top: 0; justify-content: flex-start; padding-left: 4px; }
+  }
+
+  /* editable tables */
+  .cat-group { margin-bottom: 14px; }
+  .cat-group:last-child { margin-bottom: 0; }
+  .cat-title {
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted); margin: 0 0 6px; padding-top: 8px; border-top: 1px solid var(--gridline);
+  }
+  .cat-group:first-child .cat-title { border-top: none; padding-top: 0; }
+
+  .row-head, .row {
+    display: grid; grid-template-columns: 1fr 130px; align-items: center;
+    gap: 8px; padding: 7px 0;
+  }
+  .row-head { font-size: 10.5px; color: var(--text-muted); font-weight: 650; text-transform: uppercase; letter-spacing: 0.03em; padding-bottom: 4px;}
+  .row { border-bottom: 1px solid var(--gridline); font-size: 13px;}
+  .row:last-child { border-bottom: none; }
+  .row .name { color: var(--text-primary); font-weight: 500; }
+  .row .computed { font-variant-numeric: tabular-nums; color: var(--text-secondary); text-align: right; }
+
+  .row-head.personal, .row.personal { grid-template-columns: 1fr 92px 92px 84px; }
+  .subtotal-row.personal { grid-template-columns: 1fr 92px 92px 84px; }
+  .subtotal-row.personal .computed.maarten { color: var(--series-maarten); }
+  .subtotal-row.personal .computed.nicolas { color: var(--series-nicolas); }
+
+  .num-field { position: relative; display: flex; align-items: center; }
+  .num-field .unit { position: absolute; left: 8px; font-size: 12px; color: var(--text-muted); pointer-events: none; }
+  input.num {
+    font: inherit; font-size: 13px; font-variant-numeric: tabular-nums;
+    width: 100%; padding: 6px 8px 6px 20px; text-align: right;
+    background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+    border: 1px solid transparent; border-radius: 7px; color: var(--text-primary);
+    outline: none; transition: border-color 0.12s ease, background 0.12s ease;
+  }
+  input.num:hover { border-color: var(--border); }
+  input.num:focus { border-color: var(--series-maarten); background: var(--surface-2); }
+  input.num::-webkit-outer-spin-button, input.num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input.num[type=number] { -moz-appearance: textfield; }
+
+  .subtotal-row {
+    display: grid; grid-template-columns: 1fr 130px;
+    gap: 8px; padding: 9px 0 4px; margin-top: 2px; border-top: 1px solid var(--baseline);
+    font-size: 12.5px; font-weight: 650;
+  }
+  .subtotal-row .computed { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .grand-total {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--gridline);
+    font-size: 13.5px; font-weight: 650;
+  }
+  .grand-total .value { font-size: 18px; font-variant-numeric: tabular-nums; }
+
+  /* donut chart */
+  .donut-row { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+  .donut-figure { position: relative; width: 168px; height: 168px; flex: none; margin: 0 auto; }
+  .donut-figure svg { width: 100%; height: 100%; }
+  .donut-figure svg circle { transition: stroke-dasharray 0.25s ease, stroke-dashoffset 0.25s ease; }
+  .donut-center {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center; pointer-events: none; padding: 0 20px;
+  }
+  .donut-center .val { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; line-height: 1.2; }
+  .donut-center .lbl { font-size: 10px; color: var(--text-muted); font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 3px; }
+  .donut-legend { flex: 1 1 220px; min-width: 200px; display: flex; flex-direction: column; gap: 2px; }
+  .donut-legend .drow {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 12.5px; padding: 7px 0; border-bottom: 1px solid var(--gridline);
+  }
+  .donut-legend .drow:last-child { border-bottom: none; }
+  .donut-legend .drow .name { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-weight: 550; }
+  .donut-legend .drow .dswatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .donut-legend .drow .damt { display: flex; align-items: baseline; gap: 6px; }
+  .donut-legend .drow .damt .v { font-variant-numeric: tabular-nums; font-weight: 650; color: var(--text-primary); }
+  .donut-legend .drow .damt .v.bad { color: var(--status-critical); }
+  .donut-legend .drow .damt .p { font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 11px; min-width: 34px; text-align: right; }
+  @media (max-width: 520px) { .donut-row { justify-content: center; } .donut-legend { min-width: 0; width: 100%; } }
+
+
+  .adj-control {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+  }
+  .adj-control label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); flex: 1; min-width: 200px; }
+  .adj-control .num-field { width: 120px; }
+  .adj-control input.num { font-size: 14px; font-weight: 650; }
+
+  /* summary two-column */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .summary-grid { grid-template-columns: 1fr; } }
+  .person-card {
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: var(--surface-2);
+  }
+  .person-card h3 { margin: 0 0 12px; font-size: 13.5px; display: flex; align-items: center; gap: 7px; }
+  .person-card .line {
+    display: flex; justify-content: space-between; font-size: 12.5px; padding: 6px 0;
+    border-bottom: 1px solid var(--gridline); color: var(--text-secondary);
+  }
+  .person-card .line span.v { font-variant-numeric: tabular-nums; color: var(--text-primary); font-weight: 550; }
+  .person-card .line.final { border-bottom: none; padding-top: 10px; margin-top: 2px; border-top: 1px solid var(--baseline); }
+  .person-card .line.final span:first-child { font-weight: 650; color: var(--text-primary); }
+  .person-card .line.final .v { font-size: 18px; font-weight: 700; }
+  .person-card .line.final .v.good { color: var(--status-good-text); }
+  .person-card .line.final .v.bad { color: var(--status-critical); }
+
+  /* two small-multiple donuts: one per person, salary split into joint / personal / left over */
+  .donut-pair { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
+  .donut-person {
+    flex: 1 1 240px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+  }
+  .donut-person .donut-person-title { font-size: 13px; font-weight: 650; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+  .donut-person .donut-row { gap: 18px; }
+  .donut-person .donut-figure { width: 132px; height: 132px; }
+  .donut-person .donut-center .val { font-size: 14.5px; }
+  .donut-person .donut-legend { flex: 1 1 140px; min-width: 130px; gap: 0; }
+  .donut-person .donut-legend .drow { padding: 6px 0; font-size: 12px; }
+  .category-legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 4px 0 16px; }
+  .category-legend .item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); font-weight: 550; }
+  .category-legend .dswatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+  footer.note {
+    max-width: 1000px; margin: 8px auto 0; padding: 0 20px;
+    font-size: 11.5px; color: var(--text-muted); line-height: 1.5;
+  }
+
+  input[type=file] { display: none; }
+
+  /* logged-contributions modal */
+  dialog.modal {
+    color-scheme: inherit;
+    background: var(--surface-1); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow);
+    padding: 22px; width: min(560px, calc(100vw - 40px)); max-height: min(680px, calc(100vh - 64px));
+    margin: auto;
+  }
+  dialog.modal::backdrop { background: rgba(11,11,11,0.45); backdrop-filter: blur(1px); }
+  :root[data-theme="dark"] dialog.modal::backdrop,
+  :root:where(:not([data-theme="light"])) dialog.modal::backdrop { background: rgba(0,0,0,0.6); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .modal-header h3 { font-size: 15px; font-weight: 650; margin: 0; display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    font: inherit; font-size: 13px; line-height: 1; color: var(--text-secondary);
+    background: transparent; border: none; cursor: pointer; padding: 6px; border-radius: 7px;
+  }
+  .icon-btn:hover { background: color-mix(in srgb, var(--text-primary) 8%, transparent); color: var(--text-primary); }
+  .modal-desc { font-size: 12.5px; color: var(--text-secondary); margin: 6px 0 16px; line-height: 1.5; }
+
+  .log-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .log-summary .yr-tile {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+  }
+  .log-summary .yr-tile .yr { font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .log-summary .yr-tile .yr-actual { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .log-summary .yr-tile .yr-diff { font-size: 11px; margin-top: 2px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+  .log-summary .yr-tile .yr-diff.good { color: var(--status-good-text); }
+  .log-summary .yr-tile .yr-diff.bad { color: var(--status-critical); }
+
+  .log-table-wrap { overflow-y: auto; max-height: 320px; border: 1px solid var(--gridline); border-radius: 10px; }
+  table.log-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.log-table th {
+    position: sticky; top: 0; background: var(--surface-1); text-align: right;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted);
+    padding: 8px 12px; border-bottom: 1px solid var(--gridline);
+  }
+  table.log-table th:first-child { text-align: left; }
+  table.log-table td {
+    padding: 7px 12px; text-align: right; font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid var(--gridline); color: var(--text-secondary);
+  }
+  table.log-table tr:last-child td { border-bottom: none; }
+  table.log-table td:first-child { text-align: left; color: var(--text-primary); font-weight: 550; }
+  table.log-table td.net { color: var(--text-primary); font-weight: 650; }
+  table.log-table td.net.bad { color: var(--status-critical); }
+  table.log-table td.muted { color: var(--text-muted); }
+
+  @media (max-width: 560px) {
+    .row-head, .row { grid-template-columns: 1fr 96px; font-size: 12px; }
+    .subtotal-row { grid-template-columns: 1fr 96px; }
+    .row-head.personal, .row.personal, .subtotal-row.personal { grid-template-columns: 1fr 78px 78px 70px; }
+  }
+
+  /* loan debt-tracking mini panel — appears only once a monthly amount is entered,
+     and sits directly under that person's own amount input (not a wide side card). */
+  .loan-item { border-bottom: 1px solid var(--gridline); }
+  .loan-item:last-child { border-bottom: none; }
+  .loan-item .row.personal { border-bottom: none; align-items: start; }
+  .loan-amt-cell { display: flex; flex-direction: column; gap: 3px; }
+  .loan-toggle-link {
+    font: inherit; font-size: 10px; font-weight: 650; white-space: nowrap;
+    display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    padding: 1px 0 0; transition: color 0.12s ease; width: 100%;
+  }
+  .loan-toggle-link:hover { color: var(--text-primary); }
+  .loan-toggle-link .chevron { display: inline-block; transition: transform 0.15s ease; font-size: 8px; }
+  .loan-toggle-link[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+  .loan-toggle-link.nicolas[aria-expanded="true"] { color: var(--series-nicolas); }
+
+  .loan-mini {
+    margin-top: 2px; padding: 7px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 9px; display: flex; flex-direction: column; gap: 5px; width: 100%;
+  }
+  .loan-mini[hidden] { display: none; }
+  .loan-mini-field { display: flex; flex-direction: column; gap: 2px; }
+  .loan-mini-field .lbl {
+    font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted);
+  }
+  .loan-mini .num-field input.num { font-size: 11px; padding: 4px 4px 4px 15px; }
+  .loan-mini .num-field .unit { font-size: 9.5px; left: 4px; }
+  .loan-mini .num-field.pct input.num { padding-right: 14px; padding-left: 4px; }
+  .loan-mini .num-field.pct .unit { left: auto; right: 4px; }
+
+  .loan-mini-progress-track {
+    height: 5px; border-radius: 999px; background: var(--gridline); overflow: hidden; margin-top: 1px;
+  }
+  .loan-mini-progress-fill {
+    height: 100%; border-radius: 999px; background: var(--text-muted);
+    transition: width 0.25s ease; width: 0%;
+  }
+  .loan-mini-progress-fill.nicolas { background: var(--series-nicolas); }
+  .loan-mini-caption {
+    display: flex; flex-direction: column; gap: 1px; margin-top: 3px;
+    font-size: 9px; color: var(--text-muted); font-variant-numeric: tabular-nums; line-height: 1.3;
+  }
+  .loan-mini-caption .remaining { color: var(--text-secondary); font-weight: 650; }
+  .loan-mini-empty-hint {
+    font-size: 9px; color: var(--text-muted); font-style: italic; line-height: 1.3; margin-top: 1px;
+  }
+
+  /* always-visible debt payoff ring — sits next to the loan name, independent of the
+     expandable "Debt" panel, so the % paid off is visible at a glance without a click. */
+  .debt-ring {
+    display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; margin-left: 9px;
+  }
+  .debt-ring-svg { width: 22px; height: 22px; flex: none; }
+  .debt-ring-svg circle { transition: stroke-dasharray 0.25s ease; }
+  .debt-ring-track { stroke: var(--gridline); }
+  .debt-ring-fill.nicolas { stroke: var(--series-nicolas); }
+  .debt-ring-pct {
+    font-size: 10.5px; font-weight: 700; color: var(--text-secondary); font-variant-numeric: tabular-nums;
+  }
+
+  /* screen tabs — switches between the current budget and the potential-new-house scenario */
+  .tab-bar {
+    display: flex; gap: 4px; padding: 0 20px 12px; overflow-x: auto;
+  }
+  .tab-btn {
+    font: inherit; font-size: 12.5px; font-weight: 600; white-space: nowrap;
+    background: transparent; color: var(--text-secondary); border: 1px solid transparent;
+    border-radius: 8px; padding: 7px 12px; cursor: pointer; transition: background 0.12s ease, color 0.12s ease;
+  }
+  .tab-btn:hover { background: color-mix(in srgb, var(--text-primary) 6%, transparent); color: var(--text-primary); }
+  .tab-btn.active {
+    background: color-mix(in srgb, var(--series-maarten) 14%, var(--surface-2));
+    color: var(--text-primary); border-color: color-mix(in srgb, var(--series-maarten) 35%, var(--border));
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .scenario-intro {
+    background: color-mix(in srgb, var(--series-nicolas) 6%, var(--surface-1));
+    border-color: color-mix(in srgb, var(--series-nicolas) 25%, var(--border));
+  }
+
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div>
+      <a class="home-link" href="index.html">← Financiën</a>
+      <h1>Joint Costs Dashboard 2026</h1>
+      <div class="sub">Maarten &amp; Nicolas — overview of your shared household costs, live from your spreadsheet's formulas</div>
+    </div>
+    <div class="controls">
+      <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
+      <button class="ctl" id="btn-export">⭳ Export</button>
+      <button class="ctl" id="btn-import">⭱ Import</button>
+      <button class="ctl" id="btn-reset">↺ Reset</button>
+      <input type="file" id="file-import" accept="application/json" value="">
+    </div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-btn-a" type="button" data-tab="a">Current Budget</button>
+    <button class="tab-btn" id="tab-btn-b" type="button" data-tab="b">Potential new house calculation</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+<div id="screen-a" class="screen active">
+
+  <!-- INCOME -->
+  <section class="card">
+    <h2>Income</h2>
+    <p class="desc">Monthly net salary for each of you. Edit the numbers — everything below recalculates instantly.</p>
+    <div class="equation-row">
+      <div class="tile input">
+        <div class="label"><span class="swatch maarten"></span>Maarten's salary</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten" value="3200"></div>
+      </div>
+      <div class="op">+</div>
+      <div class="tile input">
+        <div class="label"><span class="swatch nicolas"></span>Nicolas's salary</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas" value="3200"></div>
+      </div>
+      <div class="op">=</div>
+      <div class="tile total">
+        <div class="label">Combined household income</div>
+        <div class="value" id="out-salary-total">€&nbsp;6.400,00</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOINT COSTS -->
+  <section class="card">
+    <h2>Joint costs</h2>
+    <p class="desc">Everything you pay for together — the house, the car, and shared subscriptions. Edit any amount and the totals below update instantly.</p>
+
+    <div class="row-head">
+      <div>Item</div><div style="text-align:right">Amount €</div>
+    </div>
+    <div id="household-rows"><div class="cat-group"><div class="cat-title">House</div><div class="row">
+          <div class="name">Mortgage</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="647.51"></div>
+        </div><div class="row">
+          <div class="name">Ownership fee</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="194.48"></div>
+        </div><div class="row">
+          <div class="name">Gas</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="117.24"></div>
+        </div><div class="row">
+          <div class="name">Energy</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="150"></div>
+        </div><div class="row">
+          <div class="name">County and city taxes</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="71.59"></div>
+        </div><div class="row">
+          <div class="name">House insurance</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.5" value="11.97"></div>
+        </div><div class="subtotal-row">
+        <div>Subtotal — House</div>
+        <div class="computed" id="hh-cat-0">€&nbsp;1.192,79</div>
+      </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row">
+          <div class="name">Car fuel</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="100"></div>
+        </div><div class="row">
+          <div class="name">Car insurance</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="75.25"></div>
+        </div><div class="row">
+          <div class="name">Road taxes</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="42"></div>
+        </div><div class="row">
+          <div class="name">Maintenance</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="50"></div>
+        </div><div class="row">
+          <div class="name">Road service contract</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="13.62"></div>
+        </div><div class="subtotal-row">
+        <div>Subtotal — Transport</div>
+        <div class="computed" id="hh-cat-1">€&nbsp;280,87</div>
+      </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row">
+          <div class="name">Gym</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="167.5"></div>
+        </div><div class="row">
+          <div class="name">Ziggo</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="98.11"></div>
+        </div><div class="row">
+          <div class="name">Netflix</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="20.99"></div>
+        </div><div class="row">
+          <div class="name">Disney+</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0"></div>
+        </div><div class="subtotal-row">
+        <div>Subtotal — Subscriptions (joint)</div>
+        <div class="computed" id="hh-cat-2">€&nbsp;286,60</div>
+      </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row">
+          <div class="name">Max — Insurance</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="43.15"></div>
+        </div><div class="subtotal-row">
+        <div>Subtotal — Pets</div>
+        <div class="computed" id="hh-cat-3">€&nbsp;43,15</div>
+      </div></div></div>
+
+    <div class="grand-total">
+      <div>Total joint costs</div>
+      <div class="value" id="out-hh-total">€&nbsp;1.803,41</div>
+    </div>
+  </section>
+
+  <!-- WHO PAYS WHAT -->
+  <section class="card">
+    <h2>Who pays what</h2>
+    <p class="desc">Maarten fronts the joint costs; Nicolas balances it out with a fixed monthly transfer. Change it below to see how the split shifts.</p>
+    <div class="adj-control">
+      <label for="in-adjustment">Nicolas → Maarten, fixed monthly contribution</label>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="1" min="0" id="in-adjustment" value="650"></div>
+    </div>
+
+    <div class="tiles" style="margin-bottom:20px;">
+      <div class="tile">
+        <div class="label"><span class="swatch maarten"></span>Maarten pays</div>
+        <div class="value" id="out-pays-maarten">€&nbsp;1.153,41</div>
+        <div class="hint" id="out-pct-maarten">64.0% of joint costs</div>
+      </div>
+      <div class="tile">
+        <div class="label-row">
+          <div class="label"><span class="swatch nicolas"></span>Nicolas pays</div>
+          <button class="log-btn" id="btn-nicolas-log" type="button" aria-haspopup="dialog">🧾 Log</button>
+        </div>
+        <div class="value" id="out-pays-nicolas">€&nbsp;650,00</div>
+        <div class="hint" id="out-pct-nicolas">36.0% of joint costs</div>
+      </div>
+    </div>
+
+    <div class="donut-row">
+      <div class="donut-figure">
+        <svg viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
+          <g id="whopays-donut-segments">
+      <circle id="whopays-donut-seg-maarten" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="63.95717002789161 36.04282997210839" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+    
+      <circle id="whopays-donut-seg-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="36.0428299721084 63.9571700278916" stroke-dashoffset="-38.95717002789161" stroke-linecap="butt"></circle>
+    </g>
+        </svg>
+        <div class="donut-center">
+          <div class="val" id="whopays-donut-total">€&nbsp;1.803,41</div>
+          <div class="lbl">joint costs</div>
+        </div>
+      </div>
+      <div class="donut-legend" id="whopays-donut-legend">
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--series-maarten)"></span>Maarten</span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-maarten">€&nbsp;1.153,41</span><span class="p" id="whopays-donut-pct-maarten">64.0%</span></span>
+      </div>
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--series-nicolas)"></span>Nicolas</span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas">€&nbsp;650,00</span><span class="p" id="whopays-donut-pct-nicolas">36.0%</span></span>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- PERSONAL COSTS -->
+  <section class="card">
+    <h2>Personal costs <span class="badge">individual</span></h2>
+    <p class="desc">Loans, insurance, subscriptions, groceries and savings — tracked separately per person.</p>
+    <div class="legend">
+      <span class="item"><span class="swatch maarten"></span>Maarten</span>
+      <span class="item"><span class="swatch nicolas"></span>Nicolas</span>
+    </div>
+    <div class="row-head personal">
+      <div>Item</div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
+    </div>
+    <div id="personal-rows"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row personal">
+            <div class="name">Health insurance</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="173.4"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="155.45"></div>
+            <div class="computed" id="pc-0-0-t">€&nbsp;328,85</div>
+          </div><div class="row personal">
+            <div class="name">Health costs</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="50"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="50"></div>
+            <div class="computed" id="pc-0-1-t">€&nbsp;100,00</div>
+          </div><div class="row personal">
+            <div class="name">Other insurance</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="5.09"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0"></div>
+            <div class="computed" id="pc-0-2-t">€&nbsp;5,09</div>
+          </div><div class="subtotal-row personal">
+        <div>Subtotal — Fixed costs</div>
+        <div class="computed maarten" id="pc-cat-0-m">€&nbsp;228,49</div>
+        <div class="computed nicolas" id="pc-cat-0-n">€&nbsp;205,45</div>
+        <div class="computed" id="pc-cat-0-t">€&nbsp;433,94</div>
+      </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row personal">
+            <div class="name">Phone contract</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="20"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="20"></div>
+            <div class="computed" id="pc-1-0-t">€&nbsp;40,00</div>
+          </div><div class="row personal">
+            <div class="name">Spotify</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="12.99"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="12.99"></div>
+            <div class="computed" id="pc-1-1-t">€&nbsp;25,98</div>
+          </div><div class="row personal">
+            <div class="name">World of Warcraft</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="12.99"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="12.99"></div>
+            <div class="computed" id="pc-1-2-t">€&nbsp;25,98</div>
+          </div><div class="subtotal-row personal">
+        <div>Subtotal — Subscriptions</div>
+        <div class="computed maarten" id="pc-cat-1-m">€&nbsp;45,98</div>
+        <div class="computed nicolas" id="pc-cat-1-n">€&nbsp;45,98</div>
+        <div class="computed" id="pc-cat-1-t">€&nbsp;91,96</div>
+      </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row personal">
+            <div class="name">Groceries</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="550"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="550"></div>
+            <div class="computed" id="pc-2-0-t">€&nbsp;1.100,00</div>
+          </div><div class="row personal">
+            <div class="name">Saving</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="200"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="200"></div>
+            <div class="computed" id="pc-2-1-t">€&nbsp;400,00</div>
+          </div><div class="subtotal-row personal">
+        <div>Subtotal — Other</div>
+        <div class="computed maarten" id="pc-cat-2-m">€&nbsp;750,00</div>
+        <div class="computed nicolas" id="pc-cat-2-n">€&nbsp;750,00</div>
+        <div class="computed" id="pc-cat-2-t">€&nbsp;1.500,00</div>
+      </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="loan-item"><div class="row personal">
+          <div class="name">
+            Student loan
+            <span class="debt-ring" id="debt-ring-3-0-nicolas" style="display:none">
+              <svg viewBox="0 0 36 36" class="debt-ring-svg">
+                <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
+                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-0-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
+              </svg>
+              <span class="debt-ring-pct" id="debt-ring-pct-3-0-nicolas">0%</span>
+            </span>
+          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.maarten" value="0"></div>
+          <div class="loan-amt-cell">
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="80"></div>
+            <button class="loan-toggle-link nicolas" id="loan-toggle-3-0-nicolas" type="button" data-loan-toggle="3.0.nicolas" aria-expanded="false" style="display:">Debt <span class="chevron">▾</span></button>
+            <div class="loan-mini" id="loan-details-3-0-nicolas" hidden="">
+      <div class="loan-mini-field">
+        <span class="lbl">Total</span>
+        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.0.nicolas.total" value="0"></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Paid</span>
+        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.0.nicolas.paid" value="0"></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Rate</span>
+        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.0.nicolas.rate" value="0"></div>
+      </div>
+      <div class="loan-progress-row" id="loan-progress-row-3-0-nicolas" style="display: none;">
+        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-0-nicolas" style="width:0%"></div></div>
+        <div class="loan-mini-caption">
+          <span class="remaining" id="loan-remaining-3-0-nicolas">—</span>
+          <span id="loan-pct-3-0-nicolas">—</span>
+        </div>
+      </div>
+      <div class="loan-mini-empty-hint" id="loan-empty-3-0-nicolas">Add total debt to track</div>
+    </div>
+          </div>
+          <div class="computed" id="pc-3-0-t">€&nbsp;80,00</div>
+        </div></div><div class="loan-item"><div class="row personal">
+          <div class="name">
+            Credit card
+            <span class="debt-ring" id="debt-ring-3-1-nicolas" style="display:none">
+              <svg viewBox="0 0 36 36" class="debt-ring-svg">
+                <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
+                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-1-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
+              </svg>
+              <span class="debt-ring-pct" id="debt-ring-pct-3-1-nicolas">0%</span>
+            </span>
+          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.maarten" value="0"></div>
+          <div class="loan-amt-cell">
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.nicolas" value="0"></div>
+            <button class="loan-toggle-link nicolas" id="loan-toggle-3-1-nicolas" type="button" data-loan-toggle="3.1.nicolas" aria-expanded="false" style="display:none">Debt <span class="chevron">▾</span></button>
+            <div class="loan-mini" id="loan-details-3-1-nicolas" hidden="">
+      <div class="loan-mini-field">
+        <span class="lbl">Total</span>
+        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.1.nicolas.total" value="0"></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Paid</span>
+        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.1.nicolas.paid" value="0"></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Rate</span>
+        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.1.nicolas.rate" value="0"></div>
+      </div>
+      <div class="loan-progress-row" id="loan-progress-row-3-1-nicolas" style="display: none;">
+        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-1-nicolas" style="width:0%"></div></div>
+        <div class="loan-mini-caption">
+          <span class="remaining" id="loan-remaining-3-1-nicolas">—</span>
+          <span id="loan-pct-3-1-nicolas">—</span>
+        </div>
+      </div>
+      <div class="loan-mini-empty-hint" id="loan-empty-3-1-nicolas">Add total debt to track</div>
+    </div>
+          </div>
+          <div class="computed" id="pc-3-1-t">€&nbsp;0,00</div>
+        </div></div><div class="subtotal-row personal">
+        <div>Subtotal — Loans</div>
+        <div class="computed maarten" id="pc-cat-3-m">€&nbsp;0,00</div>
+        <div class="computed nicolas" id="pc-cat-3-n">€&nbsp;80,00</div>
+        <div class="computed" id="pc-cat-3-t">€&nbsp;80,00</div>
+      </div></div></div>
+    <div class="subtotal-row personal">
+      <div>Total personal costs</div>
+      <div class="computed maarten" id="out-pc-total-maarten">€&nbsp;1.024,47</div>
+      <div class="computed nicolas" id="out-pc-total-nicolas">€&nbsp;1.081,43</div>
+      <div class="computed" id="out-pc-total-total">€&nbsp;2.105,90</div>
+    </div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section class="card">
+    <h2>Summary</h2>
+    <p class="desc">How each salary splits into joint costs, personal costs, and what's left to spend.</p>
+    <div class="summary-grid">
+      <div class="person-card">
+        <h3><span class="swatch maarten"></span>Maarten</h3>
+        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary">€&nbsp;3.200,00</span></div>
+        <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-m-household">€&nbsp;1.153,41</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal">€&nbsp;1.024,47</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left">€&nbsp;1.022,12</span></div>
+      </div>
+      <div class="person-card">
+        <h3><span class="swatch nicolas"></span>Nicolas</h3>
+        <div class="line"><span>Salary</span><span class="v" id="sum-n-salary">€&nbsp;3.200,00</span></div>
+        <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-n-household">€&nbsp;650,00</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal">€&nbsp;1.081,43</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left">€&nbsp;1.468,57</span></div>
+      </div>
+    </div>
+
+    <div class="category-legend">
+      <span class="item"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
+      <span class="item"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
+      <span class="item"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
+    </div>
+
+    <div class="donut-pair">
+      <div class="donut-person">
+        <div class="donut-person-title"><span class="swatch maarten"></span>Maarten's salary</div>
+        <div class="donut-row">
+          <div class="donut-figure">
+            <svg viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
+              <g id="split-donut-segments-maarten">
+      <circle id="split-donut-seg-maarten-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="36.044062499999995 63.955937500000005" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+    
+      <circle id="split-donut-seg-maarten-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="32.0146875 67.98531249999999" stroke-dashoffset="-11.044062499999995" stroke-linecap="butt"></circle>
+    
+      <circle id="split-donut-seg-maarten-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="31.941250000000004 68.05875" stroke-dashoffset="-43.05875" stroke-linecap="butt"></circle>
+    </g>
+            </svg>
+            <div class="donut-center">
+              <div class="val" id="split-donut-total-maarten">€&nbsp;3.200,00</div>
+              <div class="lbl">salary</div>
+            </div>
+          </div>
+          <div class="donut-legend" id="split-donut-legend-maarten">
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-joint">€&nbsp;1.153,41</span><span class="p" id="split-donut-pct-maarten-joint">36.0%</span></span>
+      </div>
+    
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-personal">€&nbsp;1.024,47</span><span class="p" id="split-donut-pct-maarten-personal">32.0%</span></span>
+      </div>
+    
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-left">€&nbsp;1.022,12</span><span class="p" id="split-donut-pct-maarten-left">31.9%</span></span>
+      </div>
+    </div>
+        </div>
+      </div>
+      <div class="donut-person">
+        <div class="donut-person-title"><span class="swatch nicolas"></span>Nicolas's salary</div>
+        <div class="donut-row">
+          <div class="donut-figure">
+            <svg viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
+              <g id="split-donut-segments-nicolas">
+      <circle id="split-donut-seg-nicolas-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="20.3125 79.6875" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+    
+      <circle id="split-donut-seg-nicolas-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="33.7946875 66.20531249999999" stroke-dashoffset="4.6875" stroke-linecap="butt"></circle>
+    
+      <circle id="split-donut-seg-nicolas-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="45.8928125 54.1071875" stroke-dashoffset="-29.107187500000002" stroke-linecap="butt"></circle>
+    </g>
+            </svg>
+            <div class="donut-center">
+              <div class="val" id="split-donut-total-nicolas">€&nbsp;3.200,00</div>
+              <div class="lbl">salary</div>
+            </div>
+          </div>
+          <div class="donut-legend" id="split-donut-legend-nicolas">
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-joint">€&nbsp;650,00</span><span class="p" id="split-donut-pct-nicolas-joint">20.3%</span></span>
+      </div>
+    
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-personal">€&nbsp;1.081,43</span><span class="p" id="split-donut-pct-nicolas-personal">33.8%</span></span>
+      </div>
+    
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-left">€&nbsp;1.468,57</span><span class="p" id="split-donut-pct-nicolas-left">45.9%</span></span>
+      </div>
+    </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div id="screen-b" class="screen">
+
+  <!-- SCENARIO INTRO -->
+  <section class="card scenario-intro">
+    <h2>Potential new house calculation</h2>
+    <p class="desc">A separate what-if scenario, fully independent from the current budget: a €1.700 mortgage (your current €700 plus roughly what a €200k top-up adds), no ownership fee, and Nicolas contributing an even 50% of the joint costs instead of a fixed monthly transfer. Everything below is editable on its own — nothing here affects the Current Budget tab.</p>
+  </section>
+
+  <!-- INCOME -->
+  <section class="card">
+    <h2>Income</h2>
+    <p class="desc">Monthly net salary for each of you. Edit the numbers — everything below recalculates instantly.</p>
+    <div class="equation-row">
+      <div class="tile input">
+        <div class="label"><span class="swatch maarten"></span>Maarten's salary</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten-b" value="3200"></div>
+      </div>
+      <div class="op">+</div>
+      <div class="tile input">
+        <div class="label"><span class="swatch nicolas"></span>Nicolas's salary</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas-b" value="3200"></div>
+      </div>
+      <div class="op">=</div>
+      <div class="tile total">
+        <div class="label">Combined household income</div>
+        <div class="value" id="out-salary-total-b">€&nbsp;6.400,00</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOINT COSTS -->
+  <section class="card">
+    <h2>Joint costs</h2>
+    <p class="desc">Same categories as the current budget, but with a €1.700 mortgage and no ownership fee. Edit any amount and the totals below update instantly.</p>
+
+    <div class="row-head">
+      <div>Item</div><div style="text-align:right">Amount €</div>
+    </div>
+    <div id="household-rows-b"><div class="cat-group"><div class="cat-title">House</div><div class="row">
+          <div class="name">Mortgage</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="1700"></div>
+        </div><div class="row">
+          <div class="name">Gas</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="117.24"></div>
+        </div><div class="row">
+          <div class="name">Energy</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="150"></div>
+        </div><div class="row">
+          <div class="name">County and city taxes</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="71.59"></div>
+        </div><div class="row">
+          <div class="name">House insurance</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="11.97"></div>
+        </div><div class="subtotal-row">
+        <div>Subtotal — House</div>
+        <div class="computed" id="hh-cat-0-b">€&nbsp;2.050,80</div>
+      </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row">
+          <div class="name">Car fuel</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="100"></div>
+        </div><div class="row">
+          <div class="name">Car insurance</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="75.25"></div>
+        </div><div class="row">
+          <div class="name">Road taxes</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="42"></div>
+        </div><div class="row">
+          <div class="name">Maintenance</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="50"></div>
+        </div><div class="row">
+          <div class="name">Road service contract</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="13.62"></div>
+        </div><div class="subtotal-row">
+        <div>Subtotal — Transport</div>
+        <div class="computed" id="hh-cat-1-b">€&nbsp;280,87</div>
+      </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row">
+          <div class="name">Gym</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="167.5"></div>
+        </div><div class="row">
+          <div class="name">Ziggo</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="98.11"></div>
+        </div><div class="row">
+          <div class="name">Netflix</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="20.99"></div>
+        </div><div class="row">
+          <div class="name">Disney+</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0"></div>
+        </div><div class="subtotal-row">
+        <div>Subtotal — Subscriptions (joint)</div>
+        <div class="computed" id="hh-cat-2-b">€&nbsp;286,60</div>
+      </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row">
+          <div class="name">Max — Insurance</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="43.15"></div>
+        </div><div class="subtotal-row">
+        <div>Subtotal — Pets</div>
+        <div class="computed" id="hh-cat-3-b">€&nbsp;43,15</div>
+      </div></div></div>
+
+    <div class="grand-total">
+      <div>Total joint costs</div>
+      <div class="value" id="out-hh-total-b">€&nbsp;2.661,42</div>
+    </div>
+  </section>
+
+  <!-- WHO PAYS WHAT -->
+  <section class="card">
+    <h2>Who pays what</h2>
+    <p class="desc">In this scenario Nicolas pays an even 50% of the joint costs — no fixed monthly adjustment, just a straight split.</p>
+
+    <div class="tiles" style="margin-bottom:20px;">
+      <div class="tile">
+        <div class="label"><span class="swatch maarten"></span>Maarten pays</div>
+        <div class="value" id="out-pays-maarten-b">€&nbsp;1.330,71</div>
+        <div class="hint" id="out-pct-maarten-b">50.0% of joint costs</div>
+      </div>
+      <div class="tile">
+        <div class="label"><span class="swatch nicolas"></span>Nicolas pays</div>
+        <div class="value" id="out-pays-nicolas-b">€&nbsp;1.330,71</div>
+        <div class="hint" id="out-pct-nicolas-b">50.0% of joint costs</div>
+      </div>
+    </div>
+
+    <div class="donut-row">
+      <div class="donut-figure">
+        <svg viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
+          <g id="whopays-donut-segments-b">
+      <circle id="whopays-donut-seg-maarten-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="50 50" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+    
+      <circle id="whopays-donut-seg-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="50 50" stroke-dashoffset="-25" stroke-linecap="butt"></circle>
+    </g>
+        </svg>
+        <div class="donut-center">
+          <div class="val" id="whopays-donut-total-b">€&nbsp;2.661,42</div>
+          <div class="lbl">joint costs</div>
+        </div>
+      </div>
+      <div class="donut-legend" id="whopays-donut-legend-b">
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--series-maarten)"></span>Maarten</span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-maarten-b">€&nbsp;1.330,71</span><span class="p" id="whopays-donut-pct-maarten-b">50.0%</span></span>
+      </div>
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--series-nicolas)"></span>Nicolas</span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas-b">€&nbsp;1.330,71</span><span class="p" id="whopays-donut-pct-nicolas-b">50.0%</span></span>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- PERSONAL COSTS -->
+  <section class="card">
+    <h2>Personal costs <span class="badge">individual</span></h2>
+    <p class="desc">Loans, insurance, subscriptions, groceries and savings — tracked separately per person.</p>
+    <div class="legend">
+      <span class="item"><span class="swatch maarten"></span>Maarten</span>
+      <span class="item"><span class="swatch nicolas"></span>Nicolas</span>
+    </div>
+    <div class="row-head personal">
+      <div>Item</div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
+    </div>
+    <div id="personal-rows-b"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row personal">
+            <div class="name">Health insurance</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="173.4"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="155.45"></div>
+            <div class="computed" id="pc-0-0-t-b">€&nbsp;328,85</div>
+          </div><div class="row personal">
+            <div class="name">Health costs</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="50"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="50"></div>
+            <div class="computed" id="pc-0-1-t-b">€&nbsp;100,00</div>
+          </div><div class="row personal">
+            <div class="name">Other insurance</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="5.09"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0"></div>
+            <div class="computed" id="pc-0-2-t-b">€&nbsp;5,09</div>
+          </div><div class="subtotal-row personal">
+        <div>Subtotal — Fixed costs</div>
+        <div class="computed maarten" id="pc-cat-0-m-b">€&nbsp;228,49</div>
+        <div class="computed nicolas" id="pc-cat-0-n-b">€&nbsp;205,45</div>
+        <div class="computed" id="pc-cat-0-t-b">€&nbsp;433,94</div>
+      </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row personal">
+            <div class="name">Phone contract</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="20"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="20"></div>
+            <div class="computed" id="pc-1-0-t-b">€&nbsp;40,00</div>
+          </div><div class="row personal">
+            <div class="name">Spotify</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="12.99"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="12.99"></div>
+            <div class="computed" id="pc-1-1-t-b">€&nbsp;25,98</div>
+          </div><div class="row personal">
+            <div class="name">World of Warcraft</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="12.99"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="12.99"></div>
+            <div class="computed" id="pc-1-2-t-b">€&nbsp;25,98</div>
+          </div><div class="subtotal-row personal">
+        <div>Subtotal — Subscriptions</div>
+        <div class="computed maarten" id="pc-cat-1-m-b">€&nbsp;45,98</div>
+        <div class="computed nicolas" id="pc-cat-1-n-b">€&nbsp;45,98</div>
+        <div class="computed" id="pc-cat-1-t-b">€&nbsp;91,96</div>
+      </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row personal">
+            <div class="name">Groceries</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="550"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="550"></div>
+            <div class="computed" id="pc-2-0-t-b">€&nbsp;1.100,00</div>
+          </div><div class="row personal">
+            <div class="name">Saving</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="200"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="200"></div>
+            <div class="computed" id="pc-2-1-t-b">€&nbsp;400,00</div>
+          </div><div class="subtotal-row personal">
+        <div>Subtotal — Other</div>
+        <div class="computed maarten" id="pc-cat-2-m-b">€&nbsp;750,00</div>
+        <div class="computed nicolas" id="pc-cat-2-n-b">€&nbsp;750,00</div>
+        <div class="computed" id="pc-cat-2-t-b">€&nbsp;1.500,00</div>
+      </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="loan-item"><div class="row personal">
+          <div class="name">
+            Student loan
+            <span class="debt-ring" id="debt-ring-3-0-nicolas-b" style="display:none">
+              <svg viewBox="0 0 36 36" class="debt-ring-svg">
+                <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
+                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-0-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
+              </svg>
+              <span class="debt-ring-pct" id="debt-ring-pct-3-0-nicolas-b">0%</span>
+            </span>
+          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.maarten" value="0"></div>
+          <div class="loan-amt-cell">
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="80"></div>
+            <button class="loan-toggle-link nicolas" id="loan-toggle-3-0-nicolas-b" type="button" data-loan-toggle="3.0.nicolas" aria-expanded="false" style="display:">Debt <span class="chevron">▾</span></button>
+            <div class="loan-mini" id="loan-details-3-0-nicolas-b" hidden="">
+      <div class="loan-mini-field">
+        <span class="lbl">Total</span>
+        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.0.nicolas.total" value="0"></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Paid</span>
+        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.0.nicolas.paid" value="0"></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Rate</span>
+        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.0.nicolas.rate" value="0"></div>
+      </div>
+      <div class="loan-progress-row" id="loan-progress-row-3-0-nicolas-b" style="display: none;">
+        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-0-nicolas-b" style="width:0%"></div></div>
+        <div class="loan-mini-caption">
+          <span class="remaining" id="loan-remaining-3-0-nicolas-b">—</span>
+          <span id="loan-pct-3-0-nicolas-b">—</span>
+        </div>
+      </div>
+      <div class="loan-mini-empty-hint" id="loan-empty-3-0-nicolas-b">Add total debt to track</div>
+    </div>
+          </div>
+          <div class="computed" id="pc-3-0-t-b">€&nbsp;80,00</div>
+        </div></div><div class="loan-item"><div class="row personal">
+          <div class="name">
+            Credit card
+            <span class="debt-ring" id="debt-ring-3-1-nicolas-b" style="display:none">
+              <svg viewBox="0 0 36 36" class="debt-ring-svg">
+                <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
+                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-1-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
+              </svg>
+              <span class="debt-ring-pct" id="debt-ring-pct-3-1-nicolas-b">0%</span>
+            </span>
+          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.maarten" value="0"></div>
+          <div class="loan-amt-cell">
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.nicolas" value="0"></div>
+            <button class="loan-toggle-link nicolas" id="loan-toggle-3-1-nicolas-b" type="button" data-loan-toggle="3.1.nicolas" aria-expanded="false" style="display:none">Debt <span class="chevron">▾</span></button>
+            <div class="loan-mini" id="loan-details-3-1-nicolas-b" hidden="">
+      <div class="loan-mini-field">
+        <span class="lbl">Total</span>
+        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.1.nicolas.total" value="0"></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Paid</span>
+        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.1.nicolas.paid" value="0"></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Rate</span>
+        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.1.nicolas.rate" value="0"></div>
+      </div>
+      <div class="loan-progress-row" id="loan-progress-row-3-1-nicolas-b" style="display: none;">
+        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-1-nicolas-b" style="width:0%"></div></div>
+        <div class="loan-mini-caption">
+          <span class="remaining" id="loan-remaining-3-1-nicolas-b">—</span>
+          <span id="loan-pct-3-1-nicolas-b">—</span>
+        </div>
+      </div>
+      <div class="loan-mini-empty-hint" id="loan-empty-3-1-nicolas-b">Add total debt to track</div>
+    </div>
+          </div>
+          <div class="computed" id="pc-3-1-t-b">€&nbsp;0,00</div>
+        </div></div><div class="subtotal-row personal">
+        <div>Subtotal — Loans</div>
+        <div class="computed maarten" id="pc-cat-3-m-b">€&nbsp;0,00</div>
+        <div class="computed nicolas" id="pc-cat-3-n-b">€&nbsp;80,00</div>
+        <div class="computed" id="pc-cat-3-t-b">€&nbsp;80,00</div>
+      </div></div></div>
+    <div class="subtotal-row personal">
+      <div>Total personal costs</div>
+      <div class="computed maarten" id="out-pc-total-maarten-b">€&nbsp;1.024,47</div>
+      <div class="computed nicolas" id="out-pc-total-nicolas-b">€&nbsp;1.081,43</div>
+      <div class="computed" id="out-pc-total-total-b">€&nbsp;2.105,90</div>
+    </div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section class="card">
+    <h2>Summary</h2>
+    <p class="desc">How each salary splits into joint costs, personal costs, and what's left to spend.</p>
+    <div class="summary-grid">
+      <div class="person-card">
+        <h3><span class="swatch maarten"></span>Maarten</h3>
+        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary-b">€&nbsp;3.200,00</span></div>
+        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-m-household-b">€&nbsp;1.330,71</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal-b">€&nbsp;1.024,47</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left-b">€&nbsp;844,82</span></div>
+      </div>
+      <div class="person-card">
+        <h3><span class="swatch nicolas"></span>Nicolas</h3>
+        <div class="line"><span>Salary</span><span class="v" id="sum-n-salary-b">€&nbsp;3.200,00</span></div>
+        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-n-household-b">€&nbsp;1.330,71</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal-b">€&nbsp;1.081,43</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left-b">€&nbsp;787,86</span></div>
+      </div>
+    </div>
+
+    <div class="category-legend">
+      <span class="item"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
+      <span class="item"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
+      <span class="item"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
+    </div>
+
+    <div class="donut-pair">
+      <div class="donut-person">
+        <div class="donut-person-title"><span class="swatch maarten"></span>Maarten's salary</div>
+        <div class="donut-row">
+          <div class="donut-figure">
+            <svg viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
+              <g id="split-donut-segments-maarten-b">
+      <circle id="split-donut-seg-maarten-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="41.584687499999994 58.415312500000006" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+    
+      <circle id="split-donut-seg-maarten-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="32.0146875 67.98531249999999" stroke-dashoffset="-16.584687499999994" stroke-linecap="butt"></circle>
+    
+      <circle id="split-donut-seg-maarten-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="26.400625000000005 73.599375" stroke-dashoffset="-48.599374999999995" stroke-linecap="butt"></circle>
+    </g>
+            </svg>
+            <div class="donut-center">
+              <div class="val" id="split-donut-total-maarten-b">€&nbsp;3.200,00</div>
+              <div class="lbl">salary</div>
+            </div>
+          </div>
+          <div class="donut-legend" id="split-donut-legend-maarten-b">
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-joint-b">€&nbsp;1.330,71</span><span class="p" id="split-donut-pct-maarten-joint-b">41.6%</span></span>
+      </div>
+    
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-personal-b">€&nbsp;1.024,47</span><span class="p" id="split-donut-pct-maarten-personal-b">32.0%</span></span>
+      </div>
+    
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-left-b">€&nbsp;844,82</span><span class="p" id="split-donut-pct-maarten-left-b">26.4%</span></span>
+      </div>
+    </div>
+        </div>
+      </div>
+      <div class="donut-person">
+        <div class="donut-person-title"><span class="swatch nicolas"></span>Nicolas's salary</div>
+        <div class="donut-row">
+          <div class="donut-figure">
+            <svg viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
+              <g id="split-donut-segments-nicolas-b">
+      <circle id="split-donut-seg-nicolas-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="41.584687499999994 58.415312500000006" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+    
+      <circle id="split-donut-seg-nicolas-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="33.7946875 66.20531249999999" stroke-dashoffset="-16.584687499999994" stroke-linecap="butt"></circle>
+    
+      <circle id="split-donut-seg-nicolas-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="24.620625000000004 75.379375" stroke-dashoffset="-50.379374999999996" stroke-linecap="butt"></circle>
+    </g>
+            </svg>
+            <div class="donut-center">
+              <div class="val" id="split-donut-total-nicolas-b">€&nbsp;3.200,00</div>
+              <div class="lbl">salary</div>
+            </div>
+          </div>
+          <div class="donut-legend" id="split-donut-legend-nicolas-b">
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-joint-b">€&nbsp;1.330,71</span><span class="p" id="split-donut-pct-nicolas-joint-b">41.6%</span></span>
+      </div>
+    
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-personal-b">€&nbsp;1.081,43</span><span class="p" id="split-donut-pct-nicolas-personal-b">33.8%</span></span>
+      </div>
+    
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
+        <span class="damt"><span class="v" id="split-donut-amt-nicolas-left-b">€&nbsp;787,86</span><span class="p" id="split-donut-pct-nicolas-left-b">24.6%</span></span>
+      </div>
+    </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</main>
+
+<footer class="note">
+  Built from your <strong>Budgetplan 2026.xlsx</strong> (Overview sheet — joint costs and personal costs).
+  All figures are editable and recalculate live in your browser — nothing is sent anywhere, and nothing is saved automatically
+  (no browser storage is used). Use <strong>Export</strong> to save your edited numbers as a file, and <strong>Import</strong> to
+  load them back later. Use <strong>Reset</strong> to restore the original spreadsheet values.
+</footer>
+
+<dialog id="nicolas-log-dialog" class="modal">
+  <div class="modal-header">
+    <h3><span class="swatch nicolas"></span>Nicolas's logged contributions</h3>
+    <button class="icon-btn" id="btn-close-log" type="button" aria-label="Close">✕</button>
+  </div>
+  <p class="modal-desc">Every month you've logged: what Nicolas contributed to your account, what he spent from the joint account (groceries, eating out, drinks, etc.), and the net contribution that resulted — straight from your spreadsheet's history.</p>
+
+  <div class="log-summary" id="log-summary"></div>
+
+  <div class="log-table-wrap">
+    <table class="log-table">
+      <thead>
+        <tr><th>Month</th><th>Contribution</th><th>Joint spending</th><th>Net contribution</th></tr>
+      </thead>
+      <tbody id="log-table-body"></tbody>
+    </table>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Default data — Current Budget (from Budgetplan 2026.xlsx, Overview sheet) ----------
+  function defaultStateA() {
+    return {
+      salary: { maarten: 3200, nicolas: 3200 },
+      adjustment: 650,
+      household: [
+        { name: "House", items: [
+          { label: "Mortgage", amount: 647.51 },
+          { label: "Ownership fee", amount: 194.48 },
+          { label: "Gas", amount: 117.24 },
+          { label: "Energy", amount: 150 },
+          { label: "County and city taxes", amount: 71.59 },
+          { label: "House insurance", amount: 11.97 },
+        ]},
+        { name: "Transport", items: [
+          { label: "Car fuel", amount: 100 },
+          { label: "Car insurance", amount: 75.25 },
+          { label: "Road taxes", amount: 42 },
+          { label: "Maintenance", amount: 50 },
+          { label: "Road service contract", amount: 13.62 },
+        ]},
+        { name: "Subscriptions (joint)", items: [
+          { label: "Gym", amount: 167.5 },
+          { label: "Ziggo", amount: 98.11 },
+          { label: "Netflix", amount: 20.99 },
+          { label: "Disney+", amount: 0 },
+        ]},
+        { name: "Pets", items: [
+          { label: "Max — Insurance", amount: 43.15 },
+        ]},
+      ],
+      personal: defaultPersonal(),
+    };
+  }
+
+  // ---------- Default data — Potential new house scenario ----------
+  // Same joint-cost categories, but the mortgage is €1.700/month (current €700 mortgage
+  // plus roughly what a €200k top-up at ~4% adds on a ~25-year term) and there is no
+  // ownership fee. Personal costs start from the same numbers as the current budget but
+  // are a fully independent, separately-editable copy.
+  function defaultStateB() {
+    return {
+      salary: { maarten: 3200, nicolas: 3200 },
+      household: [
+        { name: "House", items: [
+          { label: "Mortgage", amount: 1700 },
+          { label: "Gas", amount: 117.24 },
+          { label: "Energy", amount: 150 },
+          { label: "County and city taxes", amount: 71.59 },
+          { label: "House insurance", amount: 11.97 },
+        ]},
+        { name: "Transport", items: [
+          { label: "Car fuel", amount: 100 },
+          { label: "Car insurance", amount: 75.25 },
+          { label: "Road taxes", amount: 42 },
+          { label: "Maintenance", amount: 50 },
+          { label: "Road service contract", amount: 13.62 },
+        ]},
+        { name: "Subscriptions (joint)", items: [
+          { label: "Gym", amount: 167.5 },
+          { label: "Ziggo", amount: 98.11 },
+          { label: "Netflix", amount: 20.99 },
+          { label: "Disney+", amount: 0 },
+        ]},
+        { name: "Pets", items: [
+          { label: "Max — Insurance", amount: 43.15 },
+        ]},
+      ],
+      personal: defaultPersonal(),
+    };
+  }
+
+  // Personal costs are the same starting point for both scenarios (each scenario then
+  // owns its own independent copy). Debt tracking is Nicolas-only — Maarten carries no debt.
+  function defaultPersonal() {
+    return [
+      { name: "Fixed costs", items: [
+        { label: "Health insurance", maarten: 173.40, nicolas: 155.45 },
+        { label: "Health costs", maarten: 50, nicolas: 50 },
+        { label: "Other insurance", maarten: 5.09, nicolas: 0 },
+      ]},
+      { name: "Subscriptions", items: [
+        { label: "Phone contract", maarten: 20, nicolas: 20 },
+        { label: "Spotify", maarten: 12.99, nicolas: 12.99 },
+        { label: "World of Warcraft", maarten: 12.99, nicolas: 12.99 },
+      ]},
+      { name: "Other", items: [
+        { label: "Groceries", maarten: 550, nicolas: 550 },
+        { label: "Saving", maarten: 200, nicolas: 200 },
+      ]},
+      { name: "Loans", items: [
+        { label: "Student loan", maarten: 0, nicolas: 80, debt: {
+          nicolas: { total: 0, paid: 0, rate: 0 },
+        }},
+        { label: "Credit card", maarten: 0, nicolas: 0, debt: {
+          nicolas: { total: 0, paid: 0, rate: 0 },
+        }},
+      ]},
+    ];
+  }
+
+  // ---------- Scopes ----------
+  // 'a' is the current budget: Nicolas pays a fixed monthly adjustment, Maarten fronts the rest.
+  // 'b' is the potential-new-house what-if: Nicolas pays a flat 50% of joint costs, and has
+  // no logged-contributions modal. Each scope owns its own state and DOM (element ids
+  // suffixed with the scope's `sfx`) and is fully independent of the other.
+  const scopeA = { key: 'a', sfx: '', mode: 'fixed', state: defaultStateA() };
+  const scopeB = { key: 'b', sfx: '-b', mode: 'split50', state: defaultStateB() };
+  const scopes = [scopeA, scopeB];
+  let activeScope = scopeA;
+
+  // Exposed (read-only in practice) so net-worth.html can pull Nicolas's current debt
+  // balances via a hidden iframe, without needing a shared backend. Nothing reads this
+  // from outside except that opt-in "sync" button on the net worth page.
+  window.scopeA = scopeA;
+  window.scopeB = scopeB;
+
+  function el(scope, base) { return document.getElementById(base + scope.sfx); }
+
+  // ---------- Nicolas's logged monthly contributions (from the "Contributions Nick" sheet) ----------
+  // Fixed historical record — not part of the editable budget state, and only shown for the
+  // Current Budget scope. y/m identify the month; contribution = what he transferred to Maarten's
+  // account; spending = what he spent that month from the joint account used for groceries,
+  // eating out, drinks, etc. (null when none was logged).
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const NICOLAS_LOG = [
+    { y: 2024, m: 1,  contribution: 600, spending: null },
+    { y: 2024, m: 2,  contribution: 650, spending: null },
+    { y: 2024, m: 3,  contribution: 650, spending: null },
+    { y: 2024, m: 4,  contribution: 600, spending: null },
+    { y: 2024, m: 5,  contribution: 650, spending: null },
+    { y: 2024, m: 6,  contribution: 650, spending: null },
+    { y: 2024, m: 7,  contribution: 600, spending: null },
+    { y: 2024, m: 8,  contribution: 650, spending: null },
+    { y: 2024, m: 9,  contribution: 650, spending: null },
+    { y: 2024, m: 10, contribution: 350, spending: null },
+    { y: 2024, m: 11, contribution: 600, spending: null },
+    { y: 2024, m: 12, contribution: 600, spending: null },
+    { y: 2025, m: 1,  contribution: 0,   spending: null },
+    { y: 2025, m: 2,  contribution: 600, spending: null },
+    { y: 2025, m: 3,  contribution: 300, spending: null },
+    { y: 2025, m: 4,  contribution: 650, spending: null },
+    { y: 2025, m: 5,  contribution: 650, spending: null },
+    { y: 2025, m: 6,  contribution: 650, spending: null },
+    { y: 2025, m: 7,  contribution: 650, spending: null },
+    { y: 2025, m: 8,  contribution: 650, spending: 210.97 },
+    { y: 2025, m: 9,  contribution: 650, spending: null },
+    { y: 2025, m: 10, contribution: 500, spending: 585.37 },
+    { y: 2025, m: 11, contribution: 100, spending: 81.5 },
+    { y: 2025, m: 12, contribution: 600, spending: null },
+    { y: 2026, m: 1,  contribution: 650, spending: null },
+    { y: 2026, m: 2,  contribution: 0,   spending: null },
+    { y: 2026, m: 3,  contribution: 300, spending: 395.36 },
+    { y: 2026, m: 4,  contribution: 650, spending: null },
+    { y: 2026, m: 5,  contribution: 650, spending: null },
+    { y: 2026, m: 6,  contribution: 650, spending: null },
+    { y: 2026, m: 7,  contribution: 650, spending: null },
+    { y: 2026, m: 8,  contribution: 650, spending: null },
+  ];
+  const MIN_EXPECTED_CONTRIBUTION = 650; // months logging less than this are flagged red
+
+  const EUR = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) => EUR.format(Number.isFinite(n) ? n : 0);
+  const pctFmt = (n) => (Number.isFinite(n) ? (n * 100).toFixed(1) : "0.0") + "%";
+
+  // ---------- Computation (mirrors the spreadsheet's formulas) ----------
+  // mode 'fixed': Nicolas transfers a fixed monthly amount to Maarten, who fronts the rest.
+  // mode 'split50': joint costs are split exactly 50/50 between them, no adjustment involved.
+  function compute(scope) {
+    const st = scope.state;
+    const catTotals = [];
+    let total = 0;
+    st.household.forEach(cat => {
+      let c = 0;
+      cat.items.forEach(it => { c += Number(it.amount) || 0; });
+      catTotals.push({ name: cat.name, total: c });
+      total += c;
+    });
+
+    let maartenPays, nicolasPays, adjustment;
+    if (scope.mode === 'split50') {
+      nicolasPays = total / 2;
+      maartenPays = total - nicolasPays;
+      adjustment = nicolasPays;
+    } else {
+      adjustment = Number(st.adjustment) || 0;
+      maartenPays = total - adjustment;
+      nicolasPays = adjustment;
+    }
+    const splitTotal = maartenPays + nicolasPays;
+    const splitMaartenPct = splitTotal !== 0 ? maartenPays / splitTotal : 0.5;
+    const splitNicolasPct = splitTotal !== 0 ? nicolasPays / splitTotal : 0.5;
+
+    const pcCategoryTotals = [];
+    let personalMaartenTotal = 0, personalNicolasTotal = 0;
+    st.personal.forEach(cat => {
+      let cMaarten = 0, cNicolas = 0;
+      cat.items.forEach(it => { cMaarten += Number(it.maarten) || 0; cNicolas += Number(it.nicolas) || 0; });
+      pcCategoryTotals.push({ name: cat.name, maarten: cMaarten, nicolas: cNicolas });
+      personalMaartenTotal += cMaarten;
+      personalNicolasTotal += cNicolas;
+    });
+
+    const moneyLeftMaarten = (Number(st.salary.maarten) || 0) - maartenPays - personalMaartenTotal;
+    const moneyLeftNicolas = (Number(st.salary.nicolas) || 0) - nicolasPays - personalNicolasTotal;
+
+    return {
+      catTotals, total, adjustment, maartenPays, nicolasPays, splitMaartenPct, splitNicolasPct,
+      pcCategoryTotals, personalMaartenTotal, personalNicolasTotal,
+      moneyLeftMaarten, moneyLeftNicolas,
+    };
+  }
+
+  // ---------- Static shell (built once per scope) ----------
+  function buildHouseholdRows(scope) {
+    const s = scope.sfx;
+    const root = el(scope, 'household-rows');
+    root.innerHTML = '';
+    scope.state.household.forEach((cat, ci) => {
+      const group = document.createElement('div');
+      group.className = 'cat-group';
+      const title = document.createElement('div');
+      title.className = 'cat-title';
+      title.textContent = cat.name;
+      group.appendChild(title);
+
+      cat.items.forEach((it, ii) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <div class="name">${it.label}</div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="${ci}.${ii}" value="${it.amount}"></div>
+        `;
+        group.appendChild(row);
+      });
+
+      const sub = document.createElement('div');
+      sub.className = 'subtotal-row';
+      sub.innerHTML = `
+        <div>Subtotal — ${cat.name}</div>
+        <div class="computed" id="hh-cat-${ci}${s}">—</div>
+      `;
+      group.appendChild(sub);
+      root.appendChild(group);
+    });
+  }
+
+  // Compact debt-tracking fields for one person on one loan — sized to sit directly
+  // under that person's own monthly-amount input, not a wide side-by-side card.
+  function loanPersonMiniHTML(scope, ci, ii, personKey, debt) {
+    const s = scope.sfx;
+    return `
+      <div class="loan-mini-field">
+        <span class="lbl">Total</span>
+        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="${ci}.${ii}.${personKey}.total" value="${debt.total}"></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Paid</span>
+        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="${ci}.${ii}.${personKey}.paid" value="${debt.paid}"></div>
+      </div>
+      <div class="loan-mini-field">
+        <span class="lbl">Rate</span>
+        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="${ci}.${ii}.${personKey}.rate" value="${debt.rate}"></div>
+      </div>
+      <div class="loan-progress-row" id="loan-progress-row-${ci}-${ii}-${personKey}${s}">
+        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill ${personKey}" id="loan-progress-${ci}-${ii}-${personKey}${s}" style="width:0%"></div></div>
+        <div class="loan-mini-caption">
+          <span class="remaining" id="loan-remaining-${ci}-${ii}-${personKey}${s}">—</span>
+          <span id="loan-pct-${ci}-${ii}-${personKey}${s}">—</span>
+        </div>
+      </div>
+      <div class="loan-mini-empty-hint" id="loan-empty-${ci}-${ii}-${personKey}${s}">Add total debt to track</div>
+    `;
+  }
+
+  function buildPersonalRows(scope) {
+    const s = scope.sfx;
+    const root = el(scope, 'personal-rows');
+    root.innerHTML = '';
+    scope.state.personal.forEach((cat, ci) => {
+      const group = document.createElement('div');
+      group.className = 'cat-group';
+      const title = document.createElement('div');
+      title.className = 'cat-title';
+      title.textContent = cat.name;
+      group.appendChild(title);
+
+      const isLoans = cat.name === 'Loans';
+
+      cat.items.forEach((it, ii) => {
+        if (!isLoans) {
+          const row = document.createElement('div');
+          row.className = 'row personal';
+          row.innerHTML = `
+            <div class="name">${it.label}</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"></div>
+            <div class="computed" id="pc-${ci}-${ii}-t${s}">—</div>
+          `;
+          group.appendChild(row);
+          return;
+        }
+
+        // Loans get a small "Debt" toggle under Nicolas's own monthly amount — only shown
+        // once he has an amount filled in — which expands a compact overview right there
+        // under that amount. Maarten carries no debt, so his side is a plain amount field.
+        // A small payoff-progress ring sits next to the loan name and is always visible
+        // (once a total debt amount is on record) — no need to expand the panel to see it.
+        const wrapper = document.createElement('div');
+        wrapper.className = 'loan-item';
+
+        const row = document.createElement('div');
+        row.className = 'row personal';
+        row.innerHTML = `
+          <div class="name">
+            ${it.label}
+            <span class="debt-ring" id="debt-ring-${ci}-${ii}-nicolas${s}" style="display:none">
+              <svg viewBox="0 0 36 36" class="debt-ring-svg">
+                <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
+                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-${ci}-${ii}-nicolas${s}" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
+              </svg>
+              <span class="debt-ring-pct" id="debt-ring-pct-${ci}-${ii}-nicolas${s}">0%</span>
+            </span>
+          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"></div>
+          <div class="loan-amt-cell">
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"></div>
+            <button class="loan-toggle-link nicolas" id="loan-toggle-${ci}-${ii}-nicolas${s}" type="button" data-loan-toggle="${ci}.${ii}.nicolas" aria-expanded="false" style="display:${Number(it.nicolas) > 0 ? '' : 'none'}">Debt <span class="chevron">▾</span></button>
+            <div class="loan-mini" id="loan-details-${ci}-${ii}-nicolas${s}" hidden>${loanPersonMiniHTML(scope, ci, ii, 'nicolas', it.debt.nicolas)}</div>
+          </div>
+          <div class="computed" id="pc-${ci}-${ii}-t${s}">—</div>
+        `;
+        wrapper.appendChild(row);
+
+        group.appendChild(wrapper);
+      });
+
+      const sub = document.createElement('div');
+      sub.className = 'subtotal-row personal';
+      sub.innerHTML = `
+        <div>Subtotal — ${cat.name}</div>
+        <div class="computed maarten" id="pc-cat-${ci}-m${s}">—</div>
+        <div class="computed nicolas" id="pc-cat-${ci}-n${s}">—</div>
+        <div class="computed" id="pc-cat-${ci}-t${s}">—</div>
+      `;
+      group.appendChild(sub);
+      root.appendChild(group);
+    });
+  }
+
+  // ---------- Donut chart helper ----------
+  // Builds N ring segments (SVG circles using the stroke-dasharray percentage trick,
+  // r=15.915 gives a circumference of ~100, so dasharray values map 1:1 to percent)
+  // plus a text legend. segmentsMeta: [{ id, color, name }]
+  const DONUT_R = 15.915;
+  const DONUT_CIRC = 100; // by construction of r
+  function buildDonutSegments(gId, segmentsMeta) {
+    const g = document.getElementById(gId);
+    g.innerHTML = segmentsMeta.map(sg => `
+      <circle id="${sg.id}" cx="18" cy="18" r="${DONUT_R}" fill="none" stroke="${sg.color}"
+        stroke-width="4" stroke-dasharray="0 ${DONUT_CIRC}" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+    `).join('');
+  }
+  function updateDonutSegments(segmentsMeta, values, total) {
+    let cumulative = 0;
+    segmentsMeta.forEach((sg, i) => {
+      const elx = document.getElementById(sg.id);
+      if (!elx) return;
+      const pct = total > 0 ? Math.max(0, values[i]) / total * 100 : 0;
+      elx.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
+      elx.setAttribute('stroke-dashoffset', String(25 - cumulative));
+      cumulative += pct;
+    });
+  }
+
+  function buildWhoPaysDonut(scope) {
+    const s = scope.sfx;
+    const meta = [
+      { id: `whopays-donut-seg-maarten${s}`, color: 'var(--series-maarten)', name: 'Maarten' },
+      { id: `whopays-donut-seg-nicolas${s}`, color: 'var(--series-nicolas)', name: 'Nicolas' },
+    ];
+    buildDonutSegments(`whopays-donut-segments${s}`, meta);
+    const legend = el(scope, 'whopays-donut-legend');
+    legend.innerHTML = `
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:${meta[0].color}"></span>Maarten</span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-maarten${s}">—</span><span class="p" id="whopays-donut-pct-maarten${s}">—</span></span>
+      </div>
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:${meta[1].color}"></span>Nicolas</span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas${s}">—</span><span class="p" id="whopays-donut-pct-nicolas${s}">—</span></span>
+      </div>
+    `;
+  }
+
+  // Per-person salary split donut: joint costs / personal costs / left over.
+  // personKey is 'maarten' or 'nicolas'; drives element ids split-donut-*-{personKey}{scope.sfx}.
+  function buildSplitDonut(scope, personKey) {
+    const s = scope.sfx;
+    const meta = [
+      { key: 'joint', id: `split-donut-seg-${personKey}-joint${s}`, color: 'var(--seg-joint)', name: 'Joint costs' },
+      { key: 'personal', id: `split-donut-seg-${personKey}-personal${s}`, color: 'var(--seg-personal)', name: 'Personal costs' },
+      { key: 'left', id: `split-donut-seg-${personKey}-left${s}`, color: 'var(--seg-left)', name: 'Left over' },
+    ];
+    buildDonutSegments(`split-donut-segments-${personKey}${s}`, meta);
+    const legend = document.getElementById(`split-donut-legend-${personKey}${s}`);
+    legend.innerHTML = meta.map(m => `
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:${m.color}"></span>${m.name}</span>
+        <span class="damt"><span class="v" id="split-donut-amt-${personKey}-${m.key}${s}">—</span><span class="p" id="split-donut-pct-${personKey}-${m.key}${s}">—</span></span>
+      </div>
+    `).join('');
+  }
+
+  function bindInputs(scope) {
+    const s = scope.sfx;
+
+    const salM = el(scope, 'in-salary-maarten');
+    if (salM) salM.addEventListener('input', e => {
+      scope.state.salary.maarten = parseFloat(e.target.value) || 0;
+      recalcAndRender(scope);
+    });
+    const salN = el(scope, 'in-salary-nicolas');
+    if (salN) salN.addEventListener('input', e => {
+      scope.state.salary.nicolas = parseFloat(e.target.value) || 0;
+      recalcAndRender(scope);
+    });
+    const adjEl = el(scope, 'in-adjustment');
+    if (adjEl) adjEl.addEventListener('input', e => {
+      scope.state.adjustment = parseFloat(e.target.value) || 0;
+      recalcAndRender(scope);
+    });
+
+    document.querySelectorAll(`#household-rows${s} [data-hh]`).forEach(elx => {
+      elx.addEventListener('input', e => {
+        const [ci, ii] = e.target.getAttribute('data-hh').split('.');
+        scope.state.household[+ci].items[+ii].amount = parseFloat(e.target.value) || 0;
+        recalcAndRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc]`).forEach(elx => {
+      elx.addEventListener('input', e => {
+        const [ci, ii, field] = e.target.getAttribute('data-pc').split('.');
+        scope.state.personal[+ci].items[+ii][field] = parseFloat(e.target.value) || 0;
+        recalcAndRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-loan-toggle]`).forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-loan-toggle'); // "ci.ii.person"
+        const details = document.getElementById(`loan-details-${key.replace(/\./g, '-')}${s}`);
+        if (!details) return;
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!expanded));
+        details.hidden = expanded;
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-loan]`).forEach(elx => {
+      elx.addEventListener('input', e => {
+        const [ci, ii, person, field] = e.target.getAttribute('data-loan').split('.');
+        scope.state.personal[+ci].items[+ii].debt[person][field] = parseFloat(e.target.value) || 0;
+        recalcAndRender(scope);
+      });
+    });
+  }
+
+  function setInputValues(scope) {
+    const s = scope.sfx;
+    const salM = el(scope, 'in-salary-maarten');
+    if (salM) salM.value = scope.state.salary.maarten;
+    const salN = el(scope, 'in-salary-nicolas');
+    if (salN) salN.value = scope.state.salary.nicolas;
+    const adjEl = el(scope, 'in-adjustment');
+    if (adjEl) adjEl.value = scope.state.adjustment;
+    document.querySelectorAll(`#household-rows${s} [data-hh]`).forEach(elx => {
+      const [ci, ii] = elx.getAttribute('data-hh').split('.');
+      elx.value = scope.state.household[+ci].items[+ii].amount;
+    });
+    document.querySelectorAll(`#personal-rows${s} [data-pc]`).forEach(elx => {
+      const [ci, ii, field] = elx.getAttribute('data-pc').split('.');
+      elx.value = scope.state.personal[+ci].items[+ii][field];
+    });
+    document.querySelectorAll(`#personal-rows${s} [data-loan]`).forEach(elx => {
+      const [ci, ii, person, field] = elx.getAttribute('data-loan').split('.');
+      elx.value = scope.state.personal[+ci].items[+ii].debt[person][field];
+    });
+  }
+
+  function setText(id, text) { const elx = document.getElementById(id); if (elx) elx.textContent = text; }
+
+  function recalcAndRender(scope) {
+    const s = scope.sfx;
+    const r = compute(scope);
+
+    // income
+    setText(`out-salary-total${s}`, fmt((Number(scope.state.salary.maarten)||0) + (Number(scope.state.salary.nicolas)||0)));
+
+    // joint cost category subtotals
+    r.catTotals.forEach((c, ci) => {
+      setText(`hh-cat-${ci}${s}`, fmt(c.total));
+    });
+    setText(`out-hh-total${s}`, fmt(r.total));
+
+    // who pays what
+    setText(`out-pays-maarten${s}`, fmt(r.maartenPays));
+    setText(`out-pays-nicolas${s}`, fmt(r.nicolasPays));
+    setText(`out-pct-maarten${s}`, pctFmt(r.splitMaartenPct) + ' of joint costs');
+    setText(`out-pct-nicolas${s}`, pctFmt(r.splitNicolasPct) + ' of joint costs');
+
+    // who-pays-what donut — Maarten's share vs Nicolas's share of the joint costs
+    updateDonutSegments(
+      [{ id: `whopays-donut-seg-maarten${s}` }, { id: `whopays-donut-seg-nicolas${s}` }],
+      [r.maartenPays, r.nicolasPays], r.total
+    );
+    setText(`whopays-donut-total${s}`, fmt(r.total));
+    setText(`whopays-donut-amt-maarten${s}`, fmt(r.maartenPays));
+    setText(`whopays-donut-amt-nicolas${s}`, fmt(r.nicolasPays));
+    setText(`whopays-donut-pct-maarten${s}`, pctFmt(r.splitMaartenPct));
+    setText(`whopays-donut-pct-nicolas${s}`, pctFmt(r.splitNicolasPct));
+
+    // personal cost rows
+    scope.state.personal.forEach((cat, ci) => {
+      cat.items.forEach((it, ii) => {
+        setText(`pc-${ci}-${ii}-t${s}`, fmt((Number(it.maarten) || 0) + (Number(it.nicolas) || 0)));
+      });
+    });
+    r.pcCategoryTotals.forEach((c, ci) => {
+      setText(`pc-cat-${ci}-m${s}`, fmt(c.maarten));
+      setText(`pc-cat-${ci}-n${s}`, fmt(c.nicolas));
+      setText(`pc-cat-${ci}-t${s}`, fmt(c.maarten + c.nicolas));
+    });
+    setText(`out-pc-total-maarten${s}`, fmt(r.personalMaartenTotal));
+    setText(`out-pc-total-nicolas${s}`, fmt(r.personalNicolasTotal));
+    setText(`out-pc-total-total${s}`, fmt(r.personalMaartenTotal + r.personalNicolasTotal));
+
+    updateLoanDetails(scope);
+
+    // summary cards
+    setText(`sum-m-salary${s}`, fmt(Number(scope.state.salary.maarten) || 0));
+    setText(`sum-m-household${s}`, fmt(r.maartenPays));
+    setText(`sum-m-personal${s}`, fmt(r.personalMaartenTotal));
+    const mLeftEl = el(scope, 'sum-m-left');
+    mLeftEl.textContent = fmt(r.moneyLeftMaarten);
+    mLeftEl.className = 'v ' + (r.moneyLeftMaarten >= 0 ? 'good' : 'bad');
+
+    setText(`sum-n-salary${s}`, fmt(Number(scope.state.salary.nicolas) || 0));
+    setText(`sum-n-household${s}`, fmt(r.nicolasPays));
+    setText(`sum-n-personal${s}`, fmt(r.personalNicolasTotal));
+    const nLeftEl = el(scope, 'sum-n-left');
+    nLeftEl.textContent = fmt(r.moneyLeftNicolas);
+    nLeftEl.className = 'v ' + (r.moneyLeftNicolas >= 0 ? 'good' : 'bad');
+
+    // per-person salary-split donuts — joint costs / personal costs / left over
+    updateSplitDonut(scope, 'maarten', r.maartenPays, r.personalMaartenTotal, r.moneyLeftMaarten, Number(scope.state.salary.maarten) || 0);
+    updateSplitDonut(scope, 'nicolas', r.nicolasPays, r.personalNicolasTotal, r.moneyLeftNicolas, Number(scope.state.salary.nicolas) || 0);
+  }
+
+  // Updates one person's salary-split donut. A negative "left over" can't form a slice,
+  // so the ring is floored to 0 there — the ring then represents whichever is larger,
+  // the salary or the actual spending — but the legend always shows the true (possibly
+  // negative) amount.
+  function updateSplitDonut(scope, personKey, joint, personal, left, salary) {
+    const s = scope.sfx;
+    const leftPositive = Math.max(0, left);
+    const ringTotal = joint + personal + leftPositive;
+    updateDonutSegments(
+      [
+        { id: `split-donut-seg-${personKey}-joint${s}` },
+        { id: `split-donut-seg-${personKey}-personal${s}` },
+        { id: `split-donut-seg-${personKey}-left${s}` },
+      ],
+      [joint, personal, leftPositive], ringTotal
+    );
+    setText(`split-donut-total-${personKey}${s}`, fmt(salary));
+    setText(`split-donut-amt-${personKey}-joint${s}`, fmt(joint));
+    setText(`split-donut-amt-${personKey}-personal${s}`, fmt(personal));
+    const leftAmtEl = document.getElementById(`split-donut-amt-${personKey}-left${s}`);
+    leftAmtEl.textContent = fmt(left);
+    leftAmtEl.className = 'v' + (left < 0 ? ' bad' : '');
+    setText(`split-donut-pct-${personKey}-joint${s}`, ringTotal > 0 ? pctFmt(joint / ringTotal) : '—');
+    setText(`split-donut-pct-${personKey}-personal${s}`, ringTotal > 0 ? pctFmt(personal / ringTotal) : '—');
+    setText(`split-donut-pct-${personKey}-left${s}`, ringTotal > 0 ? pctFmt(leftPositive / ringTotal) : '—');
+  }
+
+  // Updates the "Debt" toggle visibility for Nicolas (only shown once he has a monthly
+  // amount filled in), the progress bar / remaining balance / empty hint inside the compact
+  // overview beneath that amount, and the always-visible payoff ring next to the loan name
+  // (shown as soon as a total debt amount is on record — independent of whether the "Debt"
+  // panel is expanded, and independent of the current monthly amount). Maarten carries no
+  // debt, so he's not tracked here.
+  function updateLoanDetails(scope) {
+    const s = scope.sfx;
+    scope.state.personal.forEach((cat, ci) => {
+      if (cat.name !== 'Loans') return;
+      cat.items.forEach((it, ii) => {
+        ['nicolas'].forEach(person => {
+          const amount = Number(it[person]) || 0;
+          const toggle = document.getElementById(`loan-toggle-${ci}-${ii}-${person}${s}`);
+          const panel = document.getElementById(`loan-details-${ci}-${ii}-${person}${s}`);
+          if (toggle) toggle.style.display = amount > 0 ? '' : 'none';
+          if (amount <= 0 && panel && !panel.hidden) {
+            panel.hidden = true;
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+          }
+
+          const debt = it.debt && it.debt[person];
+          if (!debt) return;
+          const total = Number(debt.total) || 0;
+          const paid = Math.max(0, Number(debt.paid) || 0);
+          const ring = document.getElementById(`debt-ring-${ci}-${ii}-${person}${s}`);
+          const progressRow = document.getElementById(`loan-progress-row-${ci}-${ii}-${person}${s}`);
+          const emptyHint = document.getElementById(`loan-empty-${ci}-${ii}-${person}${s}`);
+          if (total <= 0) {
+            if (ring) ring.style.display = 'none';
+            if (progressRow) progressRow.style.display = 'none';
+            if (emptyHint) emptyHint.style.display = '';
+            return;
+          }
+          if (progressRow) progressRow.style.display = '';
+          if (emptyHint) emptyHint.style.display = 'none';
+          const pct = Math.min(100, (paid / total) * 100);
+          const remaining = Math.max(0, total - paid);
+          const fillEl = document.getElementById(`loan-progress-${ci}-${ii}-${person}${s}`);
+          if (fillEl) fillEl.style.width = pct + '%';
+          setText(`loan-remaining-${ci}-${ii}-${person}${s}`, `${fmt(remaining)} left`);
+          setText(`loan-pct-${ci}-${ii}-${person}${s}`, pctFmt(pct / 100) + ' paid');
+
+          // always-visible ring badge next to the loan name
+          if (ring) {
+            ring.style.display = '';
+            const ringFill = document.getElementById(`debt-ring-fill-${ci}-${ii}-${person}${s}`);
+            if (ringFill) ringFill.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
+            setText(`debt-ring-pct-${ci}-${ii}-${person}${s}`, Math.round(pct) + '%');
+          }
+        });
+      });
+    });
+  }
+
+  function fullRender(scope) {
+    buildHouseholdRows(scope);
+    buildPersonalRows(scope);
+    buildWhoPaysDonut(scope);
+    buildSplitDonut(scope, 'maarten');
+    buildSplitDonut(scope, 'nicolas');
+    bindInputs(scope);
+    setInputValues(scope);
+    recalcAndRender(scope);
+  }
+
+  // ---------- Screen tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-tab');
+      const target = scopes.find(sc => sc.key === key);
+      if (!target) return;
+      activeScope = target;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
+      document.getElementById(`screen-${key}`).classList.add('active');
+    });
+  });
+
+  // ---------- Controls: theme, export, import, reset (act on whichever screen is active) ----------
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    const root = document.documentElement;
+    const current = root.getAttribute('data-theme');
+    if (current === 'dark') root.setAttribute('data-theme', 'light');
+    else if (current === 'light') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', 'dark');
+  });
+
+  document.getElementById('btn-export').addEventListener('click', () => {
+    const payload = Object.assign({ scenario: activeScope.key }, activeScope.state);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = activeScope.key === 'b' ? 'potential-new-house-values.json' : 'joint-costs-2026-values.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btn-import').addEventListener('click', () => {
+    document.getElementById('file-import').click();
+  });
+  document.getElementById('file-import').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (parsed && parsed.salary && parsed.household && parsed.personal) {
+          const label = activeScope.key === 'b' ? 'Potential new house calculation' : 'Current Budget';
+          if (parsed.scenario && parsed.scenario !== activeScope.key &&
+              !confirm(`This file looks like it was exported from a different scenario. Import it into "${label}" anyway?`)) {
+            e.target.value = '';
+            return;
+          }
+          activeScope.state = parsed;
+          fullRender(activeScope);
+        } else {
+          alert('This file does not look like a valid exported budget file.');
+        }
+      } catch (err) {
+        alert('Could not read that file as JSON.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    const label = activeScope.key === 'b' ? 'the potential new house calculation' : 'the current budget';
+    if (confirm(`Reset all values in ${label} to the original numbers?`)) {
+      activeScope.state = activeScope.key === 'b' ? defaultStateB() : defaultStateA();
+      fullRender(activeScope);
+    }
+  });
+
+  // ---------- Nicolas's logged-contributions modal (Current Budget scope only) ----------
+  function renderNicolasLog() {
+    // yearly summary — actual logged total vs. the monthly adjustment, annualized.
+    // The current calendar year's target is prorated to how many months of the year
+    // have happened so far (not the full 12), since it isn't over yet.
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth() + 1; // 1–12
+    const monthlyTarget = Number(scopeA.state.adjustment) || 0;
+    const years = [...new Set(NICOLAS_LOG.map(r => r.y))];
+    const summary = document.getElementById('log-summary');
+    summary.innerHTML = years.map(y => {
+      const rows = NICOLAS_LOG.filter(r => r.y === y);
+      const actual = rows.reduce((s, r) => s + r.contribution - (r.spending || 0), 0);
+      const monthsInTarget = y === curYear ? curMonth : 12;
+      const target = monthlyTarget * monthsInTarget;
+      const diff = target - actual;
+      const isPartialYear = rows.length < 12;
+      return `
+        <div class="yr-tile">
+          <div class="yr">${y}${isPartialYear ? ' (partial)' : ''}</div>
+          <div class="yr-actual">${fmt(actual)}</div>
+          <div class="yr-diff ${diff > 0 ? 'bad' : 'good'}">${diff > 0 ? fmt(diff) + ' short of' : fmt(-diff) + ' over'} ${fmt(target)} target</div>
+        </div>
+      `;
+    }).join('');
+
+    // month-by-month table, most recent first
+    const tbody = document.getElementById('log-table-body');
+    const rowsDesc = [...NICOLAS_LOG].reverse();
+    tbody.innerHTML = rowsDesc.map(r => {
+      const net = r.contribution - (r.spending || 0);
+      return `
+        <tr>
+          <td>${MONTH_NAMES[r.m - 1]} ${r.y}</td>
+          <td class="${r.contribution < MIN_EXPECTED_CONTRIBUTION ? 'net bad' : ''}">${fmt(r.contribution)}</td>
+          <td class="${r.spending ? '' : 'muted'}">${r.spending ? fmt(r.spending) : '—'}</td>
+          <td class="net${net < 0 ? ' bad' : ''}">${fmt(net)}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  const nicolasLogDialog = document.getElementById('nicolas-log-dialog');
+  document.getElementById('btn-nicolas-log').addEventListener('click', () => {
+    renderNicolasLog();
+    nicolasLogDialog.showModal();
+  });
+  document.getElementById('btn-close-log').addEventListener('click', () => nicolasLogDialog.close());
+  nicolasLogDialog.addEventListener('click', (e) => {
+    // click on the backdrop (the dialog element itself, outside its content) closes it
+    if (e.target === nicolasLogDialog) nicolasLogDialog.close();
+  });
+
+  fullRender(scopeA);
+  fullRender(scopeB);
+})();
+</script>
+
+
+
+</body>
+</html>

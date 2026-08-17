@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home &amp; Mortgage</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --surface-2:      #ffffff;
+    --page:           #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-maarten: #2a78d6;
+    --seg-personal:   #eda100;
+    --status-good:    #0ca30c;
+    --status-good-text: #006300;
+    --status-critical:#d03b3b;
+    --shadow: 0 1px 2px rgba(11,11,11,0.04), 0 4px 16px rgba(11,11,11,0.05);
+    --hero-bg:    #081d3b;
+    --hero-text:  #ffffff;
+    --hero-muted: #b8c6da;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --surface-2:      #212120;
+      --page:           #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-maarten: #3987e5;
+      --seg-personal:   #c98500;
+      --status-good:    #0ca30c;
+      --status-good-text: #0ca30c;
+      --status-critical:#e66767;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+      --hero-bg:    #0a1930;
+      --hero-text:  #ffffff;
+      --hero-muted: #9fb3cf;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --surface-2:      #212120;
+    --page:           #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-maarten: #3987e5;
+    --seg-personal:   #c98500;
+    --status-good:    #0ca30c;
+    --status-good-text: #0ca30c;
+    --status-critical:#e66767;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+    --hero-bg:    #0a1930;
+    --hero-text:  #ffffff;
+    --hero-muted: #9fb3cf;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { padding-bottom: 64px; }
+  a { color: inherit; }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--page) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  header.top .inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; gap: 12px; flex-wrap: wrap;
+  }
+  header.top h1 { font-size: 17px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+  header.top .sub { font-size: 12.5px; color: var(--text-secondary); margin-top: 2px; }
+  .home-link {
+    display: inline-block; font-size: 12px; font-weight: 600; text-decoration: none;
+    color: var(--text-muted); margin-bottom: 4px;
+  }
+  .home-link:hover { color: var(--text-primary); }
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button.ctl {
+    font: inherit; font-size: 12.5px; font-weight: 550;
+    background: var(--surface-2); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.12s ease;
+  }
+  button.ctl:hover { background: color-mix(in srgb, var(--text-primary) 6%, var(--surface-2)); }
+  button.ctl:active { transform: translateY(0.5px); }
+  input[type=file] { display: none; }
+
+  main { padding-top: 22px; }
+
+  /* cards + editable rows (same system as the budget dashboard / net worth page) */
+  section.card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px 22px;
+    margin-bottom: 20px;
+  }
+  section.card > h2 {
+    font-size: 14.5px; font-weight: 650; margin: 0 0 2px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  section.card > .desc {
+    font-size: 12.5px; color: var(--text-secondary); margin: 0 0 16px;
+    max-width: 62ch;
+  }
+  .row-head, .row {
+    display: grid; grid-template-columns: 1fr 150px; align-items: center;
+    gap: 8px; padding: 8px 0;
+  }
+  .row-head { font-size: 10.5px; color: var(--text-muted); font-weight: 650; text-transform: uppercase; letter-spacing: 0.03em; padding-bottom: 4px; }
+  .row { border-bottom: 1px solid var(--gridline); font-size: 13px; }
+  .row:last-child { border-bottom: none; }
+  .row .name { color: var(--text-primary); font-weight: 500; }
+  .row .name .hint { display: block; font-size: 11px; color: var(--text-muted); font-weight: 400; margin-top: 1px; }
+  .num-field { position: relative; display: flex; align-items: center; }
+  .num-field .unit { position: absolute; left: 8px; font-size: 12px; color: var(--text-muted); pointer-events: none; }
+  .num-field.pct .unit { left: auto; right: 8px; }
+  .num-field.pct input.num { padding-right: 20px; padding-left: 8px; }
+  input.num {
+    font: inherit; font-size: 13px; font-variant-numeric: tabular-nums;
+    width: 100%; padding: 6px 8px 6px 20px; text-align: right;
+    background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+    border: 1px solid transparent; border-radius: 7px; color: var(--text-primary);
+    outline: none; transition: border-color 0.12s ease, background 0.12s ease;
+  }
+  input.date, select.sel {
+    font: inherit; font-size: 13px;
+    width: 100%; padding: 6px 8px; text-align: right;
+    background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+    border: 1px solid transparent; border-radius: 7px; color: var(--text-primary);
+    outline: none; transition: border-color 0.12s ease, background 0.12s ease;
+  }
+  input.num:hover, input.date:hover, select.sel:hover { border-color: var(--border); }
+  input.num:focus, input.date:focus, select.sel:focus { border-color: var(--series-maarten); background: var(--surface-2); }
+  input.num::-webkit-outer-spin-button, input.num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input.num[type=number] { -moz-appearance: textfield; }
+  .subtotal-row {
+    display: grid; grid-template-columns: 1fr 150px;
+    gap: 8px; padding: 9px 0 4px; margin-top: 2px; border-top: 1px solid var(--baseline);
+    font-size: 12.5px; font-weight: 650;
+  }
+  .subtotal-row .computed { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* house value donut */
+  .donutrow { display: flex; gap: 24px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
+  .donut {
+    width: 150px; height: 150px; border-radius: 50%; position: relative; flex: none;
+    background: conic-gradient(var(--status-critical) 0 48.3%, var(--status-good) 48.3% 100%);
+  }
+  .donut:after { content: ""; position: absolute; inset: 28px; background: var(--surface-2); border-radius: 50%; }
+  .donut-center { position: absolute; inset: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .donut-center .lbl { font-size: 9.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .donut-center .val { font-size: 13px; font-weight: 650; margin-top: 1px; }
+  .legend { flex: 1; min-width: 200px; }
+  .legend div { font-size: 12.5px; padding: 8px 6px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 10px; }
+  .legend div:last-child { border-bottom: none; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; }
+  .dot.mort { background: var(--status-critical); }
+  .dot.equity { background: var(--status-good); }
+  .legend .amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  /* mortgage total — clickable, expands to the loan parts */
+  .mortgage-toggle {
+    width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    background: none; border: none; padding: 0; margin: 0 0 14px;
+    cursor: pointer; text-align: left; font: inherit; color: inherit;
+  }
+  .mortgage-toggle-label { font-size: 12px; color: var(--text-muted); }
+  .mortgage-toggle-amount { font-size: 30px; font-weight: bold; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .mortgage-toggle-sub { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+  .mortgage-toggle-sub b { color: var(--text-primary); font-weight: 650; }
+  .mortgage-toggle .chevron {
+    font-size: 15px; color: var(--text-muted); flex: none; margin-top: 4px;
+    transition: transform 0.2s ease;
+  }
+  .mortgage-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+  .mortgage-toggle:hover .mortgage-toggle-label { color: var(--text-primary); }
+
+  /* mortgage-wide progress bar */
+  .big-progress { margin-top: 0; }
+  .big-progress-track { height: 10px; border-radius: 5px; background: var(--gridline); overflow: hidden; }
+  .big-progress-fill { height: 100%; border-radius: 5px; background: var(--status-good); transition: width .3s; }
+  .big-progress-caption { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
+  .big-progress-caption b { color: var(--text-secondary); }
+
+  .loanparts-wrap { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--gridline); }
+
+  /* loan part cards */
+  .loanpart { border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; background: var(--surface-2); }
+  .loanpart:last-child { margin-bottom: 0; }
+  .loanpart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .loanpart-name { font-size: 14px; font-weight: 650; }
+  .loanpart-type { font-size: 11.5px; color: var(--text-muted); }
+  .badge {
+    font-size: 10.5px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--status-good-text);
+    background: color-mix(in srgb, var(--status-good) 14%, transparent);
+    border-radius: 5px; padding: 2px 6px;
+  }
+  .loanpart-progress { margin: 10px 0 14px; }
+  .loanpart-track { height: 7px; border-radius: 999px; background: var(--gridline); overflow: hidden; }
+  .loanpart-fill { height: 100%; border-radius: 999px; background: var(--status-good); transition: width .3s; }
+  .loanpart-caption { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+  .loanpart-caption b { color: var(--text-secondary); }
+  .loanpart-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 620px) { .loanpart-fields { grid-template-columns: 1fr 1fr; } }
+  .lp-field .lbl { font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin-bottom: 4px; display: block; }
+
+  footer.note {
+    max-width: 1000px; margin: 24px auto 0; padding: 0 20px;
+    font-size: 12px; color: var(--text-muted); line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div>
+      <a class="home-link" href="index.html">← Financiën</a>
+      <h1>Home &amp; Mortgage</h1>
+      <div class="sub">Your mortgage, broken down by loan part</div>
+    </div>
+    <div class="controls">
+      <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
+      <button class="ctl" id="btn-export">⭳ Export</button>
+      <button class="ctl" id="btn-import">⭱ Import</button>
+      <button class="ctl" id="btn-reset">↺ Reset</button>
+      <input type="file" id="file-import" accept="application/json">
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="card">
+    <h2>House value</h2>
+    <p class="desc">Your flat's estimated value against what's left on the mortgage.</p>
+    <div class="row-head"><div>Item</div><div>Amount €</div></div>
+    <div class="row">
+      <div class="name">House value<span class="hint">Estimated current market value</span></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" id="in-house-value" value="295000"></div>
+    </div>
+    <div class="donutrow">
+      <div class="donut" id="donut">
+        <div class="donut-center">
+          <span class="lbl">House value</span>
+          <span class="val" id="don-total">€ 295.000,00</span>
+        </div>
+      </div>
+      <div class="legend">
+        <div><span><span class="dot mort"></span>Mortgage remaining</span><span class="amt" id="don-remaining">€ 142.352,16 · 48,3%</span></div>
+        <div><span><span class="dot equity"></span>Equity</span><span class="amt" id="don-equity">€ 152.647,84 · 51,7%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Mortgage</h2>
+    <p class="desc">Your mortgage across all three loan parts. Tap the total to see the breakdown.</p>
+
+    <button class="mortgage-toggle" id="mortgage-toggle" type="button" aria-expanded="false" aria-controls="loanparts-wrap">
+      <div>
+        <div class="mortgage-toggle-label">Total mortgage remaining</div>
+        <div class="mortgage-toggle-amount" id="out-remaining">€ 142.352,16</div>
+        <div class="mortgage-toggle-sub">Original <b id="out-original">€ 166.000,00</b> · Paid off <b id="out-paid">€ 23.647,84</b></div>
+      </div>
+      <span class="chevron" id="mortgage-chevron">▾</span>
+    </button>
+
+    <div class="big-progress">
+      <div class="big-progress-track"><div class="big-progress-fill" id="big-progress-fill" style="width:14.2%"></div></div>
+      <div class="big-progress-caption"><span id="big-progress-pct">14,2% paid off</span><b id="big-progress-remaining">€ 142.352,16 remaining</b></div>
+    </div>
+
+    <div class="loanparts-wrap" id="loanparts-wrap" hidden>
+      <div id="loanparts">
+        <div class="loanpart">
+          <div class="loanpart-head">
+            <div>
+              <div class="loanpart-name">Leningdeel 1.0</div>
+              <div class="loanpart-type">Annuïteiten Hypotheek</div>
+            </div>
+            <span class="badge" id="lp-nhg-badge-0">NHG</span>
+          </div>
+          <div class="loanpart-progress">
+            <div class="loanpart-track"><div class="loanpart-fill" id="lp-fill-0" style="width:15.5%"></div></div>
+            <div class="loanpart-caption"><span id="lp-pct-0">15,5% paid off</span><b id="lp-remaining-0">€ 92.167,78 remaining</b></div>
+          </div>
+          <div class="loanpart-fields">
+            <div class="lp-field"><span class="lbl">Remaining</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="0.remaining" value="92167.78"></div></div>
+            <div class="lp-field"><span class="lbl">Paid off</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="0.paid" value="16927.22"></div></div>
+            <div class="lp-field"><span class="lbl">Original amount</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="0.original" value="109095"></div></div>
+            <div class="lp-field"><span class="lbl">Interest rate</span><div class="num-field pct"><input class="num" type="number" step="0.01" min="0" data-lp="0.rate" value="1.49"><span class="unit">%</span></div></div>
+            <div class="lp-field"><span class="lbl">Rate valid until</span><input class="date" type="date" data-lp="0.rateValidUntil" value="2042-04-01"></div>
+            <div class="lp-field"><span class="lbl">End date</span><input class="date" type="date" data-lp="0.endDate" value="2046-04-01"></div>
+            <div class="lp-field"><span class="lbl">NHG</span>
+              <select class="sel" data-lp="0.nhg">
+                <option value="true" selected>Ja</option>
+                <option value="false">Nee</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="loanpart">
+          <div class="loanpart-head">
+            <div>
+              <div class="loanpart-name">Leningdeel 1.1</div>
+              <div class="loanpart-type">Annuïteiten Hypotheek</div>
+            </div>
+            <span class="badge" id="lp-nhg-badge-1">NHG</span>
+          </div>
+          <div class="loanpart-progress">
+            <div class="loanpart-track"><div class="loanpart-fill" id="lp-fill-1" style="width:11.8%"></div></div>
+            <div class="loanpart-caption"><span id="lp-pct-1">11,8% paid off</span><b id="lp-remaining-1">€ 49.729,57 remaining</b></div>
+          </div>
+          <div class="loanpart-fields">
+            <div class="lp-field"><span class="lbl">Remaining</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="1.remaining" value="49729.57"></div></div>
+            <div class="lp-field"><span class="lbl">Paid off</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="1.paid" value="6675.43"></div></div>
+            <div class="lp-field"><span class="lbl">Original amount</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="1.original" value="56405"></div></div>
+            <div class="lp-field"><span class="lbl">Interest rate</span><div class="num-field pct"><input class="num" type="number" step="0.01" min="0" data-lp="1.rate" value="1.49"><span class="unit">%</span></div></div>
+            <div class="lp-field"><span class="lbl">Rate valid until</span><input class="date" type="date" data-lp="1.rateValidUntil" value="2042-04-01"></div>
+            <div class="lp-field"><span class="lbl">End date</span><input class="date" type="date" data-lp="1.endDate" value="2052-04-01"></div>
+            <div class="lp-field"><span class="lbl">NHG</span>
+              <select class="sel" data-lp="1.nhg">
+                <option value="true" selected>Ja</option>
+                <option value="false">Nee</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="loanpart">
+          <div class="loanpart-head">
+            <div>
+              <div class="loanpart-name">Leningdeel 2.0</div>
+              <div class="loanpart-type">Annuïteiten Hypotheek</div>
+            </div>
+            <span class="badge" id="lp-nhg-badge-2">NHG</span>
+          </div>
+          <div class="loanpart-progress">
+            <div class="loanpart-track"><div class="loanpart-fill" id="lp-fill-2" style="width:9%"></div></div>
+            <div class="loanpart-caption"><span id="lp-pct-2">9% paid off</span><b id="lp-remaining-2">€ 454,81 remaining</b></div>
+          </div>
+          <div class="loanpart-fields">
+            <div class="lp-field"><span class="lbl">Remaining</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="2.remaining" value="454.81"></div></div>
+            <div class="lp-field"><span class="lbl">Paid off</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="2.paid" value="45.19"></div></div>
+            <div class="lp-field"><span class="lbl">Original amount</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="2.original" value="500"></div></div>
+            <div class="lp-field"><span class="lbl">Interest rate</span><div class="num-field pct"><input class="num" type="number" step="0.01" min="0" data-lp="2.rate" value="3.28"><span class="unit">%</span></div></div>
+            <div class="lp-field"><span class="lbl">Rate valid until</span><input class="date" type="date" data-lp="2.rateValidUntil" value="2027-04-01"></div>
+            <div class="lp-field"><span class="lbl">End date</span><input class="date" type="date" data-lp="2.endDate" value="2052-04-01"></div>
+            <div class="lp-field"><span class="lbl">NHG</span>
+              <select class="sel" data-lp="2.nhg">
+                <option value="true" selected>Ja</option>
+                <option value="false">Nee</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="note">
+  All figures are editable and recalculate live in your browser — nothing is sent anywhere, and nothing is saved automatically
+  (no browser storage is used). The donut shows your house value split between what's still mortgaged and your equity. Use
+  <strong>Export</strong> to save a snapshot as a file, <strong>Import</strong> to load one back later, and <strong>Reset</strong>
+  to restore the original figures. The Net Worth page can pull each loan part's remaining balance from here with its
+  <strong>Sync</strong> button — its own House value field is separate and entered independently there.
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  function defaultState() {
+    return {
+      houseValue: 295000,
+      loanParts: [
+        { name: 'Leningdeel 1.0', type: 'Annuïteiten Hypotheek', original: 109095, remaining: 92167.78, paid: 16927.22, rate: 1.49, endDate: '2046-04-01', rateValidUntil: '2042-04-01', nhg: true },
+        { name: 'Leningdeel 1.1', type: 'Annuïteiten Hypotheek', original: 56405, remaining: 49729.57, paid: 6675.43, rate: 1.49, endDate: '2052-04-01', rateValidUntil: '2042-04-01', nhg: true },
+        { name: 'Leningdeel 2.0', type: 'Annuïteiten Hypotheek', original: 500, remaining: 454.81, paid: 45.19, rate: 3.28, endDate: '2052-04-01', rateValidUntil: '2027-04-01', nhg: true },
+      ],
+    };
+  }
+
+  let state = defaultState();
+
+  function fmt(n) {
+    n = Number(n) || 0;
+    return '€ ' + n.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function pctFmt(frac) { return (frac * 100).toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + '%'; }
+  function setText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; }
+
+  function buildLoanParts() {
+    const wrap = document.getElementById('loanparts');
+    wrap.innerHTML = state.loanParts.map((lp, i) => `
+      <div class="loanpart">
+        <div class="loanpart-head">
+          <div>
+            <div class="loanpart-name">${lp.name}</div>
+            <div class="loanpart-type">${lp.type}</div>
+          </div>
+          <span class="badge" id="lp-nhg-badge-${i}">NHG</span>
+        </div>
+        <div class="loanpart-progress">
+          <div class="loanpart-track"><div class="loanpart-fill" id="lp-fill-${i}" style="width:0%"></div></div>
+          <div class="loanpart-caption"><span id="lp-pct-${i}">0% paid off</span><b id="lp-remaining-${i}">€ 0 remaining</b></div>
+        </div>
+        <div class="loanpart-fields">
+          <div class="lp-field"><span class="lbl">Remaining</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="${i}.remaining"></div></div>
+          <div class="lp-field"><span class="lbl">Paid off</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="${i}.paid"></div></div>
+          <div class="lp-field"><span class="lbl">Original amount</span><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-lp="${i}.original"></div></div>
+          <div class="lp-field"><span class="lbl">Interest rate</span><div class="num-field pct"><input class="num" type="number" step="0.01" min="0" data-lp="${i}.rate"><span class="unit">%</span></div></div>
+          <div class="lp-field"><span class="lbl">Rate valid until</span><input class="date" type="date" data-lp="${i}.rateValidUntil"></div>
+          <div class="lp-field"><span class="lbl">End date</span><input class="date" type="date" data-lp="${i}.endDate"></div>
+          <div class="lp-field"><span class="lbl">NHG</span>
+            <select class="sel" data-lp="${i}.nhg">
+              <option value="true">Ja</option>
+              <option value="false">Nee</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    wrap.querySelectorAll('[data-lp]').forEach(el => {
+      el.addEventListener('input', handleLoanPartInput);
+      el.addEventListener('change', handleLoanPartInput);
+    });
+  }
+
+  function handleLoanPartInput(e) {
+    const [idxStr, field] = e.target.getAttribute('data-lp').split('.');
+    const idx = Number(idxStr);
+    if (field === 'nhg') {
+      state.loanParts[idx].nhg = e.target.value === 'true';
+    } else if (field === 'rateValidUntil' || field === 'endDate') {
+      state.loanParts[idx][field] = e.target.value;
+    } else {
+      state.loanParts[idx][field] = parseFloat(e.target.value) || 0;
+    }
+    recalcAndRender();
+  }
+
+  function setInputValues() {
+    document.getElementById('in-house-value').value = state.houseValue;
+    state.loanParts.forEach((lp, i) => {
+      document.querySelector(`[data-lp="${i}.remaining"]`).value = lp.remaining;
+      document.querySelector(`[data-lp="${i}.paid"]`).value = lp.paid;
+      document.querySelector(`[data-lp="${i}.original"]`).value = lp.original;
+      document.querySelector(`[data-lp="${i}.rate"]`).value = lp.rate;
+      document.querySelector(`[data-lp="${i}.rateValidUntil"]`).value = lp.rateValidUntil || '';
+      document.querySelector(`[data-lp="${i}.endDate"]`).value = lp.endDate || '';
+      document.querySelector(`[data-lp="${i}.nhg"]`).value = lp.nhg ? 'true' : 'false';
+      setText(`lp-nhg-badge-${i}`, lp.nhg ? 'NHG' : 'Geen NHG');
+    });
+  }
+
+  function bindInputs() {
+    document.getElementById('in-house-value').addEventListener('input', e => {
+      state.houseValue = parseFloat(e.target.value) || 0;
+      recalcAndRender();
+    });
+  }
+
+  function recalcAndRender() {
+    const totalOriginal = state.loanParts.reduce((s, lp) => s + (Number(lp.original) || 0), 0);
+    const totalPaid = state.loanParts.reduce((s, lp) => s + (Number(lp.paid) || 0), 0);
+    const totalRemaining = state.loanParts.reduce((s, lp) => s + (Number(lp.remaining) || 0), 0);
+
+    setText('out-original', fmt(totalOriginal));
+    setText('out-paid', fmt(totalPaid));
+    setText('out-remaining', fmt(totalRemaining));
+
+    const totalPct = (totalPaid + totalRemaining) > 0 ? totalPaid / (totalPaid + totalRemaining) : 0;
+    document.getElementById('big-progress-fill').style.width = Math.min(100, totalPct * 100) + '%';
+    setText('big-progress-pct', pctFmt(totalPct) + ' paid off');
+    setText('big-progress-remaining', fmt(totalRemaining) + ' remaining');
+
+    state.loanParts.forEach((lp, i) => {
+      const paid = Number(lp.paid) || 0;
+      const remaining = Number(lp.remaining) || 0;
+      const pct = (paid + remaining) > 0 ? paid / (paid + remaining) : 0;
+      const fillEl = document.getElementById(`lp-fill-${i}`);
+      if (fillEl) fillEl.style.width = Math.min(100, pct * 100) + '%';
+      setText(`lp-pct-${i}`, pctFmt(pct) + ' paid off');
+      setText(`lp-remaining-${i}`, fmt(remaining) + ' remaining');
+      setText(`lp-nhg-badge-${i}`, lp.nhg ? 'NHG' : 'Geen NHG');
+    });
+
+    // House value donut: mortgage remaining vs. equity, as a share of house value.
+    const houseValue = Number(state.houseValue) || 0;
+    const equity = Math.max(0, houseValue - totalRemaining);
+    const remainingPct = houseValue > 0 ? Math.min(100, (totalRemaining / houseValue) * 100) : 0;
+    const equityPct = 100 - remainingPct;
+
+    document.getElementById('donut').style.background =
+      `conic-gradient(var(--status-critical) 0 ${remainingPct}%, var(--status-good) ${remainingPct}% 100%)`;
+    setText('don-total', fmt(houseValue));
+    setText('don-remaining', fmt(totalRemaining) + ' · ' + pctFmt(remainingPct / 100));
+    setText('don-equity', fmt(equity) + ' · ' + pctFmt(equityPct / 100));
+
+    // Exposed for the Net Worth page's Sync button — read-only in practice.
+    window.houseTotals = {
+      houseValue,
+      equity,
+      mortgageRemaining: totalRemaining,
+      mortgageOriginal: totalOriginal,
+      mortgagePaid: totalPaid,
+      loanParts: state.loanParts.map(lp => ({ name: lp.name, remaining: Number(lp.remaining) || 0 })),
+    };
+  }
+
+  function fullRender() {
+    buildLoanParts();
+    setInputValues();
+    recalcAndRender();
+  }
+
+  // ---------- Mortgage total: tap to expand/collapse the loan parts ----------
+  document.getElementById('mortgage-toggle').addEventListener('click', () => {
+    const btn = document.getElementById('mortgage-toggle');
+    const wrap = document.getElementById('loanparts-wrap');
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!expanded));
+    wrap.hidden = expanded;
+  });
+
+  // ---------- Controls ----------
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    const root = document.documentElement;
+    const current = root.getAttribute('data-theme');
+    if (current === 'dark') root.setAttribute('data-theme', 'light');
+    else if (current === 'light') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', 'dark');
+  });
+
+  document.getElementById('btn-export').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'home-mortgage-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btn-import').addEventListener('click', () => {
+    document.getElementById('file-import').click();
+  });
+  document.getElementById('file-import').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (parsed && Array.isArray(parsed.loanParts)) {
+          state = parsed;
+          fullRender();
+        } else {
+          alert('This file does not look like a valid exported home/mortgage snapshot.');
+        }
+      } catch (err) {
+        alert('Could not read that file as JSON.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    if (confirm('Reset all values to the original figures?')) {
+      state = defaultState();
+      fullRender();
+    }
+  });
+
+  bindInputs();
+  fullRender();
+})();
+</script>
+
+</body>
+</html>

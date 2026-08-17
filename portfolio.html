@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portfolio Dashboard</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --surface-2:      #ffffff;
+    --page:           #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --border:         rgba(11,11,11,0.10);
+    --shadow: 0 1px 2px rgba(11,11,11,0.04), 0 4px 16px rgba(11,11,11,0.05);
+    --status-good:    #0ca30c;
+    --status-critical:#d03b3b;
+    --hero-bg:    #081d3b;
+    --hero-text:  #ffffff;
+    --hero-muted: #b8c6da;
+    /* categorical accents, shared visual language with the budget dashboard */
+    --port-dist:   #2a78d6; /* same blue as Maarten's series in the budget dashboard */
+    --port-acc:    #6fa1e8; /* lighter tint of the same blue */
+    --port-stock:  #1baf7a; /* same green as "joint costs" segments */
+    --port-crypto: #eb6834; /* same orange as Nicolas's series in the budget dashboard */
+    --port-cash:   #eda100; /* same gold as "personal costs" segments */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --surface-2:      #212120;
+      --page:           #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --border:         rgba(255,255,255,0.10);
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+      --status-good:    #0ca30c;
+      --status-critical:#e66767;
+      --hero-bg:    #0a1930;
+      --hero-text:  #ffffff;
+      --hero-muted: #9fb3cf;
+      --port-dist:   #3987e5;
+      --port-acc:    #6fa1e8;
+      --port-stock:  #199e70;
+      --port-crypto: #d95926;
+      --port-cash:   #c98500;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --surface-2:      #212120;
+    --page:           #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --border:         rgba(255,255,255,0.10);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+    --status-good:    #0ca30c;
+    --status-critical:#e66767;
+    --hero-bg:    #0a1930;
+    --hero-text:  #ffffff;
+    --hero-muted: #9fb3cf;
+    --port-dist:   #3987e5;
+    --port-acc:    #6fa1e8;
+    --port-stock:  #199e70;
+    --port-crypto: #d95926;
+    --port-cash:   #c98500;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { padding-bottom: 64px; }
+  a { color: inherit; }
+
+  .wrap { max-width: 1050px; margin: auto; padding: 0 20px 18px; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--page) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  header.top .inner {
+    max-width: 1050px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; gap: 12px; flex-wrap: wrap;
+  }
+  header.top h1 { font-size: 17px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+  header.top .sub { font-size: 12.5px; color: var(--text-secondary); margin-top: 2px; }
+  .home-link {
+    display: inline-block; font-size: 12px; font-weight: 600; text-decoration: none;
+    color: var(--text-muted); margin-bottom: 4px;
+  }
+  .home-link:hover { color: var(--text-primary); }
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button.ctl {
+    font: inherit; font-size: 12.5px; font-weight: 550;
+    background: var(--surface-2); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.12s ease;
+  }
+  button.ctl:hover { background: color-mix(in srgb, var(--text-primary) 6%, var(--surface-2)); }
+  button.ctl:active { transform: translateY(0.5px); }
+
+  .card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .hero { background: var(--hero-bg); color: var(--hero-text); border-radius: 14px; padding: 24px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .muted { color: var(--text-muted); font-size: 12px; } .hero .muted { color: var(--hero-muted); }
+  .total { font-size: 38px; font-weight: bold; margin-top: 4px; }
+  h2 { font-size: 20px; margin: 0 0 15px; } h3 { font-size: 17px; margin: 0; }
+  .group { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 10px 0; }
+  .head { display: flex; justify-content: space-between; align-items: center; padding: 14px; cursor: pointer; user-select: none; }
+  .head:hover { background: color-mix(in srgb, var(--text-primary) 4%, transparent); }
+  .headright { display: flex; align-items: center; gap: 10px; }
+  .chev { font-size: 11px; color: var(--text-muted); transition: transform .18s; }
+  .group.open .chev { transform: rotate(90deg); }
+  .items { max-height: 0; overflow: hidden; transition: max-height .22s ease; }
+  .group.open .items { max-height: 600px; }
+  .cat { display: flex; align-items: center; gap: 10px; }
+  .ico { width: 36px; height: 36px; border-radius: 10px; background: color-mix(in srgb, var(--port-dist) 14%, var(--surface-1)); color: var(--port-dist); display: grid; place-items: center; font-weight: bold; }
+  .ico.green { background: color-mix(in srgb, var(--port-stock) 14%, var(--surface-1)); color: var(--port-stock); }
+  .ico.orange { background: color-mix(in srgb, var(--port-crypto) 14%, var(--surface-1)); color: var(--port-crypto); }
+  .ico.gold { background: color-mix(in srgb, var(--port-cash) 14%, var(--surface-1)); color: var(--port-cash); }
+  .catname { font-size: 18px; font-weight: bold; }
+  .item { display: flex; justify-content: space-between; padding: 12px 14px; border-top: 1px solid var(--border); }
+  .name { font-size: 14px; font-weight: 600; } .value { font-weight: bold; white-space: nowrap; }
+  .valueWrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .chg { font-size: 11px; font-weight: 700; color: var(--text-muted); }
+  .chg.up { color: var(--status-good); }
+  .chg.down { color: var(--status-critical); }
+  .heroChg { display: inline-block; margin-left: 10px; font-size: 14px; font-weight: 700; vertical-align: middle; }
+  .heroChg.up { color: #6fe3a0; }
+  .heroChg.down { color: #ff9b9b; }
+  .goalWrap { margin-top: 14px; }
+  .goalTop { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+  .goalTop input { width: 66px; background: transparent; border: 1px solid rgba(255,255,255,.35); border-radius: 6px; color: var(--hero-text); font-size: 12px; padding: 3px 6px; }
+  .goalTrack { height: 8px; background: rgba(255,255,255,.18); border-radius: 4px; margin-top: 6px; overflow: hidden; }
+  .goalFill { height: 100%; background: #fff; border-radius: 4px; transition: width .3s; }
+  .donutrow { display: flex; gap: 24px; align-items: center; margin-top: 14px; }
+  .donut {
+    width: 170px; height: 170px; border-radius: 50%; position: relative; flex: none; cursor: pointer;
+    /* Static fallback matching the default figures above — shown immediately on load and
+       replaced by the JS-computed gradient once live prices resolve (or on failure, stays
+       accurate since the underlying numbers are unchanged). */
+    background: conic-gradient(var(--port-dist) 0 67.8%, var(--port-acc) 67.8% 82.9%, var(--port-stock) 82.9% 85.6%, var(--port-crypto) 85.6% 99.5%, var(--port-cash) 99.5% 100%);
+  }
+  .donut:after { content: ""; position: absolute; inset: 32px; background: var(--surface-2); border-radius: 50%; }
+  .legend { flex: 1; }
+  .legend div { font-size: 12px; padding: 7px 6px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; border-radius: 6px; transition: background .1s; cursor: pointer; }
+  .legend div.seg-hover { background: color-mix(in srgb, var(--port-dist) 6%, transparent); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .dot.dist   { background: var(--port-dist); }
+  .dot.acc    { background: var(--port-acc); }
+  .dot.stock  { background: var(--port-stock); }
+  .dot.crypto { background: var(--port-crypto); }
+  .dot.cash   { background: var(--port-cash); }
+  .donutTip { position: fixed; display: none; background: var(--text-primary); color: var(--page); padding: 8px 11px; border-radius: 8px; font-size: 12px; line-height: 1.5; pointer-events: none; z-index: 60; box-shadow: var(--shadow); white-space: nowrap; }
+  .donutTip b { display: block; font-size: 12.5px; }
+  .donutHighlight { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: transparent; transition: background .15s; }
+  .dividend { margin-top: 17px; background: color-mix(in srgb, var(--port-dist) 6%, var(--surface-1)); border: 1px solid color-mix(in srgb, var(--port-dist) 22%, var(--border)); border-radius: 12px; padding: 15px; }
+  .divtop { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+  .divamount { font-size: 23px; font-weight: bold; color: var(--port-dist); }
+  .proggrid { display: grid; grid-template-columns: 340px 1fr; gap: 18px; }
+  .controls-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+  .control { border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .control label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 7px; }
+  select { width: 100%; height: 42px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); padding: 0 10px; font-size: 15px; color: var(--text-primary); }
+  .pills { display: grid; gap: 8px; }
+  .pill {
+    height: 42px; min-width: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2);
+    font: inherit; font-size: 15px; color: var(--text-primary); cursor: pointer;
+    transition: background .12s, border-color .12s, color .12s; display: flex; align-items: center; justify-content: center; padding: 0; text-align: center;
+  }
+  .pill:hover { border-color: color-mix(in srgb, var(--port-dist) 40%, var(--border)); }
+  .pill.active { background: var(--port-dist); border-color: var(--port-dist); color: #fff; font-weight: bold; }
+  .slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--border); outline: none; margin-top: 6px; }
+  .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--port-dist); cursor: pointer; border: 3px solid var(--surface-2); box-shadow: 0 0 0 1px var(--port-dist); }
+  .slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--port-dist); cursor: pointer; border: 3px solid var(--surface-2); box-shadow: 0 0 0 1px var(--port-dist); }
+  .sliderticks { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); padding: 0 11px; margin-top: 4px; text-align: center; }
+  .result { background: var(--surface-1); border-radius: 11px; padding: 15px; margin-top: 14px; }
+  .big { font-size: 30px; font-weight: bold; color: var(--port-dist); margin-top: 3px; }
+  .row { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding: 10px 0; font-size: 13px; }
+  .row:first-child { margin-top: 8px; }
+  @media(max-width:720px) {
+    .proggrid { grid-template-columns: 1fr; }
+    .controls-grid { grid-template-columns: 1fr; }
+    .donutrow { align-items: flex-start; }
+    .donut { width: 145px; height: 145px; } .donut:after { inset: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div>
+      <a class="home-link" href="index.html">← Financiën</a>
+      <h1>Portfolio Dashboard</h1>
+      <div class="sub">ETF's, aandelen, crypto en spaargeld — live koersen, verdeling en groeiprognose</div>
+    </div>
+    <div class="controls">
+      <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="hero"><div class="muted">Totale waarde</div><div class="total"><span id="heroTotalAmount">€ 7.830,68</span><span class="heroChg" id="heroChg" style="display:none"></span></div><div class="muted" id="liveStatus" style="margin-top:8px">Live koersen laden…</div>
+<div class="goalWrap">
+<div class="goalTop"><span>Doel: € <input type="number" id="goalInput" value="10000" min="0" step="500"></span><span id="goalPctText">0%</span></div>
+<div class="goalTrack"><div class="goalFill" id="goalFill" style="width:0%"></div></div>
+</div>
+</div>
+
+<div class="card">
+<h2>Portfolio</h2>
+
+<div class="group">
+<div class="head"><div class="cat"><div class="ico">◔</div><div><div class="catname">ETF's</div><div class="muted">4 posities</div></div></div><div class="headright"><b id="totEtf">€ 6.488,54</b><span class="chev">▶</span></div></div>
+<div class="items">
+<div class="item" data-shares="33.602582" data-ticker="VWRL.AS" data-ccy="EUR"><div><div class="name">Vanguard All-World — Distribuerend</div><div class="muted">33,602582 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vwrl">€ 2.746,34</div><div class="chg" id="chg-vwrl">—</div></div></div>
+<div class="item" data-shares="3.629927" data-ticker="VWCE.DE" data-ccy="EUR"><div><div class="name">Vanguard All-World — Accumulerend</div><div class="muted">3,629927 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vwce">€ 613,09</div><div class="chg" id="chg-vwce">—</div></div></div>
+<div class="item" data-shares="20.041111" data-ticker="VUSA.AS" data-ccy="EUR"><div><div class="name">Vanguard S&amp;P 500 — Distribuerend</div><div class="muted">20,041111 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vusa">€ 2.557,83</div><div class="chg" id="chg-vusa">—</div></div></div>
+<div class="item" data-shares="4.392755" data-ticker="VUAA.DE" data-ccy="EUR"><div><div class="name">Vanguard S&amp;P 500 — Accumulerend</div><div class="muted">4,392755 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vuaa">€ 571,28</div><div class="chg" id="chg-vuaa">—</div></div></div>
+</div>
+</div>
+
+<div class="group">
+<div class="head"><div class="cat"><div class="ico green">▥</div><div><div class="catname">Aandelen</div><div class="muted">1 positie</div></div></div><div class="headright"><b id="totStock">€ 212,21</b><span class="chev">▶</span></div></div>
+<div class="items">
+<div class="item" data-shares="1.125466" data-ticker="NVDA" data-ccy="USD"><div><div class="name">NVIDIA</div><div class="muted">1,125466 aandelen</div></div><div class="valueWrap"><div class="value" id="v-nvda">€ 212,21</div><div class="chg" id="chg-nvda">—</div></div></div>
+</div>
+</div>
+
+<div class="group">
+<div class="head"><div class="cat"><div class="ico orange">₿</div><div><div class="catname">Crypto</div><div class="muted">2 posities</div></div></div><div class="headright"><b id="totCrypto">€ 1.090,69</b><span class="chev">▶</span></div></div>
+<div class="items">
+<div class="item" data-shares="0.38487" data-coingecko="ethereum"><div><div class="name">Ethereum</div><div class="muted">0,38487 ETH</div></div><div class="valueWrap"><div class="value" id="v-eth">€ 628,66</div><div class="chg" id="chg-eth">—</div></div></div>
+<div class="item" data-shares="0.008319" data-coingecko="bitcoin"><div><div class="name">Bitcoin</div><div class="muted">0,008319 BTC</div></div><div class="valueWrap"><div class="value" id="v-btc">€ 462,03</div><div class="chg" id="chg-btc">—</div></div></div>
+</div>
+</div>
+
+<div class="group">
+<div class="head"><div class="cat"><div class="ico gold">▣</div><div><div class="catname">Spaargeld</div><div class="muted">Beschikbaar saldo</div></div></div><div class="headright"><b id="totCash">€ 39,24</b><span class="chev">▶</span></div></div>
+<div class="items">
+<div class="item"><div class="name">Beschikbaar saldo</div><div class="value">€ 39,24</div></div>
+</div>
+</div>
+
+<h3 style="margin-top:20px">Verdeling</h3>
+<div class="donutrow">
+<div class="donut" id="donut"><div class="donutHighlight" id="donutHighlight"></div></div>
+<div class="donutTip" id="donutTip"></div>
+<div class="legend">
+<div><span><i class="dot dist"></i>ETF — Distribuerend</span><b id="pctDist">67,8%</b></div>
+<div><span><i class="dot acc"></i>ETF — Accumulerend</span><b id="pctAcc">15,1%</b></div>
+<div><span><i class="dot stock"></i>Aandelen</span><b id="pctStock">2,7%</b></div>
+<div><span><i class="dot crypto"></i>Crypto</span><b id="pctCrypto">13,9%</b></div>
+<div><span><i class="dot cash"></i>Spaargeld</span><b id="pctCash">0,5%</b></div>
+</div></div>
+
+<div class="dividend">
+<div class="divtop"><div><h3>Volgende dividend</h3><div class="muted">Gecombineerd voor de distribuerende ETF's.</div></div><div class="divamount">± € 32</div></div>
+<div class="row"><span>Verwachte datum</span><b>1 oktober 2026</b></div>
+</div>
+</div>
+
+<div class="card">
+<h2>Prognose</h2>
+<div class="controls-grid">
+<div class="control"><label>Maandelijkse inleg</label><div class="pills" id="monthly" data-value="0" style="grid-template-columns:repeat(6,1fr)">
+<button type="button" class="pill active" data-val="0">€0</button>
+<button type="button" class="pill" data-val="100">€100</button>
+<button type="button" class="pill" data-val="200">€200</button>
+<button type="button" class="pill" data-val="300">€300</button>
+<button type="button" class="pill" data-val="400">€400</button>
+<button type="button" class="pill" data-val="500">€500</button>
+</div></div>
+<div class="control"><label>Aantal jaren — <span id="yearsLabel">1</span> jaar</label>
+<input type="range" id="years" min="1" max="5" step="1" value="1" class="slider">
+<div class="sliderticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+</div>
+<div class="control"><label>Verwacht rendement</label><div class="pills" id="rate" data-value="5" style="grid-template-columns:repeat(6,1fr)">
+<button type="button" class="pill active" data-val="5">5%</button>
+<button type="button" class="pill" data-val="6">6%</button>
+<button type="button" class="pill" data-val="7">7%</button>
+<button type="button" class="pill" data-val="8">8%</button>
+<button type="button" class="pill" data-val="9">9%</button>
+<button type="button" class="pill" data-val="10">10%</button>
+</div></div>
+</div>
+<div class="result">
+<div class="muted">Verwachte waarde</div><div id="future" class="big">€ 7.831</div>
+<div class="row"><span>Na</span><b id="yearsText">3 jaar</b></div>
+<div class="row"><span>Totale extra inleg</span><b id="extra">€ 0</b></div>
+<div class="row"><span>Geschatte winst</span><b id="profit">€ 0</b></div>
+</div>
+</div>
+
+</div>
+<script>
+(function(){
+var start=7830.68;
+function euro(n){return "€ "+Math.round(n).toLocaleString("nl-NL");}
+function calc(monthly,rate,years){
+var r=rate/100/12,n=years*12;
+if(r===0)return start+monthly*n;
+return start*Math.pow(1+r,n)+monthly*(Math.pow(1+r,n)-1)/r;
+}
+function update(){
+var rate=Number(document.getElementById("rate").getAttribute("data-value"));
+var years=Number(document.getElementById("years").value);
+var monthly=Number(document.getElementById("monthly").getAttribute("data-value"));
+var finalValue=calc(monthly,rate,years);
+var extra=monthly*12*years;
+var profit=finalValue-start-extra;
+document.getElementById("future").textContent=euro(finalValue);
+document.getElementById("yearsText").textContent=years+" jaar";
+document.getElementById("yearsLabel").textContent=years;
+document.getElementById("extra").textContent=euro(extra);
+document.getElementById("profit").textContent=euro(profit);
+}
+function wirePillGroup(id){
+var wrap=document.getElementById(id);
+var pills=wrap.querySelectorAll(".pill");
+for(var p=0;p<pills.length;p++){
+pills[p].addEventListener("click",function(){
+for(var q=0;q<pills.length;q++)pills[q].classList.remove("active");
+this.classList.add("active");
+wrap.setAttribute("data-value",this.getAttribute("data-val"));
+update();
+});
+}
+}
+var groups=document.querySelectorAll(".group");
+for(var g=0;g<groups.length;g++){
+groups[g].querySelector(".head").addEventListener("click",function(){
+this.parentElement.classList.toggle("open");
+});
+}
+wirePillGroup("rate");
+wirePillGroup("monthly");
+document.getElementById("years").addEventListener("input",update);
+update();
+
+// ---- Theme toggle (matches the other pages in this site) ----
+document.getElementById('btn-theme').addEventListener('click', () => {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme');
+  if (current === 'dark') root.setAttribute('data-theme', 'light');
+  else if (current === 'light') root.removeAttribute('data-theme');
+  else root.setAttribute('data-theme', 'dark');
+  recomputeTotals(); // repaint the donut with the new theme's category colors
+});
+
+// ---- Live koersen ----
+var cashValue=39.24;
+function fmtEuro(n){return "€ "+n.toLocaleString("nl-NL",{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+// Reads the current theme's category colors from CSS custom properties, so the donut and
+// tooltip stay in sync with light/dark mode without duplicating the palette in JS.
+function categoryColor(varName){
+return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#999';
+}
+
+async function fetchJson(url){
+var res=await fetch(url);
+if(!res.ok)throw new Error("bad response "+res.status);
+return res.json();
+}
+async function fetchYahoo(ticker){
+var target="https://query1.finance.yahoo.com/v8/finance/chart/"+encodeURIComponent(ticker);
+var proxied="https://api.allorigins.win/raw?url="+encodeURIComponent(target);
+var data=await fetchJson(proxied);
+var meta=data.chart.result[0].meta;
+var price=meta.regularMarketPrice;
+if(typeof price!=="number")throw new Error("geen koers");
+var prevClose=meta.chartPreviousClose||meta.previousClose;
+var changePct=(typeof prevClose==="number"&&prevClose)?(price/prevClose-1)*100:null;
+return {price:price,changePct:changePct};
+}
+
+async function refreshLive(){
+var statusEl=document.getElementById("liveStatus");
+statusEl.textContent="Live koersen laden…";
+var failed=[];
+window.dayChanges={};
+
+var usdToEur=null;
+try{
+var fx=await fetchJson("https://api.frankfurter.app/latest?from=USD&to=EUR");
+usdToEur=fx.rates.EUR;
+}catch(e){failed.push("USD/EUR-koers");}
+
+try{
+var cg=await fetchJson("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=eur&include_24hr_change=true");
+setItemValue("v-eth",0.38487*cg.ethereum.eur);
+setItemValue("v-btc",0.008319*cg.bitcoin.eur);
+setChangeBadge("chg-eth",cg.ethereum.eur_24h_change);
+setChangeBadge("chg-btc",cg.bitcoin.eur_24h_change);
+window.dayChanges.eth=cg.ethereum.eur_24h_change;
+window.dayChanges.btc=cg.bitcoin.eur_24h_change;
+}catch(e){failed.push("crypto");}
+
+var etfItems=[
+{id:"v-vwrl",chgId:"chg-vwrl",key:"vwrl",ticker:"VWRL.AS",shares:33.602582,ccy:"EUR"},
+{id:"v-vwce",chgId:"chg-vwce",key:"vwce",ticker:"VWCE.DE",shares:3.629927,ccy:"EUR"},
+{id:"v-vusa",chgId:"chg-vusa",key:"vusa",ticker:"VUSA.AS",shares:20.041111,ccy:"EUR"},
+{id:"v-vuaa",chgId:"chg-vuaa",key:"vuaa",ticker:"VUAA.DE",shares:4.392755,ccy:"EUR"}
+];
+for(var i=0;i<etfItems.length;i++){
+var it=etfItems[i];
+try{
+var r=await fetchYahoo(it.ticker);
+setItemValue(it.id,it.shares*r.price);
+setChangeBadge(it.chgId,r.changePct);
+window.dayChanges[it.key]=r.changePct;
+}catch(e){failed.push(it.ticker);}
+}
+
+try{
+var nvda=await fetchYahoo("NVDA");
+var nvdaEur=usdToEur?nvda.price*usdToEur:nvda.price;
+setItemValue("v-nvda",1.125466*nvdaEur);
+setChangeBadge("chg-nvda",nvda.changePct);
+window.dayChanges.nvda=nvda.changePct;
+}catch(e){failed.push("NVDA");}
+
+recomputeTotals();
+
+if(failed.length===0){
+statusEl.textContent="Live — bijgewerkt "+new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+}else{
+statusEl.textContent="Deels live bijgewerkt (rest toont laatst bekende waarde) — "+new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+}
+}
+
+function setChangeBadge(id,pct){
+var el=document.getElementById(id);
+if(!el||typeof pct!=="number"||isNaN(pct)){return;}
+var arrow=pct>0?"▲":(pct<0?"▼":"–");
+el.textContent=arrow+" "+Math.abs(pct).toLocaleString("nl-NL",{minimumFractionDigits:1,maximumFractionDigits:1})+"%";
+el.className="chg "+(pct>0?"up":(pct<0?"down":""));
+}
+
+function updateHeroChange(){
+var dc=window.dayChanges||{};
+var weights=[
+{key:"vwrl",amount:parseEuro(document.getElementById("v-vwrl").textContent)},
+{key:"vwce",amount:parseEuro(document.getElementById("v-vwce").textContent)},
+{key:"vusa",amount:parseEuro(document.getElementById("v-vusa").textContent)},
+{key:"vuaa",amount:parseEuro(document.getElementById("v-vuaa").textContent)},
+{key:"nvda",amount:parseEuro(document.getElementById("v-nvda").textContent)},
+{key:"eth",amount:parseEuro(document.getElementById("v-eth").textContent)},
+{key:"btc",amount:parseEuro(document.getElementById("v-btc").textContent)}
+];
+var sumAmt=0,sumWeighted=0;
+weights.forEach(function(w){
+var pct=dc[w.key];
+if(typeof pct==="number"&&!isNaN(pct)){
+sumAmt+=w.amount;
+sumWeighted+=w.amount*pct;
+}
+});
+var heroChgEl=document.getElementById("heroChg");
+if(sumAmt===0){heroChgEl.style.display="none";return;}
+var avgPct=sumWeighted/sumAmt;
+var arrow=avgPct>0?"▲":(avgPct<0?"▼":"–");
+heroChgEl.textContent=arrow+" "+Math.abs(avgPct).toLocaleString("nl-NL",{minimumFractionDigits:1,maximumFractionDigits:1})+"% vandaag";
+heroChgEl.className="heroChg "+(avgPct>0?"up":(avgPct<0?"down":""));
+heroChgEl.style.display="inline-block";
+}
+
+function updateGoal(grandTotal){
+var goal=Number(document.getElementById("goalInput").value)||0;
+var pct=goal>0?Math.min(100,grandTotal/goal*100):0;
+document.getElementById("goalFill").style.width=pct+"%";
+document.getElementById("goalPctText").textContent=pct.toLocaleString("nl-NL",{minimumFractionDigits:0,maximumFractionDigits:0})+"%";
+}
+document.getElementById("goalInput").addEventListener("input",function(){
+updateGoal(window.portfolioTotals?window.portfolioTotals.grand:start);
+});
+
+function parseEuro(text){
+return Number(text.replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",", "."));
+}
+function setItemValue(id,val){
+var el=document.getElementById(id);
+if(el)el.textContent=fmtEuro(val);
+}
+function recomputeTotals(){
+var etfIds=["v-vwrl","v-vwce","v-vusa","v-vuaa"];
+var etfTotal=0;
+etfIds.forEach(function(id){etfTotal+=parseEuro(document.getElementById(id).textContent);});
+var stockTotal=parseEuro(document.getElementById("v-nvda").textContent);
+var cryptoTotal=parseEuro(document.getElementById("v-eth").textContent)+parseEuro(document.getElementById("v-btc").textContent);
+var cashTotal=cashValue;
+
+document.getElementById("totEtf").textContent=fmtEuro(etfTotal);
+document.getElementById("totStock").textContent=fmtEuro(stockTotal);
+document.getElementById("totCrypto").textContent=fmtEuro(cryptoTotal);
+document.getElementById("totCash").textContent=fmtEuro(cashTotal);
+
+var grandTotal=etfTotal+stockTotal+cryptoTotal+cashTotal;
+document.getElementById("heroTotalAmount").textContent=fmtEuro(grandTotal);
+updateHeroChange();
+updateGoal(grandTotal);
+
+var distTotal=parseEuro(document.getElementById("v-vwrl").textContent)+parseEuro(document.getElementById("v-vusa").textContent);
+var accTotal=parseEuro(document.getElementById("v-vwce").textContent)+parseEuro(document.getElementById("v-vuaa").textContent);
+var pDist=grandTotal?distTotal/grandTotal*100:0;
+var pAcc=grandTotal?accTotal/grandTotal*100:0;
+var pStock=grandTotal?stockTotal/grandTotal*100:0;
+var pCrypto=grandTotal?cryptoTotal/grandTotal*100:0;
+var pCash=grandTotal?cashTotal/grandTotal*100:0;
+
+function pf(n){return n.toLocaleString("nl-NL",{minimumFractionDigits:1,maximumFractionDigits:1})+"%";}
+document.getElementById("pctDist").textContent=pf(pDist);
+document.getElementById("pctAcc").textContent=pf(pAcc);
+document.getElementById("pctStock").textContent=pf(pStock);
+document.getElementById("pctCrypto").textContent=pf(pCrypto);
+document.getElementById("pctCash").textContent=pf(pCash);
+document.getElementById("pctDist").setAttribute("data-amount",distTotal);
+document.getElementById("pctAcc").setAttribute("data-amount",accTotal);
+document.getElementById("pctStock").setAttribute("data-amount",stockTotal);
+document.getElementById("pctCrypto").setAttribute("data-amount",cryptoTotal);
+document.getElementById("pctCash").setAttribute("data-amount",cashTotal);
+
+var cDist=categoryColor('--port-dist'), cAcc=categoryColor('--port-acc'), cStock=categoryColor('--port-stock'), cCrypto=categoryColor('--port-crypto'), cCash=categoryColor('--port-cash');
+var c1=pDist,c2=c1+pAcc,c3=c2+pStock,c4=c3+pCrypto;
+document.getElementById("donut").style.background="conic-gradient("+cDist+" 0 "+c1+"%,"+cAcc+" "+c1+"% "+c2+"%,"+cStock+" "+c2+"% "+c3+"%,"+cCrypto+" "+c3+"% "+c4+"%,"+cCash+" "+c4+"% 100%)";
+
+window.portfolioTotals={etf:etfTotal,stock:stockTotal,crypto:cryptoTotal,cash:cashTotal,grand:grandTotal};
+start=grandTotal;
+update();
+}
+refreshLive();
+
+// ---- Donut hover interactie (beide richtingen) ----
+var donutEl=document.getElementById("donut");
+var highlightEl=document.getElementById("donutHighlight");
+var tipEl=document.getElementById("donutTip");
+var segMeta=[
+{pctId:"pctDist",label:"ETF — Distribuerend"},
+{pctId:"pctAcc",label:"ETF — Accumulerend"},
+{pctId:"pctStock",label:"Aandelen"},
+{pctId:"pctCrypto",label:"Crypto"},
+{pctId:"pctCash",label:"Spaargeld"}
+];
+function getSegments(){
+var cum=0;
+return segMeta.map(function(o,idx){
+var el=document.getElementById(o.pctId);
+var pctVal=parseFloat((el.textContent||"0").replace("%","").replace(",","."))||0;
+var amt=parseFloat(el.getAttribute("data-amount"))||0;
+var startDeg=cum*3.6;
+cum+=pctVal;
+var endDeg=idx===segMeta.length-1?360:cum*3.6;
+return {label:o.label,pct:pctVal,amount:amt,start:startDeg,end:endDeg,legendEl:el.closest("div")};
+});
+}
+function clearHover(){
+document.querySelectorAll(".legend div.seg-hover").forEach(function(d){d.classList.remove("seg-hover");});
+highlightEl.style.background="transparent";
+tipEl.style.display="none";
+}
+function applyHighlight(seg,clientX,clientY){
+if(!seg)return;
+document.querySelectorAll(".legend div.seg-hover").forEach(function(d){d.classList.remove("seg-hover");});
+if(seg.legendEl)seg.legendEl.classList.add("seg-hover");
+highlightEl.style.background="conic-gradient(transparent 0 "+seg.start+"deg, rgba(255,255,255,.4) "+seg.start+"deg "+seg.end+"deg, transparent "+seg.end+"deg 360deg)";
+tipEl.innerHTML="<b>"+seg.label+"</b>"+fmtEuro(seg.amount)+" · "+seg.pct.toLocaleString("nl-NL",{minimumFractionDigits:1,maximumFractionDigits:1})+"%";
+tipEl.style.left=(clientX+16)+"px";
+tipEl.style.top=(clientY+16)+"px";
+tipEl.style.display="block";
+}
+donutEl.addEventListener("mousemove",function(e){
+var rect=donutEl.getBoundingClientRect();
+var cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+var dx=e.clientX-cx,dy=e.clientY-cy;
+var dist=Math.sqrt(dx*dx+dy*dy);
+var outerR=rect.width/2;
+if(dist>outerR||dist<outerR*0.62){clearHover();return;}
+var angle=(Math.atan2(dy,dx)*180/Math.PI+90+360)%360;
+var segs=getSegments();
+var seg=null;
+for(var i=0;i<segs.length;i++){if(angle>=segs[i].start&&angle<segs[i].end){seg=segs[i];break;}}
+if(!seg){clearHover();return;}
+applyHighlight(seg,e.clientX,e.clientY);
+});
+donutEl.addEventListener("mouseleave",clearHover);
+
+segMeta.forEach(function(o,idx){
+var rowEl=document.getElementById(o.pctId).closest("div");
+rowEl.style.cursor="pointer";
+rowEl.addEventListener("mousemove",function(e){
+var segs=getSegments();
+applyHighlight(segs[idx],e.clientX,e.clientY);
+});
+rowEl.addEventListener("mouseleave",clearHover);
+});
+})();
+
+</script>
+</body>
+</html>
