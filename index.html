@@ -94,13 +94,12 @@
 
   .wrap { max-width: 880px; margin: 0 auto; padding: 56px 20px 40px; }
 
-  /* Fixed 2x2 layout — always exactly two tiles per row (Budget/Mortgage, then
-     Portfolio/Net Worth) regardless of window width, rather than reflowing with it. */
+  /* Fixed 2x2 layout — always exactly two tiles per row regardless of window width,
+     rather than reflowing with it. */
   .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
   @media (max-width: 480px) {
     .grid { grid-template-columns: 1fr; }
   }
-  .tile.wide { grid-column: 1 / -1; }
 
   .tile {
     display: block; text-decoration: none; color: inherit;
@@ -117,7 +116,6 @@
   }
   .tile-icon.budget    { background: color-mix(in srgb, var(--series-maarten) 14%, var(--surface-1)); color: var(--series-maarten); }
   .tile-icon.portfolio { background: color-mix(in srgb, var(--seg-joint) 14%, var(--surface-1)); color: var(--seg-joint); }
-  .tile-icon.networth  { background: color-mix(in srgb, var(--seg-left) 14%, var(--surface-1)); color: var(--seg-left); }
   .tile-icon.house     { background: color-mix(in srgb, var(--seg-personal) 14%, var(--surface-1)); color: var(--seg-personal); }
   .tile-icon.newhouse  { background: color-mix(in srgb, var(--status-critical, #d03b3b) 14%, var(--surface-1)); color: var(--status-critical, #d03b3b); }
 
@@ -190,7 +188,7 @@
   <div class="inner">
     <div>
       <h1>Financiën</h1>
-      <div class="sub">Your budget, portfolio, net worth, and home — all in one place</div>
+      <div class="sub">Your budget, portfolio, and home — all in one place</div>
     </div>
     <div class="controls">
       <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
@@ -222,14 +220,7 @@
       <div class="arrow">Open →</div>
     </a>
 
-    <a class="tile" href="networth.html">
-      <div class="tile-icon networth">💰</div>
-      <h2>Net Worth Overview</h2>
-      <p>Everything you own minus everything you owe, pulled together from your budget, portfolio, and home.</p>
-      <div class="arrow">Open →</div>
-    </a>
-
-    <a class="tile wide" href="newhouse.html">
+    <a class="tile" href="newhouse.html">
       <div class="tile-icon newhouse">🧳</div>
       <h2>New House Checklist</h2>
       <p>Savings goal, moving &amp; buying costs, and the budget plan for whenever you find the next place.</p>

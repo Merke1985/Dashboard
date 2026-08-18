@@ -297,8 +297,8 @@
   }
   .btn-add-item:hover { border-color: var(--series-maarten); color: var(--series-maarten); }
 
-  .row-head.personal, .row.personal { grid-template-columns: 1fr 92px 92px 84px; }
-  .subtotal-row.personal { grid-template-columns: 1fr 92px 92px 84px; }
+  .row-head.personal, .row.personal { grid-template-columns: 1fr 92px 92px; }
+  .subtotal-row.personal { grid-template-columns: 1fr 92px 92px; }
   .subtotal-row.personal .computed.maarten { color: var(--series-maarten); }
   .subtotal-row.personal .computed.nicolas { color: var(--series-nicolas); }
 
@@ -354,11 +354,9 @@
     text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em;
     color: var(--text-muted); font-weight: 650; padding: 0 8px 8px; border-bottom: 1px solid var(--gridline);
   }
-  table.checklist-table tbody tr { border-bottom: 1px solid var(--gridline); transition: opacity 0.15s ease; }
-  table.checklist-table tbody tr.done { opacity: 0.5; }
+  table.checklist-table tbody tr { border-bottom: 1px solid var(--gridline); }
   table.checklist-table td { padding: 7px 8px; vertical-align: middle; }
   table.checklist-table td.amt-col { text-align: right; }
-  .checklist-done-cb { width: 16px; height: 16px; accent-color: var(--status-good); cursor: pointer; }
   select.checklist-cat {
     font: inherit; font-size: 12.5px; padding: 6px 8px; border-radius: 7px;
     border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary);
@@ -381,7 +379,6 @@
 
   .checklist-total-wrap { display: flex; align-items: center; gap: 12px; }
   .checklist-total-wrap .value { font-size: 18px; font-variant-numeric: tabular-nums; }
-  #btn-checklist-to-goal-b { font-size: 11.5px; padding: 5px 10px; }
 
   /* donut chart */
   .donut-row { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
@@ -598,7 +595,7 @@
   @media (max-width: 560px) {
     .row-head, .row { grid-template-columns: 1fr 96px; font-size: 12px; }
     .subtotal-row { grid-template-columns: 1fr 96px; }
-    .row-head.personal, .row.personal, .subtotal-row.personal { grid-template-columns: 1fr 78px 78px 70px; }
+    .row-head.personal, .row.personal, .subtotal-row.personal { grid-template-columns: 1fr 78px 78px; }
   }
 
   /* loan rows — the debt breakdown itself lives in the ℹ️ info modal now (see
@@ -728,12 +725,12 @@
   <!-- HOUSE FUND -->
   <section class="card">
     <h2>House fund <span class="badge">savings goal</span></h2>
-    <p class="desc">What you're setting aside for buyer's costs (kosten koper) and a safety buffer before committing to this mortgage. Edit any number below.</p>
+    <p class="desc">What you're setting aside for moving and buying costs before committing to this mortgage. The goal is set automatically from your checklist total below — edit Saved so far and Saving per month directly.</p>
 
     <div class="equation-row">
       <div class="tile input">
         <div class="label">Goal</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="100" min="0" id="in-housefund-goal-b" value="15000"></div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="100" min="0" id="in-housefund-goal-b" value="15000" readonly></div>
       </div>
       <div class="tile input">
         <div class="label">Saved so far</div>
@@ -769,7 +766,7 @@
     <div class="checklist-table-wrap">
       <table class="checklist-table">
         <thead>
-          <tr><th></th><th>Category</th><th>Item</th><th style="text-align:right">Amount €</th><th></th></tr>
+          <tr><th>Category</th><th>Item</th><th style="text-align:right">Amount €</th><th></th></tr>
         </thead>
         <tbody id="checklist-rows-b"></tbody>
       </table>
@@ -779,10 +776,9 @@
     <div class="checklist-breakdown" id="checklist-breakdown-b"></div>
 
     <div class="grand-total" style="margin-top:18px;">
-      <div>Checklist total</div>
+      <div>Checklist total <span style="font-weight:400;color:var(--text-muted);">(= Goal above)</span></div>
       <div class="checklist-total-wrap">
         <div class="value" id="checklist-total-b">€&nbsp;0,00</div>
-        <button type="button" class="ctl" id="btn-checklist-to-goal-b" title="Set the Goal above to this total">↑ Use as goal</button>
       </div>
     </div>
   </section>
@@ -1095,7 +1091,7 @@
     <div class="subtotal-outer">
       <span class="drag-handle spacer-only" aria-hidden="true"></span>
       <div class="row-head personal">
-        <div></div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
+        <div></div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
       <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1294,7 +1290,6 @@
         <div>Total personal costs</div>
         <div class="computed maarten" id="out-pc-total-maarten-b">€&nbsp;0,00</div>
         <div class="computed nicolas" id="out-pc-total-nicolas-b">€&nbsp;0,00</div>
-        <div class="computed" id="out-pc-total-total-b">€&nbsp;0,00</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
       <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1401,18 +1396,14 @@
       // `items` is the moving/buying cost checklist — a starter set of categories/labels
       // at €0 (not real figures) so there's something to edit rather than a blank table.
       houseFund: {
-        goal: 15000, saved: 0, monthlyContribution: 0,
+        goal: 0, saved: 0, monthlyContribution: 0,
         items: [
-          { category: "Buyer's costs", label: "Transfer tax (overdrachtsbelasting)", amount: 0, done: false },
-          { category: "Buyer's costs", label: "Notary fees", amount: 0, done: false },
-          { category: "Buyer's costs", label: "NHG guarantee fee", amount: 0, done: false },
-          { category: "Buyer's costs", label: "Mortgage advice", amount: 0, done: false },
-          { category: "Buyer's costs", label: "Valuation (taxatie)", amount: 0, done: false },
-          { category: "Moving", label: "Moving company", amount: 0, done: false },
-          { category: "Furniture & setup", label: "New furniture", amount: 0, done: false },
-          { category: "Furniture & setup", label: "Paint & small renovations", amount: 0, done: false },
-          { category: "Repairs & maintenance", label: "Roof", amount: 0, done: false },
-          { category: "Buffer", label: "Emergency buffer", amount: 0, done: false },
+          { category: "Transport", label: "Moving company", amount: 0 },
+          { category: "New home essentials", label: "New furniture", amount: 0 },
+          { category: "New home essentials", label: "Paint & small renovations", amount: 0 },
+          { category: "Repairs & maintenance", label: "Roof", amount: 0 },
+          { category: "Buffer", label: "Emergency buffer", amount: 0 },
+          { category: "Utility costs", label: "Utility connection/transfer fees", amount: 0 },
         ],
       },
     };
@@ -1422,7 +1413,12 @@
   // owns its own independent copy). Debt tracking is Nicolas-only — Maarten carries no debt.
   function defaultPersonal() {
     return [
-      { name: "Fixed costs", items: [
+      { name: "Groceries", items: [
+        { label: "Groceries", maarten: 0, nicolas: 0 },
+        { label: "Saving", maarten: 0, nicolas: 0 },
+      ]},
+      { name: "Transport", items: [] },
+      { name: "Health", items: [
         { label: "Health insurance", maarten: 0, nicolas: 0 },
         { label: "Health costs", maarten: 0, nicolas: 0 },
         { label: "Other insurance", maarten: 0, nicolas: 0 },
@@ -1431,10 +1427,6 @@
         { label: "Phone contract", maarten: 0, nicolas: 0 },
         { label: "Spotify", maarten: 0, nicolas: 0 },
         { label: "World of Warcraft", maarten: 0, nicolas: 0 },
-      ]},
-      { name: "Other", items: [
-        { label: "Groceries", maarten: 0, nicolas: 0 },
-        { label: "Saving", maarten: 0, nicolas: 0 },
       ]},
       { name: "Loans", items: [
         { label: "Student loan", maarten: 0, nicolas: 0, debt: {
@@ -1660,7 +1652,6 @@
               <div class="name"><input class="name-input" type="text" data-pc-label="${ci}.${ii}" value="${escapeAttr(it.label)}"${ro}></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"${ro}></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"${ro}></div>
-              <div class="computed" id="pc-${ci}-${ii}-t${s}">—</div>
             </div>
             ${rowActionButtonsHTML('pc', `${ci}.${ii}`, unlocked, 'cost')}
           `;
@@ -1691,7 +1682,6 @@
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"${ro}></div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"${ro}></div>
-          <div class="computed" id="pc-${ci}-${ii}-t${s}">—</div>
         `;
         wrapper.appendChild(row);
 
@@ -1717,7 +1707,6 @@
           <div>Subtotal — ${cat.name}</div>
           <div class="computed maarten" id="pc-cat-${ci}-m${s}">—</div>
           <div class="computed nicolas" id="pc-cat-${ci}-n${s}">—</div>
-          <div class="computed" id="pc-cat-${ci}-t${s}">—</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
         <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1807,11 +1796,8 @@
       recalcAndRender(scope);
     });
 
-    const hfGoalEl = el(scope, 'in-housefund-goal');
-    if (hfGoalEl) hfGoalEl.addEventListener('input', e => {
-      scope.state.houseFund.goal = parseFloat(e.target.value) || 0;
-      recalcAndRender(scope);
-    });
+    // Goal is read-only now — it's derived automatically from the checklist total in
+    // renderChecklistTotals(), so there's no input listener for it here.
     const hfSavedEl = el(scope, 'in-housefund-saved');
     if (hfSavedEl) hfSavedEl.addEventListener('input', e => {
       scope.state.houseFund.saved = parseFloat(e.target.value) || 0;
@@ -2056,17 +2042,16 @@
   }
 
   // ---------- Moving/buying cost checklist ----------
-  // Lives inside houseFund.items — an array of {category, label, amount, done}. `done` is
-  // purely a "sorted it out" tick, doesn't affect any of the money math; it just dims the
-  // row so it's easy to see what's still open at a glance.
-  const CHECKLIST_CATEGORIES = ["Buyer's costs", "Moving", "Furniture & setup", "Repairs & maintenance", "Buffer", "Other"];
+  // Lives inside houseFund.items — an array of {category, label, amount}. The checklist
+  // total drives the House fund's Goal automatically (see renderChecklistTotals below) —
+  // there's no separately-tracked goal number anymore.
+  const CHECKLIST_CATEGORIES = ["Transport", "New home essentials", "Repairs & maintenance", "Buffer", "Utility costs"];
   const CHECKLIST_COLORS = {
-    "Buyer's costs": 'var(--seg-left)',
-    "Moving": 'var(--series-maarten)',
-    "Furniture & setup": 'var(--seg-personal)',
+    "Transport": 'var(--series-maarten)',
+    "New home essentials": 'var(--seg-personal)',
     "Repairs & maintenance": 'var(--status-critical)',
     "Buffer": 'var(--seg-joint)',
-    "Other": 'var(--text-muted)',
+    "Utility costs": 'var(--series-nicolas)',
   };
 
   function checklistItems(scope) {
@@ -2081,8 +2066,7 @@
     if (!root) return;
     const items = checklistItems(scope);
     root.innerHTML = items.map((it, idx) => `
-      <tr data-checklist-row="${idx}" class="${it.done ? 'done' : ''}">
-        <td><input type="checkbox" class="checklist-done-cb" data-cl-done="${idx}"${it.done ? ' checked' : ''} title="Mark as sorted"></td>
+      <tr data-checklist-row="${idx}">
         <td><select class="checklist-cat" data-cl-cat="${idx}">${CHECKLIST_CATEGORIES.map(c => `<option value="${escapeAttr(c)}"${c === it.category ? ' selected' : ''}>${c}</option>`).join('')}</select></td>
         <td><input class="name-input" type="text" data-cl-label="${idx}" value="${escapeAttr(it.label)}" placeholder="What's this for?"></td>
         <td class="amt-col"><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="10" min="0" data-cl-amount="${idx}" value="${Number(it.amount) || 0}"></div></td>
@@ -2090,15 +2074,6 @@
       </tr>
     `).join('');
 
-    root.querySelectorAll('[data-cl-done]').forEach(cb => {
-      cb.addEventListener('change', (e) => {
-        const idx = +e.target.getAttribute('data-cl-done');
-        items[idx].done = e.target.checked;
-        e.target.closest('tr').classList.toggle('done', e.target.checked);
-        renderChecklistTotals(scope);
-        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
-      });
-    });
     root.querySelectorAll('[data-cl-cat]').forEach(sel => {
       sel.addEventListener('change', (e) => {
         const idx = +e.target.getAttribute('data-cl-cat');
@@ -2138,9 +2113,17 @@
     const total = items.reduce((sum, it) => sum + (Number(it.amount) || 0), 0);
     setText(`checklist-total${s}`, fmt(total));
 
+    // The Goal is no longer a separate manual figure — it's always the checklist total.
+    if (scope.state.houseFund) {
+      scope.state.houseFund.goal = Math.round(total);
+      const goalEl = el(scope, 'in-housefund-goal');
+      if (goalEl) goalEl.value = scope.state.houseFund.goal;
+      renderHouseFund(scope);
+    }
+
     const byCategory = {};
     items.forEach(it => {
-      const cat = it.category || 'Other';
+      const cat = it.category || CHECKLIST_CATEGORIES[0];
       byCategory[cat] = (byCategory[cat] || 0) + (Number(it.amount) || 0);
     });
     const cats = CHECKLIST_CATEGORIES.filter(c => byCategory[c] > 0);
@@ -2230,19 +2213,12 @@
     setText(`whopays-donut-pct-nicolas${s}`, pctFmt(r.splitNicolasPct));
 
     // personal cost rows
-    scope.state.personal.forEach((cat, ci) => {
-      cat.items.forEach((it, ii) => {
-        setText(`pc-${ci}-${ii}-t${s}`, fmt((Number(it.maarten) || 0) + (Number(it.nicolas) || 0)));
-      });
-    });
     r.pcCategoryTotals.forEach((c, ci) => {
       setText(`pc-cat-${ci}-m${s}`, fmt(c.maarten));
       setText(`pc-cat-${ci}-n${s}`, fmt(c.nicolas));
-      setText(`pc-cat-${ci}-t${s}`, fmt(c.maarten + c.nicolas));
     });
     setText(`out-pc-total-maarten${s}`, fmt(r.personalMaartenTotal));
     setText(`out-pc-total-nicolas${s}`, fmt(r.personalNicolasTotal));
-    setText(`out-pc-total-total${s}`, fmt(r.personalMaartenTotal + r.personalNicolasTotal));
 
     updateLoanDetails(scope);
 
@@ -2617,17 +2593,9 @@
 
   const clAddBtn = document.getElementById('btn-checklist-add-b');
   if (clAddBtn) clAddBtn.addEventListener('click', () => {
-    checklistItems(scopeB).push({ category: 'Other', label: '', amount: 0, done: false });
+    checklistItems(scopeB).push({ category: CHECKLIST_CATEGORIES[0], label: '', amount: 0 });
     renderChecklist(scopeB);
     document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scopeB.key } }));
-  });
-  const clGoalBtn = document.getElementById('btn-checklist-to-goal-b');
-  if (clGoalBtn) clGoalBtn.addEventListener('click', () => {
-    const total = checklistItems(scopeB).reduce((sum, it) => sum + (Number(it.amount) || 0), 0);
-    scopeB.state.houseFund.goal = Math.round(total);
-    const goalInput = document.getElementById('in-housefund-goal-b');
-    if (goalInput) goalInput.value = scopeB.state.houseFund.goal;
-    recalcAndRender(scopeB);
   });
 })();
 </script>

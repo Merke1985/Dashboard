@@ -297,8 +297,8 @@
   }
   .btn-add-item:hover { border-color: var(--series-maarten); color: var(--series-maarten); }
 
-  .row-head.personal, .row.personal { grid-template-columns: 1fr 92px 92px 84px; }
-  .subtotal-row.personal { grid-template-columns: 1fr 92px 92px 84px; }
+  .row-head.personal, .row.personal { grid-template-columns: 1fr 92px 92px; }
+  .subtotal-row.personal { grid-template-columns: 1fr 92px 92px; }
   .subtotal-row.personal .computed.maarten { color: var(--series-maarten); }
   .subtotal-row.personal .computed.nicolas { color: var(--series-nicolas); }
 
@@ -497,15 +497,8 @@
   }
   .loan-info-btn:hover { opacity: 1; background: color-mix(in srgb, var(--text-primary) 8%, transparent); }
 
-  .log-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
-  .log-summary .yr-tile {
-    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
-  }
-  .log-summary .yr-tile .yr { font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-  .log-summary .yr-tile .yr-actual { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 4px; }
-  .log-summary .yr-tile .yr-diff { font-size: 11px; margin-top: 2px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
-  .log-summary .yr-tile .yr-diff.good { color: var(--status-good-text); }
-  .log-summary .yr-tile .yr-diff.bad { color: var(--status-critical); }
+  .log-hidden-note { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; }
+  .item-note { color: var(--text-muted); font-size: 11.5px; font-style: italic; }
 
   .log-table-wrap { overflow-y: auto; max-height: 320px; border: 1px solid var(--gridline); border-radius: 10px; }
   table.log-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
@@ -545,7 +538,7 @@
   @media (max-width: 560px) {
     .row-head, .row { grid-template-columns: 1fr 96px; font-size: 12px; }
     .subtotal-row { grid-template-columns: 1fr 96px; }
-    .row-head.personal, .row.personal, .subtotal-row.personal { grid-template-columns: 1fr 78px 78px 70px; }
+    .row-head.personal, .row.personal, .subtotal-row.personal { grid-template-columns: 1fr 78px 78px; }
   }
 
   /* loan rows — the debt breakdown itself lives in the ℹ️ info modal now (see
@@ -1001,7 +994,7 @@
     <div class="subtotal-outer">
       <span class="drag-handle spacer-only" aria-hidden="true"></span>
       <div class="row-head personal">
-        <div>Item</div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
+        <div>Item</div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
       <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1200,7 +1193,6 @@
         <div>Total personal costs</div>
         <div class="computed maarten" id="out-pc-total-maarten">€&nbsp;0,00</div>
         <div class="computed nicolas" id="out-pc-total-nicolas">€&nbsp;0,00</div>
-        <div class="computed" id="out-pc-total-total">€&nbsp;0,00</div>
       </div>
       <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
       <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1216,14 +1208,14 @@
       <div class="person-card">
         <h3><span class="swatch maarten"></span>Maarten</h3>
         <div class="line"><span>Salary</span><span class="v" id="sum-m-salary">€&nbsp;0,00</span></div>
-        <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-m-household">€&nbsp;0,00</span></div>
+        <div class="line"><span>Joint costs</span><span class="v" id="sum-m-household">€&nbsp;0,00</span></div>
         <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal">€&nbsp;0,00</span></div>
         <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left">€&nbsp;0,00</span></div>
       </div>
       <div class="person-card">
         <h3><span class="swatch nicolas"></span>Nicolas</h3>
         <div class="line"><span>Salary</span><span class="v" id="sum-n-salary">€&nbsp;0,00</span></div>
-        <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-n-household">€&nbsp;0,00</span></div>
+        <div class="line"><span>Joint costs</span><span class="v" id="sum-n-household">€&nbsp;0,00</span></div>
         <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal">€&nbsp;0,00</span></div>
         <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left">€&nbsp;0,00</span></div>
       </div>
@@ -1250,14 +1242,12 @@
     <h3><span class="swatch nicolas"></span>Nicolas's logged contributions</h3>
     <button class="icon-btn" id="btn-close-log" type="button" aria-label="Close">✕</button>
   </div>
-  <p class="modal-desc">Every month you've logged: what Nicolas contributed to your account, his personal spending from the joint account — money spent from the joint account unrelated to its intended (joint) use — and the net contribution that resulted, straight from your spreadsheet's history.</p>
-
-  <div class="log-summary" id="log-summary"></div>
+  <p class="modal-desc">Every month you've logged: what Nicolas contributed to your account, his unintended use of the joint account — money spent from it unrelated to its intended (joint) use — and the net contribution that resulted, straight from your spreadsheet's history.</p>
 
   <div class="log-table-wrap">
     <table class="log-table">
       <thead>
-        <tr><th>Month</th><th>Contribution</th><th>Personal spending</th><th>Net contribution</th></tr>
+        <tr><th>Month</th><th>Contribution</th><th>Unintended use</th><th>Net contribution</th></tr>
       </thead>
       <tbody id="log-table-body"></tbody>
     </table>
@@ -1274,7 +1264,7 @@
 
 <dialog id="spending-info-dialog" class="modal">
   <div class="modal-header">
-    <h3 id="spending-info-title">Personal spending</h3>
+    <h3 id="spending-info-title">Unintended use</h3>
     <button class="icon-btn" id="btn-close-spending-info" type="button" aria-label="Close">✕</button>
   </div>
   <div id="spending-info-summary" class="spending-info-summary"></div>
@@ -1337,7 +1327,12 @@
   // owns its own independent copy). Debt tracking is Nicolas-only — Maarten carries no debt.
   function defaultPersonal() {
     return [
-      { name: "Fixed costs", items: [
+      { name: "Groceries", items: [
+        { label: "Groceries", maarten: 0, nicolas: 0 },
+        { label: "Saving", maarten: 0, nicolas: 0 },
+      ]},
+      { name: "Transport", items: [] },
+      { name: "Health", items: [
         { label: "Health insurance", maarten: 0, nicolas: 0 },
         { label: "Health costs", maarten: 0, nicolas: 0 },
         { label: "Other insurance", maarten: 0, nicolas: 0 },
@@ -1346,10 +1341,6 @@
         { label: "Phone contract", maarten: 0, nicolas: 0 },
         { label: "Spotify", maarten: 0, nicolas: 0 },
         { label: "World of Warcraft", maarten: 0, nicolas: 0 },
-      ]},
-      { name: "Other", items: [
-        { label: "Groceries", maarten: 0, nicolas: 0 },
-        { label: "Saving", maarten: 0, nicolas: 0 },
       ]},
       { name: "Loans", items: [
         { label: "Student loan", maarten: 0, nicolas: 0, debt: {
@@ -1573,7 +1564,6 @@
               <div class="name"><input class="name-input" type="text" data-pc-label="${ci}.${ii}" value="${escapeAttr(it.label)}"${ro}></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"${ro}></div>
               <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"${ro}></div>
-              <div class="computed" id="pc-${ci}-${ii}-t${s}">—</div>
             </div>
             ${rowActionButtonsHTML('pc', `${ci}.${ii}`, unlocked, 'cost')}
           `;
@@ -1604,7 +1594,6 @@
           </div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"${ro}></div>
           <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"${ro}></div>
-          <div class="computed" id="pc-${ci}-${ii}-t${s}">—</div>
         `;
         wrapper.appendChild(row);
 
@@ -1630,7 +1619,6 @@
           <div>Subtotal — ${cat.name}</div>
           <div class="computed maarten" id="pc-cat-${ci}-m${s}">—</div>
           <div class="computed nicolas" id="pc-cat-${ci}-n${s}">—</div>
-          <div class="computed" id="pc-cat-${ci}-t${s}">—</div>
         </div>
         <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
         <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
@@ -1941,19 +1929,12 @@
     setText(`whopays-donut-pct-nicolas${s}`, pctFmt(r.splitNicolasPct));
 
     // personal cost rows
-    scope.state.personal.forEach((cat, ci) => {
-      cat.items.forEach((it, ii) => {
-        setText(`pc-${ci}-${ii}-t${s}`, fmt((Number(it.maarten) || 0) + (Number(it.nicolas) || 0)));
-      });
-    });
     r.pcCategoryTotals.forEach((c, ci) => {
       setText(`pc-cat-${ci}-m${s}`, fmt(c.maarten));
       setText(`pc-cat-${ci}-n${s}`, fmt(c.nicolas));
-      setText(`pc-cat-${ci}-t${s}`, fmt(c.maarten + c.nicolas));
     });
     setText(`out-pc-total-maarten${s}`, fmt(r.personalMaartenTotal));
     setText(`out-pc-total-nicolas${s}`, fmt(r.personalNicolasTotal));
-    setText(`out-pc-total-total${s}`, fmt(r.personalMaartenTotal + r.personalNicolasTotal));
 
     updateLoanDetails(scope);
 
@@ -2103,35 +2084,16 @@
   });
 
   // ---------- Nicolas's logged-contributions modal (Current Budget scope only) ----------
+  // Months where nothing was contributed and nothing was spent (Nicolas simply missed
+  // logging/paying that month) are left out of this view entirely — they're still in the
+  // underlying data, just not shown here since they're not informative month-to-month.
+  function isMissedMonth(r) {
+    return !r.contribution && !r.spending;
+  }
   function renderNicolasLog() {
-    // yearly summary — actual logged total vs. the monthly adjustment, annualized.
-    // The current calendar year's target is prorated to how many months of the year
-    // have happened so far (not the full 12), since it isn't over yet.
-    const now = new Date();
-    const curYear = now.getFullYear();
-    const curMonth = now.getMonth() + 1; // 1–12
-    const monthlyTarget = netAdjustment(scopeA.state);
-    const years = [...new Set(NICOLAS_LOG.map(r => r.y))];
-    const summary = document.getElementById('log-summary');
-    summary.innerHTML = years.map(y => {
-      const rows = NICOLAS_LOG.filter(r => r.y === y);
-      const actual = rows.reduce((s, r) => s + r.contribution - (r.spending || 0), 0);
-      const monthsInTarget = y === curYear ? curMonth : 12;
-      const target = monthlyTarget * monthsInTarget;
-      const diff = target - actual;
-      const isPartialYear = rows.length < 12;
-      return `
-        <div class="yr-tile">
-          <div class="yr">${y}${isPartialYear ? ' (partial)' : ''}</div>
-          <div class="yr-actual">${fmt(actual)}</div>
-          <div class="yr-diff ${diff > 0 ? 'bad' : 'good'}">${diff > 0 ? fmt(diff) + ' short of' : fmt(-diff) + ' over'} ${fmt(target)} target</div>
-        </div>
-      `;
-    }).join('');
-
     // month-by-month table, most recent first
     const tbody = document.getElementById('log-table-body');
-    const rowsDesc = [...NICOLAS_LOG].reverse();
+    const rowsDesc = [...NICOLAS_LOG].filter(r => !isMissedMonth(r)).reverse();
     tbody.innerHTML = rowsDesc.map(r => {
       const net = r.contribution - (r.spending || 0);
       const hasItems = Array.isArray(r.items) && r.items.length > 0;
@@ -2225,12 +2187,36 @@
   // Opened via the ℹ️ next to a month's Personal spending figure — lists the individual
   // transactions that make up that month's total, and flags it clearly if they don't
   // actually add up to the recorded total (e.g. a month only partially itemized so far).
+  //
+  // Fast-food-type purchases are filtered out of this itemized view — they're just not
+  // relevant to look back on. This only hides those rows here; the recorded monthly
+  // spending total (and the underlying logged data) is untouched, so the accounting still
+  // adds up — a note below the table says how many rows are hidden this way instead of
+  // flagging them as "not yet itemized".
+  const FAST_FOOD_VENDORS = ['five guys', 'thuisbezorgd', 'pokebowl'];
+  function isFastFoodItem(it) {
+    const d = (it.description || '').toLowerCase();
+    return FAST_FOOD_VENDORS.some(v => d.includes(v));
+  }
+  // Some logged descriptions are cryptic raw payment-processor text (e.g. a SumUp terminal
+  // name) that doesn't say what the purchase actually was — this adds a short clarifying
+  // note next to those specific ones. Purely cosmetic: the underlying description text is
+  // never changed, just annotated when shown here.
+  const ITEM_NOTES = [
+    { match: 'pdy-thaise', note: 'massage' },
+    { match: 'ziggo dome', note: 'Lady Gaga t-shirt' },
+  ];
+  function itemNote(it) {
+    const d = (it.description || '').toLowerCase();
+    const found = ITEM_NOTES.find(n => d.includes(n.match));
+    return found ? found.note : '';
+  }
   const DATE_FMT = new Intl.DateTimeFormat('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const spendingInfoDialog = document.getElementById('spending-info-dialog');
   function openSpendingInfo(y, m) {
     const r = NICOLAS_LOG.find(row => row.y === y && row.m === m);
     if (!r || !Array.isArray(r.items) || !r.items.length) return;
-    document.getElementById('spending-info-title').textContent = `${MONTH_NAMES[m - 1]} ${y} — Personal spending`;
+    document.getElementById('spending-info-title').textContent = `${MONTH_NAMES[m - 1]} ${y} — Unintended use`;
 
     const itemsSum = r.items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
     const recorded = Number(r.spending) || 0;
@@ -2241,16 +2227,31 @@
       ? `<span>${r.items.length} item${r.items.length === 1 ? '' : 's'}</span><span class="v">${fmt(itemsSum)} — matches the recorded total</span>`
       : `<span>${r.items.length} item${r.items.length === 1 ? '' : 's'} logged so far</span><span class="v">${fmt(itemsSum)} of ${fmt(recorded)} recorded — ${fmt(recorded - itemsSum)} not yet itemized</span>`;
 
-    document.getElementById('spending-info-rows').innerHTML = r.items.map(it => {
+    const visibleItems = r.items.filter(it => !isFastFoodItem(it));
+    const hiddenCount = r.items.length - visibleItems.length;
+
+    document.getElementById('spending-info-rows').innerHTML = visibleItems.map(it => {
       const d = it.date ? new Date(it.date + 'T00:00:00') : null;
+      const note = itemNote(it);
       return `
         <tr>
           <td>${d && !isNaN(d) ? DATE_FMT.format(d) : '—'}</td>
-          <td>${escapeAttr(it.description || '')}</td>
+          <td>${escapeAttr(it.description || '')}${note ? ` <span class="item-note">(${escapeAttr(note)})</span>` : ''}</td>
           <td>${fmt(Number(it.amount) || 0)}</td>
         </tr>
       `;
     }).join('');
+
+    let hiddenNote = document.getElementById('spending-info-hidden-note');
+    if (!hiddenNote) {
+      hiddenNote = document.createElement('div');
+      hiddenNote.id = 'spending-info-hidden-note';
+      hiddenNote.className = 'log-hidden-note';
+      summaryEl.insertAdjacentElement('afterend', hiddenNote);
+    }
+    hiddenNote.textContent = hiddenCount > 0
+      ? `${hiddenCount} fast food item${hiddenCount === 1 ? '' : 's'} hidden from this list.`
+      : '';
 
     spendingInfoDialog.showModal();
   }
