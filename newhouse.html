@@ -357,6 +357,10 @@
   table.checklist-table tbody tr { border-bottom: 1px solid var(--gridline); }
   table.checklist-table td { padding: 7px 8px; vertical-align: middle; }
   table.checklist-table td.amt-col { text-align: right; }
+  table.checklist-table td.drag-col { padding: 0 0 0 2px; width: 24px; }
+  table.checklist-table tbody tr.dragging { opacity: 0.45; }
+  table.checklist-table tbody tr.drop-before { box-shadow: inset 0 2px 0 0 var(--series-maarten); }
+  table.checklist-table tbody tr.drop-after { box-shadow: inset 0 -2px 0 0 var(--series-maarten); }
   select.checklist-cat {
     font: inherit; font-size: 12.5px; padding: 6px 8px; border-radius: 7px;
     border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary);
@@ -761,12 +765,12 @@
   <!-- MOVING & BUYING COST CHECKLIST -->
   <section class="card">
     <h2>Moving &amp; buying costs <span class="badge">checklist</span></h2>
-    <p class="desc">Everything this move is likely to cost — buyer's costs, moving, furniture, repairs, whatever else comes to mind. Tick an item off once you've sorted it or priced it for real.</p>
+    <p class="desc">Everything this move is likely to cost beyond the mortgage itself — transport, new home essentials, repairs, utilities, whatever else comes to mind. Buyer's costs (kosten koper) aren't listed here since those get folded into the mortgage. Drag an item to reorder it.</p>
 
     <div class="checklist-table-wrap">
       <table class="checklist-table">
         <thead>
-          <tr><th>Category</th><th>Item</th><th style="text-align:right">Amount €</th><th></th></tr>
+          <tr><th></th><th>Category</th><th>Item</th><th style="text-align:right">Amount €</th><th></th></tr>
         </thead>
         <tbody id="checklist-rows-b"></tbody>
       </table>
@@ -1392,7 +1396,8 @@
         ]},
       ],
       personal: defaultPersonal(),
-      // Savings goal for buyer's costs + safety buffer before committing to this house.
+      // Savings goal for moving/setup costs before committing to this house — buyer's
+      // costs (kosten koper) aren't tracked here since those are folded into the mortgage.
       // `items` is the moving/buying cost checklist — a starter set of categories/labels
       // at €0 (not real figures) so there's something to edit rather than a blank table.
       houseFund: {
@@ -2067,6 +2072,7 @@
     const items = checklistItems(scope);
     root.innerHTML = items.map((it, idx) => `
       <tr data-checklist-row="${idx}">
+        <td class="drag-col"><span class="drag-handle" title="Drag to reorder">⠿</span></td>
         <td><select class="checklist-cat" data-cl-cat="${idx}">${CHECKLIST_CATEGORIES.map(c => `<option value="${escapeAttr(c)}"${c === it.category ? ' selected' : ''}>${c}</option>`).join('')}</select></td>
         <td><input class="name-input" type="text" data-cl-label="${idx}" value="${escapeAttr(it.label)}" placeholder="What's this for?"></td>
         <td class="amt-col"><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="10" min="0" data-cl-amount="${idx}" value="${Number(it.amount) || 0}"></div></td>
@@ -2586,10 +2592,81 @@
     root.addEventListener('pointercancel', endDrag);
   }
 
+  // Drag-to-reorder for the checklist — a flat list (no categories to drag between, unlike
+  // initDragReorder above), so this is a simpler single-level version of the same technique.
+  function initChecklistDragReorder(scope) {
+    const root = el(scope, 'checklist-rows');
+    if (!root || root._dragInit) return;
+    root._dragInit = true;
+
+    let drag = null;
+
+    root.addEventListener('pointerdown', (e) => {
+      const handle = e.target.closest('.drag-handle');
+      if (!handle) return;
+      const rowEl = handle.closest('[data-checklist-row]');
+      if (!rowEl) return;
+      e.preventDefault();
+      const fromIdx = +rowEl.getAttribute('data-checklist-row');
+      drag = { fromIdx, rowEl, startY: e.clientY, toIdx: null };
+      rowEl.classList.add('dragging');
+      rowEl.style.position = 'relative';
+      rowEl.style.zIndex = '5';
+      try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    root.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      drag.rowEl.style.transform = `translateY(${e.clientY - drag.startY}px)`;
+      root.querySelectorAll('.drop-before, .drop-after').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+
+      const rows = Array.from(root.querySelectorAll('[data-checklist-row]')).filter(r => r !== drag.rowEl);
+      let toIdx = rows.length;
+      let indicatorEl = null, indicatorPos = null;
+      for (let i = 0; i < rows.length; i++) {
+        const rect = rows[i].getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) {
+          toIdx = i;
+          indicatorEl = rows[i]; indicatorPos = 'drop-before';
+          break;
+        }
+      }
+      if (!indicatorEl && rows.length) {
+        indicatorEl = rows[rows.length - 1];
+        indicatorPos = 'drop-after';
+      }
+      if (indicatorEl) indicatorEl.classList.add(indicatorPos);
+      drag.toIdx = toIdx;
+    });
+
+    function endDrag() {
+      if (!drag) return;
+      root.querySelectorAll('.drop-before, .drop-after').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+      drag.rowEl.classList.remove('dragging');
+      drag.rowEl.style.transform = '';
+      drag.rowEl.style.position = '';
+      drag.rowEl.style.zIndex = '';
+
+      const { fromIdx, toIdx } = drag;
+      drag = null;
+      if (toIdx == null || fromIdx === toIdx) return;
+
+      const items = checklistItems(scope);
+      const [item] = items.splice(fromIdx, 1);
+      items.splice(toIdx, 0, item);
+      renderChecklist(scope);
+      document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+    }
+
+    root.addEventListener('pointerup', endDrag);
+    root.addEventListener('pointercancel', endDrag);
+  }
+
   fullRender(scopeB);
 
   initDragReorder(scopeB, 'household-rows', sc => sc.state.household);
   initDragReorder(scopeB, 'personal-rows', sc => sc.state.personal);
+  initChecklistDragReorder(scopeB);
 
   const clAddBtn = document.getElementById('btn-checklist-add-b');
   if (clAddBtn) clAddBtn.addEventListener('click', () => {
