@@ -1,0 +1,3576 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joint Costs Dashboard 2026 — Maarten &amp; Nicolas</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --surface-2:      #ffffff;
+    --page:           #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-maarten: #2a78d6;
+    --series-nicolas: #eb6834;
+    --seg-joint:      #1baf7a;
+    --seg-personal:   #eda100;
+    --seg-left:       #4a3aa7;
+    --status-good:    #0ca30c;
+    --status-good-text: #006300;
+    --status-critical:#d03b3b;
+    --status-warning: #c2650a;
+    --shadow: 0 1px 2px rgba(11,11,11,0.04), 0 4px 16px rgba(11,11,11,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --surface-2:      #212120;
+      --page:           #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-maarten: #3987e5;
+      --series-nicolas: #d95926;
+      --seg-joint:      #199e70;
+      --seg-personal:   #c98500;
+      --seg-left:       #9085e9;
+      --status-good:    #0ca30c;
+      --status-good-text: #0ca30c;
+      --status-critical:#e66767;
+      --status-warning: #e0912e;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --surface-2:      #212120;
+    --page:           #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-maarten: #3987e5;
+    --series-nicolas: #d95926;
+    --seg-joint:      #199e70;
+    --seg-personal:   #c98500;
+    --seg-left:       #9085e9;
+    --status-good:    #0ca30c;
+    --status-good-text: #0ca30c;
+    --status-critical:#e66767;
+    --status-warning: #e0912e;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { padding-bottom: 64px; }
+
+  a { color: inherit; }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--page) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  header.top .inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; gap: 12px; flex-wrap: wrap;
+  }
+  header.top h1 {
+    font-size: 17px; margin: 0; font-weight: 650; letter-spacing: -0.01em;
+  }
+  header.top .sub {
+    font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;
+  }
+  .home-link {
+    display: inline-block; font-size: 12px; font-weight: 600; text-decoration: none;
+    color: var(--text-muted); margin-bottom: 4px;
+  }
+  .home-link:hover { color: var(--text-primary); }
+  .controls-stack { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button.ctl {
+    font: inherit; font-size: 12.5px; font-weight: 550;
+    background: var(--surface-2); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.12s ease;
+  }
+  button.ctl:hover { background: color-mix(in srgb, var(--text-primary) 6%, var(--surface-2)); }
+  button.ctl:active { transform: translateY(0.5px); }
+  button.ctl.ctl-danger {
+    background: color-mix(in srgb, var(--status-critical) 12%, var(--surface-2));
+    color: var(--status-critical);
+    border-color: color-mix(in srgb, var(--status-critical) 35%, var(--border));
+  }
+  button.ctl.ctl-danger:hover { background: color-mix(in srgb, var(--status-critical) 22%, var(--surface-2)); }
+  button.ctl.ctl-save {
+    background: color-mix(in srgb, var(--status-good) 14%, var(--surface-2));
+    color: var(--status-good-text);
+    border-color: color-mix(in srgb, var(--status-good) 35%, var(--border));
+  }
+  button.ctl.ctl-save:hover { background: color-mix(in srgb, var(--status-good) 24%, var(--surface-2)); }
+  button.ctl:disabled { opacity: 0.55; cursor: default; }
+
+  main { padding-top: 22px; }
+
+  section.card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px 22px;
+    margin-bottom: 20px;
+  }
+  section.card > h2 {
+    font-size: 14.5px; font-weight: 650; margin: 0 0 2px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  section.card > .desc {
+    font-size: 12.5px; color: var(--text-secondary); margin: 0 0 16px;
+    max-width: 62ch;
+  }
+  .badge {
+    font-size: 10.5px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted);
+    background: color-mix(in srgb, var(--text-muted) 12%, transparent);
+    border-radius: 5px; padding: 2px 6px;
+  }
+
+  /* legend */
+  .legend { display: flex; gap: 16px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .legend .item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); font-weight: 550; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .swatch.maarten { background: var(--series-maarten); }
+  .swatch.nicolas { background: var(--series-nicolas); }
+
+  /* stat tiles */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .tile {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .tile .label { font-size: 11.5px; color: var(--text-secondary); font-weight: 600; margin-bottom: 8px; display:flex; align-items:center; gap:6px;}
+  .tile .label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .tile .label-row .label { margin-bottom: 0; }
+  .log-btn {
+    font: inherit; font-size: 10.5px; font-weight: 650; white-space: nowrap;
+    background: color-mix(in srgb, var(--series-nicolas) 12%, var(--surface-2));
+    color: var(--series-nicolas); border: 1px solid color-mix(in srgb, var(--series-nicolas) 35%, var(--border));
+    border-radius: 999px; padding: 4px 9px; cursor: pointer; transition: background 0.12s ease;
+  }
+  .log-btn:hover { background: color-mix(in srgb, var(--series-nicolas) 20%, var(--surface-2)); }
+  .tile .value { font-size: 21px; font-weight: 650; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; }
+  .tile .value.good { color: var(--status-good-text); }
+  .tile .value.bad { color: var(--status-critical); }
+  .tile .hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .tile.input .value input {
+    font: inherit; font-size: 21px; font-weight: 650; font-variant-numeric: tabular-nums;
+    border: none; background: transparent; color: var(--text-primary);
+    width: 100%; padding: 0; outline: none; text-align: left;
+  }
+  .tile.input { position: relative; }
+  .tile.input:focus-within { outline: 2px solid var(--series-maarten); outline-offset: 2px; border-radius: 12px; }
+  .euro-prefix { color: var(--text-muted); font-weight: 600; margin-right: 4px; flex: none; }
+
+  /* income "equation" row — keeps salaries and the combined total visually tied together */
+  .equation-row { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+  .equation-row .tile { flex: 1 1 160px; }
+  .equation-row .op {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 600; color: var(--text-muted);
+    flex: 0 0 auto; width: 20px; padding-top: 22px;
+  }
+  .tile.total {
+    border-color: color-mix(in srgb, var(--series-maarten) 45%, var(--border));
+    background: color-mix(in srgb, var(--series-maarten) 7%, var(--surface-2));
+  }
+  @media (max-width: 560px) {
+    .equation-row { flex-direction: column; }
+    .equation-row .op { width: auto; padding-top: 0; justify-content: flex-start; padding-left: 4px; }
+  }
+
+  /* editable tables */
+  .cat-group { margin-bottom: 14px; }
+  .cat-group:last-child { margin-bottom: 0; }
+  .cat-title {
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted); margin: 0 0 6px; padding-top: 8px; border-top: 1px solid var(--gridline);
+  }
+  .cat-group:first-child .cat-title { border-top: none; padding-top: 0; }
+
+  .row-head, .row {
+    display: grid; grid-template-columns: 1fr 130px; align-items: center;
+    gap: 8px; padding: 7px 0;
+  }
+  .row-head { font-size: 10.5px; color: var(--text-muted); font-weight: 650; text-transform: uppercase; letter-spacing: 0.03em; padding-bottom: 4px;}
+  .row { font-size: 13px; }
+  .row .name { color: var(--text-primary); font-weight: 500; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+  .row .name .hint { display: block; flex-basis: 100%; font-size: 11px; font-weight: 400; color: var(--text-muted); margin-top: 1px; }
+  .row .computed { font-variant-numeric: tabular-nums; color: var(--text-secondary); text-align: right; }
+
+  /* ---- Editable / reorderable / removable cost rows ---- */
+  .row-outer { display: flex; align-items: center; gap: 2px; border-bottom: 1px solid var(--gridline); }
+  .row-outer.row-outer-last { border-bottom: none; }
+  .row-outer.dragging { opacity: 0.45; }
+  .row-outer.drop-before { box-shadow: inset 0 2px 0 0 var(--series-maarten); }
+  .row-outer.drop-after { box-shadow: inset 0 -2px 0 0 var(--series-maarten); }
+  .row-outer > .row, .row-outer > .loan-item { flex: 1 1 auto; min-width: 0; }
+  .drag-handle {
+    flex: none; cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none;
+    width: 24px; height: 36px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 14px; border-radius: 6px;
+  }
+  .drag-handle:hover { color: var(--text-primary); background: color-mix(in srgb, var(--text-primary) 6%, transparent); }
+  .drag-handle:active { cursor: grabbing; }
+  .btn-edit-item {
+    flex: none; width: 24px; height: 36px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--text-muted); font-size: 13px; line-height: 1; cursor: pointer; border-radius: 6px;
+  }
+  .btn-edit-item:hover { color: var(--series-maarten); background: color-mix(in srgb, var(--series-maarten) 10%, transparent); }
+  .btn-edit-item.active { color: var(--status-good-text); background: color-mix(in srgb, var(--status-good) 14%, transparent); }
+  .btn-discard-item {
+    flex: none; width: 24px; height: 36px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--status-warning); font-size: 14px; font-weight: 700; line-height: 1; cursor: pointer; border-radius: 6px;
+  }
+  .btn-discard-item:hover { background: color-mix(in srgb, var(--status-warning) 12%, transparent); }
+  .btn-del-item {
+    flex: none; width: 24px; height: 36px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--status-critical); font-size: 14px; line-height: 1; cursor: pointer; border-radius: 6px;
+  }
+  .btn-del-item:hover { background: color-mix(in srgb, var(--status-critical) 12%, transparent); }
+  .spacer-only { visibility: hidden; }
+  .name-input {
+    font: inherit; font-size: 13px; font-weight: 500; color: var(--text-primary);
+    background: none; border: 1px solid transparent; border-radius: 6px;
+    padding: 4px 6px; margin: -4px -6px; width: 100%; min-width: 0;
+  }
+  .name-input:hover { border-color: var(--border); }
+  .name-input:focus { border-color: var(--series-maarten); outline: none; background: var(--surface-1); }
+  .name-input[readonly] { color: var(--text-secondary); cursor: default; }
+  .name-input[readonly]:hover { border-color: transparent; }
+  input.num[readonly] { color: var(--text-secondary); background: transparent; cursor: default; }
+  input.num[readonly]:hover { border-color: transparent; }
+  input.num:not([readonly]), .name-input:not([readonly]) {
+    caret-color: var(--series-maarten);
+    border-color: color-mix(in srgb, var(--series-maarten) 30%, var(--border));
+  }
+  input.num:not([readonly]):hover, .name-input:not([readonly]):hover {
+    border-color: color-mix(in srgb, var(--series-maarten) 55%, var(--border));
+  }
+  .subtotal-outer { display: flex; align-items: center; gap: 2px; }
+  .subtotal-outer > .subtotal-row, .subtotal-outer > .row-head { flex: 1 1 auto; min-width: 0; }
+  .btn-add-item {
+    display: flex; align-items: center; gap: 6px; width: 100%; box-sizing: border-box;
+    margin-top: 6px; padding: 7px 10px;
+    background: none; border: 1px dashed var(--border); border-radius: 8px;
+    color: var(--text-muted); font: inherit; font-size: 12.5px; font-weight: 550; cursor: pointer;
+    transition: border-color 0.12s ease, color 0.12s ease;
+  }
+  .btn-add-item:hover { border-color: var(--series-maarten); color: var(--series-maarten); }
+
+  .row-head.personal, .row.personal { grid-template-columns: 1fr 92px 92px; }
+  .subtotal-row.personal { grid-template-columns: 1fr 92px 92px; }
+  .subtotal-row.personal .computed.maarten { color: var(--series-maarten); }
+  .subtotal-row.personal .computed.nicolas { color: var(--series-nicolas); }
+
+  .num-field { position: relative; display: flex; align-items: center; }
+  .num-field .unit { position: absolute; left: 8px; font-size: 12px; color: var(--text-muted); pointer-events: none; }
+  .num-field.pct .unit { left: auto; right: 8px; }
+  .num-field.pct input.num, .num-field.suffix input.num { padding-right: 30px; padding-left: 8px; text-align: right; }
+  input.num {
+    font: inherit; font-size: 13px; font-variant-numeric: tabular-nums;
+    width: 100%; padding: 6px 8px 6px 20px; text-align: right;
+    background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+    border: 1px solid transparent; border-radius: 7px; color: var(--text-primary);
+    outline: none; transition: border-color 0.12s ease, background 0.12s ease;
+  }
+  input.num:hover { border-color: var(--border); }
+  input.num:focus { border-color: var(--series-maarten); background: var(--surface-2); }
+  input.num::-webkit-outer-spin-button, input.num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input.num[type=number] { -moz-appearance: textfield; }
+
+  .subtotal-row {
+    display: grid; grid-template-columns: 1fr 130px;
+    gap: 8px; padding: 9px 0 4px; margin-top: 2px; border-top: 1px solid var(--baseline);
+    font-size: 12.5px; font-weight: 650;
+  }
+  .subtotal-row .computed { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .grand-total {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--gridline);
+    font-size: 13.5px; font-weight: 650;
+  }
+  .grand-total .value { font-size: 18px; font-variant-numeric: tabular-nums; }
+
+  /* house fund savings goal */
+  .housefund-progress-wrap { margin-top: 20px; }
+  .housefund-progress-track {
+    height: 10px; border-radius: 999px; overflow: hidden;
+    background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  }
+  .housefund-progress-fill {
+    height: 100%; border-radius: 999px; width: 0%;
+    background: var(--status-good);
+    transition: width 0.3s ease;
+  }
+  .housefund-progress-labels {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 8px; font-size: 12px; color: var(--text-muted); font-weight: 600;
+  }
+  .housefund-progress-labels .pct { font-size: 15px; color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* moving process checklist (Checklist tab) */
+  .process-summary { font-size: 12.5px; font-weight: 650; color: var(--text-secondary); margin-bottom: 16px; }
+  .process-list { display: flex; flex-direction: column; }
+
+  .process-chain { display: flex; flex-direction: column; align-items: stretch; }
+  .process-chain .process-group { display: flex; align-items: flex-start; gap: 8px; }
+  .process-group-number {
+    flex: none; width: 26px; height: 26px; margin-top: 2px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12.5px; font-weight: 700; color: var(--text-muted);
+    border: 2px solid var(--border); background: var(--surface-1);
+  }
+  .process-group-number.locked { opacity: 0.65; }
+  .process-group-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+
+  .process-chain .process-step {
+    align-items: flex-start; gap: 12px; padding: 12px 12px 12px 10px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .process-chain .process-step.done { border-color: color-mix(in srgb, var(--status-good) 45%, var(--border)); }
+
+  .process-group.multi .process-group-body {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 2px 0; gap: 0;
+  }
+  .process-group.multi.done .process-group-body { border-color: color-mix(in srgb, var(--status-good) 45%, var(--border)); }
+  .process-group.multi .process-group-caption {
+    font-size: 11px; font-weight: 650; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 0.03em; padding: 10px 12px 0;
+  }
+  .process-group.multi .process-step {
+    background: none; border: none; border-radius: 0; padding: 8px 12px 8px 10px;
+  }
+  .process-group.multi .process-step:hover { background: color-mix(in srgb, var(--text-primary) 4%, transparent); }
+
+  .process-connector-wrap { display: flex; justify-content: flex-start; padding-left: 12px; }
+  .process-connector { width: 0; height: 16px; border-left: 2px dotted var(--baseline); }
+
+  .process-step { display: flex; align-items: center; gap: 12px; border-radius: 8px; cursor: pointer; }
+  .process-chain .process-step:hover { background: color-mix(in srgb, var(--text-primary) 4%, var(--surface-2)); }
+  .process-step.locked { opacity: 0.65; }
+  .process-step .step-check {
+    flex: none; width: 26px; height: 26px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--border); color: transparent; font-size: 14px; font-weight: 800;
+    background: var(--surface-1); transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .process-step.manual:not(.locked):hover .step-check { border-color: var(--series-maarten); }
+  .process-step.done .step-check { background: var(--status-good); border-color: var(--status-good); color: #fff; }
+  .process-step .step-check.step-check-ring { background: none; border: none; padding: 0; }
+  .process-step .step-check.step-check-round { border-radius: 50%; }
+  .step-check-ring svg { display: block; overflow: visible; }
+  .step-check-ring .ring-track { fill: none; stroke: var(--border); stroke-width: 3; }
+  .step-check-ring .ring-fill { fill: none; stroke: var(--status-good); stroke-width: 3; stroke-linecap: round; transition: stroke-dasharray 0.3s ease; }
+  .process-step .step-text { flex: 1 1 auto; min-width: 0; }
+  .process-step .step-label { font-size: 13.5px; font-weight: 550; color: var(--text-primary); }
+  .process-step.done .step-label {
+    color: var(--text-secondary); text-decoration: line-through;
+    text-decoration-color: color-mix(in srgb, var(--status-good) 55%, transparent); text-decoration-thickness: 1.5px;
+  }
+  .process-step .step-hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .process-step .step-chevron {
+    flex: none; font-size: 11px; color: var(--text-muted); transition: transform 0.2s ease; margin-left: 4px;
+  }
+  .process-step.expanded .step-chevron { transform: rotate(180deg); }
+
+  .process-step .step-detail {
+    max-height: 0; overflow: hidden; opacity: 0;
+    font-size: 12.5px; line-height: 1.5; color: var(--text-secondary);
+    transition: max-height 0.25s ease, opacity 0.2s ease, margin-top 0.25s ease;
+  }
+  .process-step.expanded .step-detail { max-height: 320px; opacity: 1; margin-top: 8px; }
+  .process-step .step-detail em { font-style: normal; font-weight: 650; color: var(--text-primary); }
+
+  .process-lock-toast {
+    max-height: 0; overflow: hidden; opacity: 0; margin-top: 0;
+    font-size: 12.5px; font-weight: 600; padding: 0 14px; border-radius: 8px;
+    color: var(--status-warning);
+    background: color-mix(in srgb, var(--status-warning) 14%, var(--surface-2));
+    border: 1px solid color-mix(in srgb, var(--status-warning) 35%, var(--border));
+    transition: max-height 0.2s ease, opacity 0.2s ease, margin-top 0.2s ease, padding 0.2s ease;
+  }
+  .process-lock-toast.visible { max-height: 60px; opacity: 1; margin-top: 12px; padding: 10px 14px; }
+
+  @keyframes step-check-shake {
+    10%, 90% { transform: translateX(-1px); }
+    20%, 80% { transform: translateX(2px); }
+    30%, 50%, 70% { transform: translateX(-3px); }
+    40%, 60% { transform: translateX(3px); }
+  }
+  .process-step .step-check.shake { animation: step-check-shake 0.4s ease; }
+
+  /* moving/buying cost checklist */
+  .checklist-table-wrap { overflow-x: auto; }
+  table.checklist-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.checklist-table thead th {
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--text-muted); font-weight: 650; padding: 0 8px 8px; border-bottom: 1px solid var(--gridline);
+  }
+  table.checklist-table tbody tr { border-bottom: 1px solid var(--gridline); }
+  table.checklist-table td { padding: 7px 8px; vertical-align: middle; }
+  table.checklist-table td.amt-col { text-align: right; width: 130px; }
+  table.checklist-table td.drag-col { padding: 0 0 0 2px; width: 24px; }
+  table.checklist-table td.del-col { width: 40px; }
+  table.checklist-table tbody tr.dragging { opacity: 0.45; }
+  table.checklist-table tbody tr.drop-before { box-shadow: inset 0 2px 0 0 var(--series-maarten); }
+  table.checklist-table tbody tr.drop-after { box-shadow: inset 0 -2px 0 0 var(--series-maarten); }
+  .checklist-table input.name-input { border: none; background: transparent; font: inherit; color: var(--text-primary); width: 100%; padding: 6px 4px; border-radius: 6px; }
+  .checklist-table input.name-input:focus { background: var(--surface-1); outline: 1px solid var(--border); }
+  .checklist-table .num-field { justify-content: flex-end; }
+  .checklist-table .btn-del-item { margin: 0; }
+  table.checklist-table-fixed td.fixed-label { color: var(--text-primary); font-weight: 550; }
+  table.checklist-table-fixed .fixed-hint { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-left: 6px; }
+  table.checklist-table-fixed .fixed-lock { font-size: 11px; margin-left: 6px; opacity: 0.55; vertical-align: 1px; }
+  table.checklist-table-fixed input.num.fixed-locked {
+    border: 1.5px dashed var(--border);
+    background: var(--surface-1);
+    border-radius: 8px;
+  }
+  .checklist-subhead { font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin: 18px 0 6px; }
+  .checklist-subhead:first-of-type { margin-top: 4px; }
+
+  /* Mortgage tab — the financing breakdown (tiles + donut) is visually separated below
+     the equity/carried-mortgage/rate inputs that feed it, per "a new area below". */
+  .mort-sync-note { font-size: 11.5px; color: var(--text-muted); margin: -6px 0 16px; min-height: 14px; }
+  .mort-result-area { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--gridline); }
+
+  .mort-price-hero {
+    background: color-mix(in srgb, var(--series-maarten) 7%, var(--surface-2));
+    border: 1.5px solid color-mix(in srgb, var(--series-maarten) 32%, var(--border));
+    border-radius: 14px; padding: 16px 18px; margin-bottom: 18px;
+  }
+  .mort-price-hero-label {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--series-maarten); margin-bottom: 6px;
+  }
+  .mort-price-hero-tag {
+    font-size: 10.5px; font-weight: 650; text-transform: none; letter-spacing: 0;
+    color: var(--text-secondary); background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 999px; padding: 2px 9px;
+  }
+  .mort-price-hero-row { display: flex; align-items: center; gap: 10px; }
+  .mort-price-hero-field { flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: 6px; }
+  .mort-price-hero-field .euro-prefix { font-size: 24px; font-weight: 700; color: var(--text-muted); flex: none; }
+  .mort-price-hero-input {
+    font: inherit; font-size: 34px; font-weight: 750; letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums; border: none; background: transparent;
+    color: var(--text-primary); width: 100%; min-width: 0; padding: 0; outline: none;
+  }
+  .mort-price-hero-input[readonly] { cursor: default; }
+  .mort-price-hero-actions { display: flex; gap: 2px; flex: none; }
+  .mort-price-hero-actions .btn-edit-item, .mort-price-hero-actions .btn-discard-item {
+    width: 32px; height: 32px; font-size: 15px;
+  }
+  @media (max-width: 480px) { .mort-price-hero-input { font-size: 26px; } }
+
+  .mort-stepper {
+    display: flex; flex-direction: column; flex: none; width: 26px;
+    border: 1px solid var(--border); border-radius: 7px; overflow: hidden;
+  }
+  .mort-stepper-btn {
+    flex: 1 1 0; display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); border: none; color: var(--text-secondary);
+    font-size: 8px; line-height: 1; cursor: pointer; padding: 0;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .mort-stepper-btn:first-child { border-bottom: 1px solid var(--border); }
+  .mort-stepper-btn:hover { background: color-mix(in srgb, var(--series-maarten) 14%, var(--surface-2)); color: var(--series-maarten); }
+  .mort-stepper-btn:active { background: color-mix(in srgb, var(--series-maarten) 24%, var(--surface-2)); }
+
+  .mort-rate-hero { margin-bottom: 16px; }
+  .mort-rate-hero .mort-price-hero-row { gap: 14px; }
+  .mort-rate-hero-field { flex: none; display: flex; align-items: baseline; gap: 3px; }
+  .mort-rate-hero-input {
+    font: inherit; font-size: 34px; font-weight: 750; letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums; border: none; background: transparent;
+    color: var(--text-primary); width: 3ch; min-width: 0; padding: 0; outline: none; cursor: default;
+  }
+  .mort-rate-hero-input::-webkit-outer-spin-button, .mort-rate-hero-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .mort-rate-hero-unit { font-size: 20px; font-weight: 650; color: var(--text-muted); }
+  .mort-rate-hero .mort-stepper { width: 30px; }
+  .mort-rate-hero .mort-stepper-btn { font-size: 9px; }
+  .mort-rate-hero-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  @media (max-width: 480px) { .mort-rate-hero-input { font-size: 26px; } }
+  .mort-rate-subblock {
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid color-mix(in srgb, var(--series-maarten) 22%, var(--border));
+  }
+
+  .mort-total-hero {
+    background: color-mix(in srgb, var(--status-warning) 10%, var(--surface-2));
+    border: 1.5px solid color-mix(in srgb, var(--status-warning) 40%, var(--border));
+    border-radius: 14px; padding: 16px 18px; margin: 10px 0 20px;
+  }
+  .mort-total-hero-label {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--status-warning); margin-bottom: 6px;
+  }
+  .mort-total-hero-tag {
+    font-size: 10.5px; font-weight: 650; text-transform: none; letter-spacing: 0;
+    color: var(--text-secondary); background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 999px; padding: 2px 9px;
+  }
+  .mort-total-hero-value {
+    font-size: 32px; font-weight: 750; letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums; color: var(--status-warning);
+  }
+  @media (max-width: 480px) { .mort-total-hero-value { font-size: 26px; } }
+
+  .mort-total-hero-row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed color-mix(in srgb, var(--status-warning) 30%, var(--border));
+  }
+  .mort-total-hero-row-label {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-secondary);
+  }
+  .mort-total-hero-row-label.net { color: var(--status-good-text); }
+  .mort-total-hero-row-value {
+    font-size: 19px; font-weight: 700; letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums; color: var(--text-secondary);
+  }
+  .mort-total-hero-row-value.hra::before { content: "− "; }
+  .mort-total-hero-row-value.net {
+    font-size: 26px; font-weight: 750; color: var(--status-good-text);
+  }
+  .mort-total-hero-row.net { border-top-style: solid; border-top-color: color-mix(in srgb, var(--status-good) 30%, var(--border)); }
+  @media (max-width: 480px) { .mort-total-hero-row-value.net { font-size: 21px; } }
+
+  .mort-deduct-hint-standalone { font-size: 11px; color: var(--text-muted); margin: 0 0 20px; line-height: 1.5; padding: 0 2px; }
+
+  .mini-switch {
+    display: inline-flex; align-items: center; vertical-align: middle;
+    width: 30px; height: 17px; padding: 0; margin: 0 6px 0 0; flex: none;
+    border-radius: 999px; border: 1px solid var(--border); background: var(--surface-1);
+    cursor: pointer; position: relative; transition: background .15s ease, border-color .15s ease;
+  }
+  .mini-switch[aria-pressed="true"] {
+    background: var(--status-good); border-color: var(--status-good);
+  }
+  .mini-switch-knob {
+    position: absolute; top: 1px; left: 1px; width: 13px; height: 13px; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease;
+  }
+  .mini-switch[aria-pressed="true"] .mini-switch-knob { transform: translateX(13px); }
+  .mini-switch-label {
+    font-size: 11px; font-weight: 400; color: var(--text-muted); vertical-align: middle;
+  }
+  .mini-switch-label.on { color: var(--status-good-text); font-weight: 600; }
+
+  .checklist-total-wrap { display: flex; align-items: center; gap: 12px; }
+  .checklist-total-wrap .value { font-size: 18px; font-variant-numeric: tabular-nums; }
+
+  /* donut chart */
+  .donut-row { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+  .donut-figure { position: relative; width: 168px; height: 168px; flex: none; margin: 0 auto; }
+  .donut-figure svg { width: 100%; height: 100%; }
+  .donut-figure svg circle { transition: stroke-dasharray 0.25s ease, stroke-dashoffset 0.25s ease; }
+  .donut-figure svg circle[data-tip-label] { cursor: default; transition: stroke-dasharray 0.25s ease, stroke-dashoffset 0.25s ease, stroke-width 0.1s ease; }
+  .donut-figure svg circle[data-tip-label]:hover { stroke-width: 5.5; }
+  .chart-tooltip {
+    position: fixed; z-index: 9999; pointer-events: none;
+    transform: translate(-50%, -100%); margin-top: -10px;
+    background: var(--text-primary); color: var(--page);
+    font-size: 12.5px; font-weight: 600; padding: 6px 11px; border-radius: 7px;
+    box-shadow: var(--shadow); white-space: nowrap;
+  }
+  .chart-tooltip .tip-pct { opacity: 0.7; font-weight: 500; margin-left: 6px; }
+  .donut-center {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center; pointer-events: none; padding: 0 20px;
+  }
+  .donut-center .val { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; line-height: 1.2; }
+  .donut-center .lbl { font-size: 10px; color: var(--text-muted); font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 3px; }
+  .donut-legend { flex: 1 1 220px; min-width: 200px; display: flex; flex-direction: column; gap: 2px; }
+  .donut-legend .drow {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 12.5px; padding: 7px 0; border-bottom: 1px solid var(--gridline);
+  }
+  .donut-legend .drow:last-child { border-bottom: none; }
+  .donut-legend .drow .name { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-weight: 550; }
+  .donut-legend .drow .dswatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .donut-legend .drow .damt { display: flex; align-items: baseline; gap: 6px; }
+  .donut-legend .drow .damt .v { font-variant-numeric: tabular-nums; font-weight: 650; color: var(--text-primary); }
+  .donut-legend .drow .damt .v.bad { color: var(--status-critical); }
+  .donut-legend .drow .damt .p { font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 11px; min-width: 34px; text-align: right; }
+  @media (max-width: 520px) { .donut-row { justify-content: center; } .donut-legend { min-width: 0; width: 100%; } }
+
+  .adj-control {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+  }
+  .adj-control label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); flex: 1; min-width: 200px; }
+  .adj-control .btn-edit-item {
+    flex: none; border: 1px solid var(--border); border-radius: 6px;
+    background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  }
+  .adj-control .btn-edit-item.active { border-color: color-mix(in srgb, var(--status-good) 40%, var(--border)); }
+  .adj-control .num-field { width: 120px; }
+  .adj-control input.num { font-size: 14px; font-weight: 650; }
+  .adj-total-value-wrap { display: flex; align-items: center; gap: 10px; }
+
+  /* summary two-column */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .summary-grid { grid-template-columns: 1fr; } }
+  .person-card {
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: var(--surface-2);
+  }
+  .person-card h3 { margin: 0 0 12px; font-size: 13.5px; display: flex; align-items: center; gap: 7px; }
+  .person-card .line {
+    display: flex; justify-content: space-between; font-size: 12.5px; padding: 6px 0;
+    border-bottom: 1px solid var(--gridline); color: var(--text-secondary);
+  }
+  .person-card .line span.v { font-variant-numeric: tabular-nums; color: var(--text-primary); font-weight: 550; }
+  .person-card .line.final { border-bottom: none; padding-top: 10px; margin-top: 2px; border-top: 1px solid var(--baseline); }
+  .person-card .line.final span:first-child { font-weight: 650; color: var(--text-primary); }
+  .person-card .line.final .v { font-size: 18px; font-weight: 700; }
+  .person-card .line.final .v.good { color: var(--status-good-text); }
+  .person-card .line.final .v.bad { color: var(--status-critical); }
+  .person-card .line.compare {
+    border-bottom: none; padding: 4px 0 0; font-size: 11.5px; color: var(--text-muted);
+    justify-content: flex-end; text-align: right;
+  }
+  .person-card .line.compare:empty { display: none; }
+  .person-card .line.compare .delta.good { color: var(--status-good-text); font-weight: 650; }
+  .person-card .line.compare .delta.bad { color: var(--status-critical); font-weight: 650; }
+
+  .hint.compare { margin-top: 4px; color: var(--text-muted); }
+  .hint.compare .delta.good { color: var(--status-good-text); font-weight: 650; }
+  .hint.compare .delta.bad { color: var(--status-critical); font-weight: 650; }
+
+  .bottomline-compare {
+    margin-top: 10px; font-size: 12.5px; color: var(--text-secondary);
+  }
+  .bottomline-compare .delta.good { color: var(--status-good-text); font-weight: 700; }
+  .bottomline-compare .delta.bad { color: var(--status-critical); font-weight: 700; }
+
+  /* two small-multiple donuts: one per person, salary split into joint / personal / left over */
+  .donut-pair { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
+  .donut-person {
+    flex: 1 1 240px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+  }
+  .donut-person .donut-person-title { font-size: 13px; font-weight: 650; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+  .donut-person .donut-row { gap: 18px; }
+  .donut-person .donut-figure { width: 132px; height: 132px; }
+  .donut-person .donut-center .val { font-size: 14.5px; }
+  .donut-person .donut-legend { flex: 1 1 140px; min-width: 130px; gap: 0; }
+  .donut-person .donut-legend .drow { padding: 6px 0; font-size: 12px; }
+  .category-legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 4px 0 16px; }
+  .category-legend .item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); font-weight: 550; }
+  .category-legend .dswatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+  footer.note {
+    max-width: 1000px; margin: 8px auto 0; padding: 0 20px;
+    font-size: 11.5px; color: var(--text-muted); line-height: 1.5;
+  }
+
+  input[type=file] { display: none; }
+
+  /* logged-contributions modal */
+  dialog.modal {
+    color-scheme: inherit;
+    background: var(--surface-1); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow);
+    padding: 22px; width: min(560px, calc(100vw - 40px)); max-height: min(680px, calc(100vh - 64px));
+    margin: auto;
+  }
+  dialog.modal::backdrop { background: rgba(11,11,11,0.45); backdrop-filter: blur(1px); }
+  :root[data-theme="dark"] dialog.modal::backdrop,
+  :root:where(:not([data-theme="light"])) dialog.modal::backdrop { background: rgba(0,0,0,0.6); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .modal-header h3 { font-size: 15px; font-weight: 650; margin: 0; display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    font: inherit; font-size: 13px; line-height: 1; color: var(--text-secondary);
+    background: transparent; border: none; cursor: pointer; padding: 6px; border-radius: 7px;
+  }
+  .icon-btn:hover { background: color-mix(in srgb, var(--text-primary) 8%, transparent); color: var(--text-primary); }
+  .modal-desc { font-size: 12.5px; color: var(--text-secondary); margin: 6px 0 16px; line-height: 1.5; }
+
+  /* loan info modal — full detail + edit view opened via the ℹ️ button next to each loan */
+  .loan-info-rows { margin-top: 14px; }
+  .loan-info-rows .line {
+    display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 9px 0;
+    border-bottom: 1px solid var(--gridline); color: var(--text-secondary);
+  }
+  .loan-info-rows .line:last-child { border-bottom: none; }
+  .loan-info-rows .line span.v { font-variant-numeric: tabular-nums; color: var(--text-primary); font-weight: 600; }
+  .loan-info-rows .line.final { padding-top: 12px; margin-top: 2px; border-top: 1px solid var(--baseline); }
+  .loan-info-rows .line.final span:first-child { font-weight: 650; color: var(--text-primary); }
+  .loan-info-rows .line.final .v { font-size: 16px; font-weight: 700; }
+  .loan-info-field {
+    position: relative; display: inline-flex; align-items: center;
+    background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+    border: 1px solid var(--border); border-radius: 7px;
+  }
+  .loan-info-field .unit { font-size: 11px; color: var(--text-muted); padding: 0 8px; }
+  .loan-info-input {
+    font: inherit; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums;
+    width: 84px; padding: 6px 8px; text-align: right; background: none; color: var(--text-primary);
+    border: none; outline: none;
+  }
+  .loan-info-input:focus { color: var(--series-maarten); }
+  .loan-info-input::-webkit-outer-spin-button, .loan-info-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .loan-info-input[type=number] { -moz-appearance: textfield; }
+  .loan-info-field.pct .unit, .loan-info-field.months .unit { padding-left: 0; padding-right: 8px; }
+  .loan-info-btn {
+    flex: none; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;
+    background: none; border: none; padding: 0; cursor: pointer; font-size: 13px; line-height: 1;
+    opacity: 0.7; border-radius: 6px;
+  }
+  .loan-info-btn:hover { opacity: 1; background: color-mix(in srgb, var(--text-primary) 8%, transparent); }
+
+  .log-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .log-summary .yr-tile {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+  }
+  .log-summary .yr-tile .yr { font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .log-summary .yr-tile .yr-actual { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .log-summary .yr-tile .yr-diff { font-size: 11px; margin-top: 2px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+  .log-summary .yr-tile .yr-diff.good { color: var(--status-good-text); }
+  .log-summary .yr-tile .yr-diff.bad { color: var(--status-critical); }
+
+  .log-table-wrap { overflow-y: auto; max-height: 320px; border: 1px solid var(--gridline); border-radius: 10px; }
+  table.log-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.log-table th {
+    position: sticky; top: 0; background: var(--surface-1); text-align: right;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted);
+    padding: 8px 12px; border-bottom: 1px solid var(--gridline);
+  }
+  table.log-table th:first-child { text-align: left; }
+  table.log-table td {
+    padding: 7px 12px; text-align: right; font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid var(--gridline); color: var(--text-secondary);
+  }
+  table.log-table tr:last-child td { border-bottom: none; }
+  table.log-table td:first-child { text-align: left; color: var(--text-primary); font-weight: 550; }
+  table.log-table td.net { color: var(--text-primary); font-weight: 650; }
+  table.log-table td.net.bad { color: var(--status-critical); }
+  table.log-table td.muted { color: var(--text-muted); }
+
+  .spending-info-btn {
+    flex: none; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
+    background: none; border: none; padding: 0; margin-left: 4px; cursor: pointer; font-size: 11px; line-height: 1;
+    opacity: 0.7; border-radius: 5px; vertical-align: -3px;
+  }
+  .spending-info-btn:hover { opacity: 1; background: color-mix(in srgb, var(--text-primary) 8%, transparent); }
+  .spending-info-summary {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    font-size: 12.5px; color: var(--text-secondary); margin: 8px 0 12px;
+  }
+  .spending-info-summary .v { font-variant-numeric: tabular-nums; font-weight: 650; color: var(--text-primary); }
+  .spending-info-summary.mismatch { color: var(--status-warning); }
+  .spending-item-table td:nth-child(2) { text-align: left; color: var(--text-primary); font-weight: 500; }
+  .spending-item-table td:first-child { font-weight: 500; }
+
+  @media (max-width: 560px) {
+    .row-head, .row { grid-template-columns: 1fr 96px; font-size: 12px; }
+    .subtotal-row { grid-template-columns: 1fr 96px; }
+    .row-head.personal, .row.personal, .subtotal-row.personal { grid-template-columns: 1fr 78px 78px; }
+  }
+
+  .loan-item { border-bottom: 1px solid var(--gridline); }
+  .loan-item:last-child { border-bottom: none; }
+  .loan-item .row.personal { border-bottom: none; }
+
+  .debt-ring {
+    display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; margin-left: 9px;
+  }
+  .debt-ring-svg { width: 22px; height: 22px; flex: none; }
+  .debt-ring-svg circle { transition: stroke-dasharray 0.25s ease; }
+  .debt-ring-track { stroke: var(--gridline); }
+  .debt-ring-fill.nicolas { stroke: var(--series-nicolas); }
+  .debt-ring-pct {
+    font-size: 10.5px; font-weight: 700; color: var(--text-secondary); font-variant-numeric: tabular-nums;
+  }
+
+  /* screen tabs — switches between the current budget and the potential-new-house scenario */
+  .tab-bar {
+    display: flex; gap: 4px; padding: 0 20px 12px; overflow-x: auto;
+  }
+  .tab-btn {
+    font: inherit; font-size: 12.5px; font-weight: 600; white-space: nowrap;
+    background: transparent; color: var(--text-secondary); border: 1px solid transparent;
+    border-radius: 8px; padding: 7px 12px; cursor: pointer; transition: background 0.12s ease, color 0.12s ease;
+  }
+  .tab-btn:hover { background: color-mix(in srgb, var(--text-primary) 6%, transparent); color: var(--text-primary); }
+  .tab-btn.active {
+    background: color-mix(in srgb, var(--series-maarten) 14%, var(--surface-2));
+    color: var(--text-primary); border-color: color-mix(in srgb, var(--series-maarten) 35%, var(--border));
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .sync-status {
+    font-size: 12px; color: var(--text-muted);
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 6px 4px;
+  }
+  .sync-status.saving { color: var(--text-secondary); }
+  .sync-status.error { color: #d03b3b; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div>
+      <a class="home-link" href="index.html">← Financiën</a>
+      <h1>New House Checklist</h1>
+      <div class="sub">Maarten &amp; Nicolas — required savings, moving costs, and the budget plan for whenever you find the next place</div>
+    </div>
+    <div class="controls-stack">
+      <div class="controls">
+        <span class="sync-status" id="sync-status" title="Cloud sync status">☁️ …</span>
+        <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
+        <button class="ctl" id="btn-export">⭳ Export</button>
+      </div>
+      <div class="controls">
+        <button class="ctl ctl-danger" id="btn-undo">↺ Undo changes</button>
+        <button class="ctl ctl-save" id="btn-save">💾 Save</button>
+      </div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn" id="tab-btn-mortgage" type="button" data-tab="mortgage">🏦 Mortgage</button>
+    <button class="tab-btn" id="tab-btn-budget" type="button" data-tab="budget">🧮 Budget plan</button>
+    <button class="tab-btn active" id="tab-btn-goal" type="button" data-tab="goal">💰 Required savings</button>
+    <button class="tab-btn" id="tab-btn-process" type="button" data-tab="process">✅ Checklist</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+<div id="screen-goal" class="screen active">
+
+  <!-- HOUSE FUND -->
+  <section class="card">
+    <h2>House fund <span class="badge">required savings</span></h2>
+    <p class="desc">What you're setting aside for moving and buying costs before committing to this mortgage. Required savings is set automatically from your checklist total below — edit Saved in locked account and Saving per month directly.</p>
+
+    <div class="equation-row">
+      <div class="tile input">
+        <div class="label">Required savings</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="100" min="0" id="in-housefund-goal-b" value="15000" readonly></div>
+      </div>
+      <div class="tile input">
+        <div class="label">Saving per month</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="10" min="0" id="in-housefund-monthly-b" value="0"></div>
+      </div>
+      <div class="tile input">
+        <div class="label">Saved in locked account</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="100" min="0" id="in-housefund-saved-b" value="0"></div>
+      </div>
+    </div>
+
+    <div class="housefund-progress-wrap">
+      <div class="housefund-progress-track">
+        <div class="housefund-progress-fill" id="housefund-progress-fill-b" style="width:0%"></div>
+      </div>
+      <div class="housefund-progress-labels">
+        <span class="pct" id="housefund-progress-pct-b">0%</span>
+        <span id="housefund-progress-remaining-b">€&nbsp;15.000,00 to go</span>
+      </div>
+    </div>
+
+    <div class="grand-total" style="margin-top:16px;">
+      <div>Estimated time to reach required savings</div>
+      <div class="value" id="housefund-eta-b">Add a monthly amount to estimate</div>
+    </div>
+  </section>
+
+  <!-- MOVING & BUYING COST CHECKLIST -->
+  <section class="card">
+    <h2>Moving &amp; buying costs <span class="badge">checklist</span></h2>
+    <p class="desc">Buffer and Transport are fixed, flat amounts (€5.000 and €500) — not editable. Add anything else below as its own item and drag it to reorder. Buyer's costs (kosten koper) aren't listed here since those get folded into the mortgage.</p>
+
+    <div class="checklist-table-wrap">
+      <table class="checklist-table checklist-table-fixed">
+        <thead>
+          <tr><th class="drag-col"></th><th>Category</th><th class="amt-col" style="text-align:right">Amount €</th><th class="del-col"></th></tr>
+        </thead>
+        <tbody id="checklist-fixed-rows-b"></tbody>
+      </table>
+    </div>
+
+    <div class="checklist-subhead">Additional items</div>
+    <div class="checklist-table-wrap">
+      <table class="checklist-table">
+        <thead>
+          <tr><th class="drag-col"></th><th>Item</th><th class="amt-col" style="text-align:right">Amount €</th><th class="del-col"></th></tr>
+        </thead>
+        <tbody id="checklist-rows-b"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn-add-item" id="btn-checklist-add-b">+ Add item</button>
+
+    <div class="grand-total" style="margin-top:18px;">
+      <div>Checklist total <span style="font-weight:400;color:var(--text-muted);">(= Required savings above)</span></div>
+      <div class="checklist-total-wrap">
+        <div class="value" id="checklist-total-b">€&nbsp;0,00</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div id="screen-process" class="screen">
+
+  <!-- MOVING PROCESS CHECKLIST -->
+  <section class="card">
+    <h2>Moving checklist <span class="badge">progress</span></h2>
+    <p class="desc">Money saved and finance approved by bank can happen in either order. Everything after that unlocks one step at a time — finish one before you can check off the next.</p>
+
+    <div class="process-summary" id="process-summary-b">0 of 6 steps done</div>
+
+    <div class="process-list" id="process-list-b"></div>
+    <div class="process-lock-toast" id="process-lock-toast-b" role="status" aria-live="polite"></div>
+  </section>
+
+</div>
+
+<div id="screen-budget" class="screen">
+
+  <!-- INCOME -->
+  <section class="card">
+    <h2>Income</h2>
+    <p class="desc">Monthly net salary for each of you. Edit the numbers — everything below recalculates instantly.</p>
+    <div class="equation-row">
+      <div class="tile input">
+        <div class="label"><span class="swatch maarten"></span>Maarten's salary</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten-b" value="0"></div>
+      </div>
+      <div class="op">+</div>
+      <div class="tile input">
+        <div class="label"><span class="swatch nicolas"></span>Nicolas' salary</div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas-b" value="0"></div>
+      </div>
+      <div class="op">=</div>
+      <div class="tile total">
+        <div class="label">Combined household income</div>
+        <div class="value" id="out-salary-total-b">€&nbsp;0,00</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOINT COSTS -->
+  <section class="card">
+    <h2>Joint costs</h2>
+    <p class="desc">Same categories as the current budget, but with the mortgage auto-filled from the Mortgage tab and no ownership fee. Edit any amount and the totals below update instantly.</p>
+
+    <div class="subtotal-outer">
+      <span class="drag-handle spacer-only" aria-hidden="true"></span>
+      <div class="row-head">
+        <div></div><div style="text-align:right">Amount €</div>
+      </div>
+      <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+    </div>
+    <div id="household-rows-b"><div class="cat-group"><div class="cat-title">House</div><div class="row-outer" data-drag-row="0.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.0" value="Mortgage" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="0.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer" data-drag-row="0.1">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.1" value="Gas" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="0.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer" data-drag-row="0.2">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.2" value="Energy" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="0.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer" data-drag-row="0.3">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.3" value="County and city taxes" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="0.3" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer row-outer-last" data-drag-row="0.4">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="0.4" value="House insurance" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="0.4" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><button type="button" class="btn-add-item" data-hh-add="0">+ Add cost</button><div class="subtotal-outer">
+        <span class="drag-handle spacer-only" aria-hidden="true"></span>
+        <div class="subtotal-row">
+          <div>Subtotal — House</div>
+          <div class="computed" id="hh-cat-0-b">€&nbsp;0,00</div>
+        </div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row-outer" data-drag-row="1.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.0" value="Car fuel" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="1.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer" data-drag-row="1.1">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.1" value="Car insurance" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="1.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer" data-drag-row="1.2">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.2" value="Road taxes" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="1.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer" data-drag-row="1.3">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.3" value="Maintenance" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="1.3" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer row-outer-last" data-drag-row="1.4">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="1.4" value="Road service contract" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="1.4" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><button type="button" class="btn-add-item" data-hh-add="1">+ Add cost</button><div class="subtotal-outer">
+        <span class="drag-handle spacer-only" aria-hidden="true"></span>
+        <div class="subtotal-row">
+          <div>Subtotal — Transport</div>
+          <div class="computed" id="hh-cat-1-b">€&nbsp;0,00</div>
+        </div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row-outer" data-drag-row="2.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.0" value="Gym" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="2.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer" data-drag-row="2.1">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.1" value="Ziggo" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="2.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer" data-drag-row="2.2">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.2" value="Netflix" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="2.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><div class="row-outer row-outer-last" data-drag-row="2.3">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="2.3" value="Disney+" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="2.3" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><button type="button" class="btn-add-item" data-hh-add="2">+ Add cost</button><div class="subtotal-outer">
+        <span class="drag-handle spacer-only" aria-hidden="true"></span>
+        <div class="subtotal-row">
+          <div>Subtotal — Subscriptions (joint)</div>
+          <div class="computed" id="hh-cat-2-b">€&nbsp;0,00</div>
+        </div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row-outer row-outer-last" data-drag-row="3.0">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="3.0" value="Max — Insurance" readonly=""></div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="0" readonly=""></div>
+          </div>
+          
+          <button class="btn-edit-item" type="button" data-hh-edit="3.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+        </div><button type="button" class="btn-add-item" data-hh-add="3">+ Add cost</button><div class="subtotal-outer">
+        <span class="drag-handle spacer-only" aria-hidden="true"></span>
+        <div class="subtotal-row">
+          <div>Subtotal — Pets</div>
+          <div class="computed" id="hh-cat-3-b">€&nbsp;0,00</div>
+        </div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div></div></div>
+
+    <div class="grand-total">
+      <div>Total joint costs</div>
+      <div class="value" id="out-hh-total-b">€&nbsp;0,00</div>
+    </div>
+  </section>
+
+  <!-- WHO PAYS WHAT -->
+  <section class="card">
+    <h2>Who pays what</h2>
+    <p class="desc">In this scenario Nicolas pays an even 50% of the joint costs — no fixed monthly adjustment, just a straight split.</p>
+
+    <div class="tiles" style="margin-bottom:20px;">
+      <div class="tile">
+        <div class="label"><span class="swatch maarten"></span>Maarten pays</div>
+        <div class="value" id="out-pays-maarten-b">€&nbsp;0,00</div>
+        <div class="hint" id="out-pct-maarten-b">50.0% of joint costs</div>
+        <div class="hint compare" id="compare-pays-maarten-b"></div>
+      </div>
+      <div class="tile">
+        <div class="label"><span class="swatch nicolas"></span>Nicolas pays</div>
+        <div class="value" id="out-pays-nicolas-b">€&nbsp;0,00</div>
+        <div class="hint" id="out-pct-nicolas-b">50.0% of joint costs</div>
+        <div class="hint compare" id="compare-pays-nicolas-b"></div>
+      </div>
+    </div>
+
+    <div class="donut-row">
+      <div class="donut-figure">
+        <svg viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
+          <g id="whopays-donut-segments-b">
+      <circle id="whopays-donut-seg-maarten-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Maarten" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
+    
+      <circle id="whopays-donut-seg-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="butt" data-tip-label="Nicolas" data-tip-amount="€&nbsp;0,00" data-tip-pct="0.0%"></circle>
+    </g>
+        </svg>
+        <div class="donut-center">
+          <div class="val" id="whopays-donut-total-b">€&nbsp;0,00</div>
+          <div class="lbl">joint costs</div>
+        </div>
+      </div>
+      <div class="donut-legend" id="whopays-donut-legend-b">
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--series-maarten)"></span>Maarten</span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-maarten-b">€&nbsp;0,00</span><span class="p" id="whopays-donut-pct-maarten-b">50.0%</span></span>
+      </div>
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:var(--series-nicolas)"></span>Nicolas</span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas-b">€&nbsp;0,00</span><span class="p" id="whopays-donut-pct-nicolas-b">50.0%</span></span>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- PERSONAL COSTS -->
+  <section class="card">
+    <h2>Personal costs <span class="badge">individual</span></h2>
+    <p class="desc">Loans, insurance, subscriptions, groceries and savings — tracked separately per person.</p>
+    <div class="legend">
+      <span class="item"><span class="swatch maarten"></span>Maarten</span>
+      <span class="item"><span class="swatch nicolas"></span>Nicolas</span>
+    </div>
+    <div class="subtotal-outer">
+      <span class="drag-handle spacer-only" aria-hidden="true"></span>
+      <div class="row-head personal">
+        <div></div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div>
+      </div>
+      <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+    </div>
+    <div id="personal-rows-b"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row-outer" data-drag-row="0.0">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="0.0" value="Health insurance" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="0" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="0" readonly=""></div>
+              <div class="computed" id="pc-0-0-t-b">€&nbsp;0,00</div>
+            </div>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="0.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+          </div><div class="row-outer" data-drag-row="0.1">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="0.1" value="Health costs" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="0" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="0" readonly=""></div>
+              <div class="computed" id="pc-0-1-t-b">€&nbsp;0,00</div>
+            </div>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="0.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+          </div><div class="row-outer row-outer-last" data-drag-row="0.2">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="0.2" value="Other insurance" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="0" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0" readonly=""></div>
+              <div class="computed" id="pc-0-2-t-b">€&nbsp;0,00</div>
+            </div>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="0.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+          </div><button type="button" class="btn-add-item" data-pc-add="0">+ Add cost</button><div class="subtotal-outer">
+        <span class="drag-handle spacer-only" aria-hidden="true"></span>
+        <div class="subtotal-row personal">
+          <div>Subtotal — Fixed costs</div>
+          <div class="computed maarten" id="pc-cat-0-m-b">€&nbsp;0,00</div>
+          <div class="computed nicolas" id="pc-cat-0-n-b">€&nbsp;0,00</div>
+          <div class="computed" id="pc-cat-0-t-b">€&nbsp;0,00</div>
+        </div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row-outer" data-drag-row="1.0">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="1.0" value="Phone contract" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="0" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="0" readonly=""></div>
+              <div class="computed" id="pc-1-0-t-b">€&nbsp;0,00</div>
+            </div>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="1.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+          </div><div class="row-outer" data-drag-row="1.1">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="1.1" value="Spotify" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="0" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="0" readonly=""></div>
+              <div class="computed" id="pc-1-1-t-b">€&nbsp;0,00</div>
+            </div>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="1.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+          </div><div class="row-outer row-outer-last" data-drag-row="1.2">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="1.2" value="World of Warcraft" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="0" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="0" readonly=""></div>
+              <div class="computed" id="pc-1-2-t-b">€&nbsp;0,00</div>
+            </div>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="1.2" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+          </div><button type="button" class="btn-add-item" data-pc-add="1">+ Add cost</button><div class="subtotal-outer">
+        <span class="drag-handle spacer-only" aria-hidden="true"></span>
+        <div class="subtotal-row personal">
+          <div>Subtotal — Subscriptions</div>
+          <div class="computed maarten" id="pc-cat-1-m-b">€&nbsp;0,00</div>
+          <div class="computed nicolas" id="pc-cat-1-n-b">€&nbsp;0,00</div>
+          <div class="computed" id="pc-cat-1-t-b">€&nbsp;0,00</div>
+        </div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row-outer" data-drag-row="2.0">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="2.0" value="Groceries" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="0" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="0" readonly=""></div>
+              <div class="computed" id="pc-2-0-t-b">€&nbsp;0,00</div>
+            </div>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="2.0" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+          </div><div class="row-outer row-outer-last" data-drag-row="2.1">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="2.1" value="Saving" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="0" readonly=""></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="0" readonly=""></div>
+              <div class="computed" id="pc-2-1-t-b">€&nbsp;0,00</div>
+            </div>
+            
+          <button class="btn-edit-item" type="button" data-pc-edit="2.1" title="Edit this cost" aria-label="Edit this cost">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      
+          </div><button type="button" class="btn-add-item" data-pc-add="2">+ Add cost</button><div class="subtotal-outer">
+        <span class="drag-handle spacer-only" aria-hidden="true"></span>
+        <div class="subtotal-row personal">
+          <div>Subtotal — Other</div>
+          <div class="computed maarten" id="pc-cat-2-m-b">€&nbsp;0,00</div>
+          <div class="computed nicolas" id="pc-cat-2-n-b">€&nbsp;0,00</div>
+          <div class="computed" id="pc-cat-2-t-b">€&nbsp;0,00</div>
+        </div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="row-outer" data-drag-row="3.0"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
+          <div class="name">
+            <input class="name-input" type="text" data-pc-label="3.0" value="Student loan" readonly="">
+            <button class="loan-info-btn" type="button" data-loan-info="b.3.0" title="Loan details" aria-label="Loan details">ℹ️</button>
+            <span class="debt-ring" id="debt-ring-3-0-nicolas-b" style="display:none">
+              <svg viewBox="0 0 36 36" class="debt-ring-svg">
+                <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
+                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-0-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
+              </svg>
+              <span class="debt-ring-pct" id="debt-ring-pct-3-0-nicolas-b">0%</span>
+            </span>
+          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.maarten" value="0" readonly=""></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="0" readonly=""></div>
+          <div class="computed" id="pc-3-0-t-b">€&nbsp;0,00</div>
+        </div></div>
+          <button class="btn-edit-item" type="button" data-pc-edit="3.0" title="Edit this loan" aria-label="Edit this loan">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div><div class="row-outer row-outer-last" data-drag-row="3.1"><span class="drag-handle" title="Drag to reorder">⠿</span><div class="loan-item"><div class="row personal">
+          <div class="name">
+            <input class="name-input" type="text" data-pc-label="3.1" value="Credit card" readonly="">
+            <button class="loan-info-btn" type="button" data-loan-info="b.3.1" title="Loan details" aria-label="Loan details">ℹ️</button>
+            <span class="debt-ring" id="debt-ring-3-1-nicolas-b" style="display:none">
+              <svg viewBox="0 0 36 36" class="debt-ring-svg">
+                <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
+                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-1-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
+              </svg>
+              <span class="debt-ring-pct" id="debt-ring-pct-3-1-nicolas-b">0%</span>
+            </span>
+          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.maarten" value="0" readonly=""></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.nicolas" value="0" readonly=""></div>
+          <div class="computed" id="pc-3-1-t-b">€&nbsp;0,00</div>
+        </div></div>
+          <button class="btn-edit-item" type="button" data-pc-edit="3.1" title="Edit this loan" aria-label="Edit this loan">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div><button type="button" class="btn-add-item" data-pc-add="3">+ Add loan</button><div class="subtotal-outer">
+        <span class="drag-handle spacer-only" aria-hidden="true"></span>
+        <div class="subtotal-row personal">
+          <div>Subtotal — Loans</div>
+          <div class="computed maarten" id="pc-cat-3-m-b">€&nbsp;0,00</div>
+          <div class="computed nicolas" id="pc-cat-3-n-b">€&nbsp;0,00</div>
+          <div class="computed" id="pc-cat-3-t-b">€&nbsp;0,00</div>
+        </div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      </div></div></div>
+    <div class="subtotal-outer">
+      <span class="drag-handle spacer-only" aria-hidden="true"></span>
+      <div class="subtotal-row personal">
+        <div>Total personal costs</div>
+        <div class="computed maarten" id="out-pc-total-maarten-b">€&nbsp;0,00</div>
+        <div class="computed nicolas" id="out-pc-total-nicolas-b">€&nbsp;0,00</div>
+      </div>
+      <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+      <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section class="card">
+    <h2>Summary</h2>
+    <p class="desc">How each salary splits into joint costs, personal costs, and what's left to spend.</p>
+    <div class="summary-grid">
+      <div class="person-card">
+        <h3><span class="swatch maarten"></span>Maarten</h3>
+        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-m-household-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal-b">€&nbsp;0,00</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left-b">€&nbsp;0,00</span></div>
+        <div class="line compare" id="sum-m-left-compare-b"></div>
+      </div>
+      <div class="person-card">
+        <h3><span class="swatch nicolas"></span>Nicolas</h3>
+        <div class="line"><span>Salary</span><span class="v" id="sum-n-salary-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-n-household-b">€&nbsp;0,00</span></div>
+        <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal-b">€&nbsp;0,00</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left-b">€&nbsp;0,00</span></div>
+        <div class="line compare" id="sum-n-left-compare-b"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM LINE -->
+  <section class="card">
+    <h2>Bottom line</h2>
+    <p class="desc">What's actually left over each month, combined, once this mortgage, the joint costs, and both your personal costs are all paid — set against what's left over in your current budget.</p>
+    <div class="grand-total" style="margin-top:0;">
+      <div>Combined money left over per month</div>
+      <div class="value" id="bottomline-left-b">€&nbsp;0,00</div>
+    </div>
+    <div class="bottomline-compare" id="bottomline-compare-b">Sign in to compare against your current budget.</div>
+  </section>
+
+</div>
+
+<div id="screen-mortgage" class="screen">
+
+  <!-- NEW HOUSE PRICE -->
+  <section class="card">
+    <h2>New house price</h2>
+    <p class="desc">A fictional €450.000 house, so you can see roughly what moving would take. <strong>Fill in the purchase price below</strong> to match a real listing whenever you find one — everything else on this tab is either pulled from your other pages or estimated automatically.</p>
+
+    <div id="mort-price-rows-b"></div>
+
+    <div class="row">
+      <div class="name">Kosten koper<span class="hint">Estimated — typically 4–6% for an existing home, not editable</span></div>
+      <div class="num-field pct"><input class="num" type="number" step="0.1" min="0" id="in-mort-kk-b" readonly title="Estimated — not editable."><span class="unit">%</span></div>
+    </div>
+
+    <div class="subtotal-row">
+      <div>Kosten koper amount</div>
+      <div class="computed" id="out-mort-kk-amount-b">€&nbsp;0,00</div>
+    </div>
+    <div class="grand-total" style="margin-top:8px;">
+      <div>Total cost <span style="font-weight:400;color:var(--text-muted);">(price + kosten koper)</span></div>
+      <div class="value" id="out-mort-total-cost-b">€&nbsp;0,00</div>
+    </div>
+  </section>
+
+  <!-- FINANCING -->
+  <section class="card">
+    <h2>Financing this house</h2>
+    <p class="desc">How the total cost above would get covered: your equity, your current mortgage carrying over to the new house (a "meeneemhypotheek"), and whatever new mortgage is needed to make up the rest.</p>
+
+    <div class="row-head"><div>Item</div><div>Amount</div></div>
+    <div class="row">
+      <div class="name">Equity from current home <button class="loan-info-btn" type="button" id="btn-equity-agreement" title="How this equity is split" aria-label="How this equity is split">ℹ️</button><span class="hint">Fetched from Home &amp; Mortgage — use Sync below to refresh</span></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="text" inputmode="decimal" id="in-mort-equity-b" readonly title="Fetched from Home & Mortgage — use Sync below to refresh."></div>
+    </div>
+    <div class="row">
+      <div class="name">Current mortgage (carried over)<span class="hint">Fetched from Home &amp; Mortgage — use Sync below to refresh</span><span class="hint">Interest rate <span id="out-mort-current-rate-b">1,49</span>% — fixed, not editable</span></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="text" inputmode="decimal" id="in-mort-carried-b" readonly title="Fetched from Home & Mortgage — use Sync below to refresh."></div>
+    </div>
+
+    <div class="mort-price-hero mort-rate-hero">
+      <div class="mort-price-hero-label">New mortgage <span class="mort-price-hero-tag">rest of the total cost</span></div>
+      <div class="mort-price-hero-row">
+        <div class="mort-price-hero-field">
+          <div class="mort-price-hero-input" id="out-mort-new-inline-b" style="cursor:default;">€&nbsp;0,00</div>
+        </div>
+      </div>
+      <div class="mort-rate-subblock">
+        <div class="mort-price-hero-label" style="margin-bottom:6px;">Interest rate <span class="mort-price-hero-tag">🔧 adjustable</span></div>
+        <div class="mort-price-hero-row" style="gap:14px;">
+          <div class="mort-rate-hero-field">
+            <input class="mort-rate-hero-input" type="number" step="0.1" min="0" id="in-mort-rate-b" readonly title="Adjust with the ▲/▼ buttons — starts from the estimated market average.">
+            <span class="mort-rate-hero-unit">%</span>
+          </div>
+          <div class="mort-stepper">
+            <button type="button" class="mort-stepper-btn" id="btn-mort-rate-up-b" title="Increase by 0.1%" aria-label="Increase mortgage rate by 0.1 percentage point">▲</button>
+            <button type="button" class="mort-stepper-btn" id="btn-mort-rate-down-b" title="Decrease by 0.1%" aria-label="Decrease mortgage rate by 0.1 percentage point">▼</button>
+          </div>
+        </div>
+        <div class="mort-rate-hero-hint">Estimated current market average — use the buttons to test a different rate. This rate applies only to the new mortgage above — your current mortgage keeps the fixed rate shown further up.</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="name">New mortgage term<span class="hint">Standard term estimate, not editable</span></div>
+      <div class="num-field pct"><input class="num" type="number" step="1" min="1" id="in-mort-term-b" readonly title="Standard term estimate — not editable."><span class="unit">yrs</span></div>
+    </div>
+
+    <button type="button" class="btn-add-item" id="btn-mort-sync-b">↻ Sync equity &amp; current mortgage from Home &amp; Mortgage</button>
+    <div class="mort-sync-note" id="mort-sync-note-b"></div>
+
+    <div class="donut-row" style="margin:18px 0 22px;">
+      <div class="donut-figure">
+        <svg viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
+          <g id="mort-donut-segments-b"></g>
+        </svg>
+        <div class="donut-center">
+          <div class="val" id="mort-donut-total-b">€&nbsp;0,00</div>
+          <div class="lbl">total cost</div>
+        </div>
+      </div>
+      <div class="donut-legend" id="mort-donut-legend-b"></div>
+    </div>
+
+    <div class="mort-result-area">
+      <div class="mort-total-hero">
+        <div class="mort-total-hero-label">Total monthly mortgage payment <span class="mort-total-hero-tag">current + new</span></div>
+        <div class="mort-total-hero-value" id="out-mort-total-payment-b">—</div>
+
+        <div class="mort-total-hero-row hra">
+          <span class="mort-total-hero-row-label">Hypotheekrenteaftrek <span class="mort-total-hero-tag">rough estimate</span></span>
+          <span class="mort-total-hero-row-value hra" id="out-mort-deduct-monthly-b">—</span>
+        </div>
+
+        <div class="mort-total-hero-row net">
+          <span class="mort-total-hero-row-label net">Net, after tax benefit</span>
+          <span class="mort-total-hero-row-value net" id="out-mort-deduct-net-b">—</span>
+        </div>
+      </div>
+
+      <div class="mort-deduct-hint-standalone">Estimated monthly tax benefit at the 2026 deduction rate (37,56% — capped at the lowest income-tax bracket, same for everyone), on the interest portion of your current + new mortgage combined (≈ <span id="out-mort-deduct-interest-b">—</span>/month in interest). This ignores the eigenwoningforfait and your personal tax situation, so treat it as a rough indication — not tax advice.</div>
+    </div>
+
+    <p class="desc" style="margin:16px 0 0;">Only the new mortgage part is estimated here — your carried-over mortgage keeps its own existing rate, term, and payments, tracked on the <a href="house.html">Home &amp; Mortgage</a> page.</p>
+  </section>
+
+</div>
+
+</main>
+
+<div id="chart-tooltip" class="chart-tooltip" hidden=""></div>
+
+<footer class="note">
+  Your plan for the next house — a savings goal with an itemized cost checklist, and a full budget
+  simulation for what life looks like once you own it. Everything here is editable and recalculates
+  live in your browser. Nothing autosaves — hit <strong>Save</strong> when you're happy with your edits,
+  or <strong>Undo changes</strong> to throw them away and reload the last saved values.
+</footer>
+
+<dialog id="equity-agreement-dialog" class="modal">
+  <div class="modal-header">
+    <h3>Home equity agreement <span class="badge">current home</span></h3>
+    <button class="icon-btn" id="btn-close-equity-agreement" type="button" aria-label="Close">✕</button>
+  </div>
+  <p class="desc">Agreement between Maarten and Nicolas on how to split the equity from selling the current home — prepared ahead of the notary conversation for the new purchase.</p>
+  <div class="tiles">
+    <div class="tile">
+      <div class="label">Rule</div>
+      <div class="value" style="font-size:16px;font-weight:650;">First €100,000 → Maarten</div>
+      <div class="hint">The rest of the equity is split 50/50</div>
+    </div>
+  </div>
+  <p class="desc" style="margin-top:14px;">
+    Background: Maarten originally put in roughly €100,000 of his own savings when buying the current home. Since then you've both contributed to the mortgage and household costs (see Nicolas' contribution log on the Budget plan). On sale, this €100,000 is first set aside as Maarten's private assets; anything above that in the sale proceeds is split evenly — regardless of the exact final sale price. This rule (rather than fixed euro amounts) was chosen on purpose, since the final sale price can still change before the actual transfer.
+  </p>
+  <p class="desc" style="margin-top:10px;">
+    How the value is set: the home's value is established with a professional valuation (taxatie) — a step that's needed anyway whenever mortgage financing changes hands. If a second opinion is ever useful, the usual approach is for each of you to have your own valuation done and take the average of the two.
+  </p>
+  <p class="desc" style="margin-top:10px;">
+    Still to do: have this agreement formalized by the notary when buying the new house, in the financing/transfer deed and/or prenuptial agreement.
+  </p>
+</dialog>
+
+<dialog id="loan-info-dialog" class="modal">
+  <div class="modal-header">
+    <h3 id="loan-info-title">Loan details</h3>
+    <button class="icon-btn" id="btn-close-loan-info" type="button" aria-label="Close">✕</button>
+  </div>
+  <div class="loan-info-rows" id="loan-info-rows"></div>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Default data — Potential new house scenario ----------
+  function defaultStateB() {
+    return {
+      salary: { maarten: 0, nicolas: 0 },
+      mortgageNetToggle: false,
+      household: [
+        { name: "House", items: [
+          { label: "Mortgage", amount: 0 },
+          { label: "Gas", amount: 0 },
+          { label: "Energy", amount: 0 },
+          { label: "County and city taxes", amount: 0 },
+          { label: "House insurance", amount: 0 },
+          { label: "Building insurance (estimate)", amount: 19.95 },
+        ]},
+        { name: "Transport", items: [
+          { label: "Car fuel for trips", amount: 0 },
+          { label: "Parking costs trips", amount: 0 },
+        ]},
+        { name: "Subscriptions (joint)", items: [
+          { label: "Gym", amount: 0 },
+          { label: "Ziggo", amount: 0 },
+          { label: "Netflix", amount: 0 },
+          { label: "Disney+", amount: 0 },
+        ]},
+        { name: "Pets", items: [
+          { label: "Max — Insurance", amount: 0 },
+        ]},
+      ],
+      personal: defaultPersonal(),
+      houseFund: {
+        goal: 0, saved: 0, monthlyContribution: 0,
+        fixed: { buffer: 5000, transport: 500 },
+        items: [
+          { label: "New furniture", amount: 0 },
+          { label: "Paint & small renovations", amount: 0 },
+        ],
+      },
+      mortgageScenario: {
+        purchasePrice: 450000,
+        kkPct: 4,
+        equity: 152647.84,
+        carriedMortgage: 142352.16,
+        newRate: 4.2,
+        newTermYears: 30,
+      },
+      processChecklist: {
+        bankAdvisor: false,
+        offerSubmitted: false,
+        offerAccepted: false,
+        preliminaryAgreement: false,
+        technicalInspection: false,
+        mortgageArranged: false,
+        deedsTransferred: false,
+      },
+    };
+  }
+
+  function defaultPersonal() {
+    return [
+      { name: "Groceries", items: [
+        { label: "Groceries", maarten: 0, nicolas: 0 },
+        { label: "Saving", maarten: 0, nicolas: 0 },
+      ]},
+      { name: "Car cost", items: [
+        { label: "Car insurance", maarten: 0, nicolas: 0 },
+        { label: "Road taxes", maarten: 0, nicolas: 0 },
+        { label: "Maintenance", maarten: 0, nicolas: 0 },
+        { label: "Road service contract", maarten: 0, nicolas: 0 },
+      ]},
+      { name: "Health", items: [
+        { label: "Health insurance", maarten: 0, nicolas: 0 },
+        { label: "Health costs", maarten: 0, nicolas: 0 },
+        { label: "Other insurance", maarten: 0, nicolas: 0 },
+      ]},
+      { name: "Subscriptions", items: [
+        { label: "Phone contract", maarten: 0, nicolas: 0 },
+        { label: "Spotify", maarten: 0, nicolas: 0 },
+        { label: "World of Warcraft", maarten: 0, nicolas: 0 },
+      ]},
+      { name: "Loans", items: [
+        { label: "Student loan", maarten: 0, nicolas: 0, debt: {
+          nicolas: { total: 0, paid: 0, rate: 0, termMonths: 0 },
+        }},
+        { label: "Credit card", maarten: 0, nicolas: 0, debt: {
+          nicolas: { total: 0, paid: 0, rate: 0, termMonths: 0 },
+        }},
+      ]},
+    ];
+  }
+
+  const scopeB = { key: 'b', sfx: '-b', mode: 'split50', state: defaultStateB(), _editUnlocked: new WeakSet(), _editSnapshots: new WeakMap() };
+
+  window.scopeB = scopeB;
+  window.renderMortgageScenario = renderMortgageScenario;
+
+  window.__applyScopeState = function(key, state) {
+    scopeB.state = state;
+    if (!scopeB.state.houseFund) {
+      scopeB.state.houseFund = { goal: 15000, saved: 0, monthlyContribution: 0, fixed: { buffer: 5000, transport: 500 }, items: [] };
+    } else {
+      if (!Array.isArray(scopeB.state.houseFund.items)) scopeB.state.houseFund.items = [];
+      if (!scopeB.state.houseFund.fixed || typeof scopeB.state.houseFund.fixed !== 'object') {
+        scopeB.state.houseFund.fixed = { buffer: 5000, transport: 0 };
+      }
+      delete scopeB.state.houseFund.fixed.doubleHousing;
+    }
+    if (!scopeB.state.mortgageScenario || typeof scopeB.state.mortgageScenario !== 'object') {
+      scopeB.state.mortgageScenario = { purchasePrice: 450000, kkPct: 4, equity: 152647.84, carriedMortgage: 142352.16, newRate: 4.2, newTermYears: 30 };
+    }
+    if (!scopeB.state.processChecklist || typeof scopeB.state.processChecklist !== 'object') {
+      scopeB.state.processChecklist = { bankAdvisor: false, offerSubmitted: false, offerAccepted: false, preliminaryAgreement: false, technicalInspection: false, mortgageArranged: false, deedsTransferred: false };
+    }
+    if (typeof scopeB.state.mortgageNetToggle !== 'boolean') {
+      scopeB.state.mortgageNetToggle = false;
+    }
+    fullRender(scopeB);
+  };
+
+  let currentBudgetState = null;
+  window.__applyCurrentBudgetSnapshot = function(state) {
+    currentBudgetState = state;
+    recalcAndRender(scopeB);
+    renderMortgageScenario(scopeB);
+  };
+
+  function el(scope, base) { return document.getElementById(base + scope.sfx); }
+
+  const EUR = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) => EUR.format(Number.isFinite(n) ? n : 0);
+  const pctFmt = (n) => (Number.isFinite(n) ? (n * 100).toFixed(1) : "0.0") + "%";
+  function escapeAttr(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function parseDutchAmount(raw) {
+    if (raw == null) return 0;
+    let s = String(raw).trim();
+    if (!s) return 0;
+    const neg = s.startsWith('-');
+    if (neg) s = s.slice(1);
+    const dotCount = (s.match(/\./g) || []).length;
+    if (s.includes(',')) {
+      s = s.replace(/\./g, '').replace(',', '.');
+    } else if (dotCount > 1) {
+      s = s.replace(/\./g, '');
+    } else if (dotCount === 1) {
+      const frac = s.split('.')[1];
+      if (frac.length === 3) s = s.replace('.', '');
+    }
+    const n = parseFloat(s);
+    if (!Number.isFinite(n)) return 0;
+    return neg ? -n : n;
+  }
+
+  function bindDutchAmountReformat(inputEl, grouped) {
+    if (!inputEl) return;
+    inputEl.addEventListener('blur', () => {
+      if (inputEl.value === '') return;
+      const n = parseDutchAmount(inputEl.value);
+      inputEl.value = grouped ? formatDutchThousands(n) : n;
+    });
+  }
+
+  function formatDutchThousands(n) {
+    const num = Number(n);
+    if (!Number.isFinite(num)) return '0';
+    return num.toLocaleString('nl-NL', { maximumFractionDigits: 2 });
+  }
+
+  function formatDutchThousands2dp(n) {
+    const num = Number(n);
+    if (!Number.isFinite(num)) return '0,00';
+    return num.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function rowActionButtonsHTML(prefix, key, unlocked, noun) {
+    noun = noun || 'cost';
+    if (!unlocked) {
+      return `
+          <button class="btn-edit-item" type="button" data-${prefix}-edit="${key}" title="Edit this ${noun}" aria-label="Edit this ${noun}">✎</button>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      `;
+    }
+    return `
+          <button class="btn-edit-item active" type="button" data-${prefix}-save="${key}" title="Save changes" aria-label="Save changes">✓</button>
+          <button class="btn-discard-item" type="button" data-${prefix}-discard="${key}" title="Discard changes" aria-label="Discard changes">✕</button>
+          <button class="btn-del-item" type="button" data-${prefix}-del="${key}" title="Remove this ${noun}" aria-label="Remove this ${noun}">🗑</button>
+      `;
+  }
+
+  function netAdjustment(st) {
+    return (Number(st.adjustment) || 0) - (Number(st.adjustmentCorrection) || 0);
+  }
+
+  function mortgageRowDisplayAmount(scope, cat, it) {
+    const raw = Number(it.amount) || 0;
+    if (scope.state.mortgageNetToggle && cat.name === 'House' && it.label === 'Mortgage') {
+      const net = Math.max(0, raw - (scope._mortgageDeductionMonthly || 0));
+      return Math.round(net * 100) / 100;
+    }
+    return raw;
+  }
+
+  function compute(scope) {
+    const st = scope.state;
+    const catTotals = [];
+    let total = 0;
+    st.household.forEach(cat => {
+      let c = 0;
+      cat.items.forEach(it => { c += mortgageRowDisplayAmount(scope, cat, it); });
+      catTotals.push({ name: cat.name, total: c });
+      total += c;
+    });
+
+    let maartenPays, nicolasPays, adjustment;
+    if (scope.mode === 'split50') {
+      nicolasPays = total / 2;
+      maartenPays = total - nicolasPays;
+      adjustment = nicolasPays;
+    } else {
+      adjustment = netAdjustment(st);
+      maartenPays = total - adjustment;
+      nicolasPays = adjustment;
+    }
+    const splitTotal = maartenPays + nicolasPays;
+    const splitMaartenPct = splitTotal !== 0 ? maartenPays / splitTotal : 0.5;
+    const splitNicolasPct = splitTotal !== 0 ? nicolasPays / splitTotal : 0.5;
+
+    const pcCategoryTotals = [];
+    let personalMaartenTotal = 0, personalNicolasTotal = 0;
+    st.personal.forEach(cat => {
+      let cMaarten = 0, cNicolas = 0;
+      cat.items.forEach(it => { cMaarten += Number(it.maarten) || 0; cNicolas += Number(it.nicolas) || 0; });
+      pcCategoryTotals.push({ name: cat.name, maarten: cMaarten, nicolas: cNicolas });
+      personalMaartenTotal += cMaarten;
+      personalNicolasTotal += cNicolas;
+    });
+
+    const moneyLeftMaarten = (Number(st.salary.maarten) || 0) - maartenPays - personalMaartenTotal;
+    const moneyLeftNicolas = (Number(st.salary.nicolas) || 0) - nicolasPays - personalNicolasTotal;
+
+    return {
+      catTotals, total, adjustment, maartenPays, nicolasPays, splitMaartenPct, splitNicolasPct,
+      pcCategoryTotals, personalMaartenTotal, personalNicolasTotal,
+      moneyLeftMaarten, moneyLeftNicolas,
+    };
+  }
+
+  function buildHouseholdRows(scope) {
+    const s = scope.sfx;
+    const root = el(scope, 'household-rows');
+    root.innerHTML = '';
+    scope.state.household.forEach((cat, ci) => {
+      const group = document.createElement('div');
+      group.className = 'cat-group';
+      const title = document.createElement('div');
+      title.className = 'cat-title';
+      title.textContent = cat.name;
+      group.appendChild(title);
+
+      cat.items.forEach((it, ii) => {
+        const isLast = ii === cat.items.length - 1;
+        const isAutoMortgage = cat.name === 'House' && it.label === 'Mortgage';
+        const unlocked = !isAutoMortgage && scope._editUnlocked.has(it);
+        const rowOuter = document.createElement('div');
+        rowOuter.className = 'row-outer' + (isLast ? ' row-outer-last' : '');
+        rowOuter.setAttribute('data-drag-row', `${ci}.${ii}`);
+        rowOuter.innerHTML = `
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="row">
+            <div class="name"><input class="name-input" type="text" data-hh-label="${ci}.${ii}" value="${escapeAttr(it.label)}"${unlocked ? '' : ' readonly'}${isAutoMortgage ? ' title="Set on the Mortgage tab — edit it there."' : ''}>${isAutoMortgage ? `<span class="hint">Auto-filled from the Mortgage tab</span><span class="hint"><button type="button" class="mini-switch" data-hh-net-toggle="${ci}.${ii}" role="switch" aria-pressed="${scope.state.mortgageNetToggle ? 'true' : 'false'}" title="Switch between the gross monthly payment and the amount after the estimated hypotheekrenteaftrek tax benefit"><span class="mini-switch-knob"></span></button><span class="mini-switch-label${scope.state.mortgageNetToggle ? ' on' : ''}" data-hh-net-label="${ci}.${ii}">${scope.state.mortgageNetToggle ? 'Net, after tax benefit' : 'Show net (after tax benefit)'}</span></span>` : ''}</div>
+            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="${ci}.${ii}" value="${it.amount}"${unlocked ? '' : ' readonly'}${isAutoMortgage ? ' title="This amount is set on the Mortgage tab — edit it there."' : ''}></div>
+          </div>
+          ${isAutoMortgage ? `
+          <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+          <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+          ` : rowActionButtonsHTML('hh', `${ci}.${ii}`, unlocked, 'cost')}
+        `;
+        group.appendChild(rowOuter);
+      });
+
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'btn-add-item';
+      addBtn.setAttribute('data-hh-add', String(ci));
+      addBtn.textContent = '+ Add cost';
+      group.appendChild(addBtn);
+
+      const sub = document.createElement('div');
+      sub.className = 'subtotal-outer';
+      sub.innerHTML = `
+        <span class="drag-handle spacer-only" aria-hidden="true"></span>
+        <div class="subtotal-row">
+          <div>Subtotal — ${cat.name}</div>
+          <div class="computed" id="hh-cat-${ci}${s}">—</div>
+        </div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      `;
+      group.appendChild(sub);
+      root.appendChild(group);
+    });
+  }
+
+
+  function buildPersonalRows(scope) {
+    const s = scope.sfx;
+    const root = el(scope, 'personal-rows');
+    root.innerHTML = '';
+    scope.state.personal.forEach((cat, ci) => {
+      const group = document.createElement('div');
+      group.className = 'cat-group';
+      const title = document.createElement('div');
+      title.className = 'cat-title';
+      title.textContent = cat.name;
+      group.appendChild(title);
+
+      const isLoans = cat.name === 'Loans';
+
+      cat.items.forEach((it, ii) => {
+        const isLast = ii === cat.items.length - 1;
+        const unlocked = scope._editUnlocked.has(it);
+        const ro = unlocked ? '' : ' readonly';
+        const rowOuter = document.createElement('div');
+        rowOuter.className = 'row-outer' + (isLast ? ' row-outer-last' : '');
+        rowOuter.setAttribute('data-drag-row', `${ci}.${ii}`);
+
+        if (!isLoans) {
+          rowOuter.innerHTML = `
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="row personal">
+              <div class="name"><input class="name-input" type="text" data-pc-label="${ci}.${ii}" value="${escapeAttr(it.label)}"${ro}></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"${ro}></div>
+              <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"${ro}></div>
+            </div>
+            ${rowActionButtonsHTML('pc', `${ci}.${ii}`, unlocked, 'cost')}
+          `;
+          group.appendChild(rowOuter);
+          return;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'loan-item';
+
+        const row = document.createElement('div');
+        row.className = 'row personal';
+        row.innerHTML = `
+          <div class="name">
+            <input class="name-input" type="text" data-pc-label="${ci}.${ii}" value="${escapeAttr(it.label)}"${ro}>
+            <button class="loan-info-btn" type="button" data-loan-info="${scope.key}.${ci}.${ii}" title="Loan details" aria-label="Loan details">ℹ️</button>
+            <span class="debt-ring" id="debt-ring-${ci}-${ii}-nicolas${s}" style="display:none">
+              <svg viewBox="0 0 36 36" class="debt-ring-svg">
+                <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
+                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-${ci}-${ii}-nicolas${s}" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
+              </svg>
+              <span class="debt-ring-pct" id="debt-ring-pct-${ci}-${ii}-nicolas${s}">0%</span>
+            </span>
+          </div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.maarten" value="${it.maarten}"${ro}></div>
+          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="${ci}.${ii}.nicolas" value="${it.nicolas}"${ro}></div>
+        `;
+        wrapper.appendChild(row);
+
+        rowOuter.innerHTML = '<span class="drag-handle" title="Drag to reorder">⠿</span>';
+        rowOuter.appendChild(wrapper);
+        rowOuter.insertAdjacentHTML('beforeend', rowActionButtonsHTML('pc', `${ci}.${ii}`, unlocked, 'loan'));
+
+        group.appendChild(rowOuter);
+      });
+
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'btn-add-item';
+      addBtn.setAttribute('data-pc-add', String(ci));
+      addBtn.textContent = isLoans ? '+ Add loan' : '+ Add cost';
+      group.appendChild(addBtn);
+
+      const sub = document.createElement('div');
+      sub.className = 'subtotal-outer';
+      sub.innerHTML = `
+        <span class="drag-handle spacer-only" aria-hidden="true"></span>
+        <div class="subtotal-row personal">
+          <div>Subtotal — ${cat.name}</div>
+          <div class="computed maarten" id="pc-cat-${ci}-m${s}">—</div>
+          <div class="computed nicolas" id="pc-cat-${ci}-n${s}">—</div>
+        </div>
+        <span class="btn-edit-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-discard-item spacer-only" aria-hidden="true"></span>
+        <span class="btn-del-item spacer-only" aria-hidden="true"></span>
+      `;
+      group.appendChild(sub);
+      root.appendChild(group);
+    });
+  }
+
+  const DONUT_R = 15.915;
+  const DONUT_CIRC = 100;
+  function buildDonutSegments(gId, segmentsMeta) {
+    const g = document.getElementById(gId);
+    g.innerHTML = segmentsMeta.map(sg => `
+      <circle id="${sg.id}" cx="18" cy="18" r="${DONUT_R}" fill="none" stroke="${sg.color}"
+        stroke-width="4" stroke-dasharray="0 ${DONUT_CIRC}" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+    `).join('');
+  }
+  function updateDonutSegments(segmentsMeta, values, total) {
+    let cumulative = 0;
+    segmentsMeta.forEach((sg, i) => {
+      const elx = document.getElementById(sg.id);
+      if (!elx) return;
+      const rawVal = Math.max(0, values[i]);
+      const pct = total > 0 ? rawVal / total * 100 : 0;
+      elx.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
+      elx.setAttribute('stroke-dashoffset', String(25 - cumulative));
+      if (sg.name) {
+        elx.setAttribute('data-tip-label', sg.name);
+        elx.setAttribute('data-tip-amount', fmt(rawVal));
+        elx.setAttribute('data-tip-pct', pctFmt(total > 0 ? rawVal / total : 0));
+      }
+      cumulative += pct;
+    });
+  }
+
+  function buildWhoPaysDonut(scope) {
+    const s = scope.sfx;
+    const meta = [
+      { id: `whopays-donut-seg-maarten${s}`, color: 'var(--series-maarten)', name: 'Maarten' },
+      { id: `whopays-donut-seg-nicolas${s}`, color: 'var(--series-nicolas)', name: 'Nicolas' },
+    ];
+    buildDonutSegments(`whopays-donut-segments${s}`, meta);
+    const legend = el(scope, 'whopays-donut-legend');
+    legend.innerHTML = `
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:${meta[0].color}"></span>Maarten</span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-maarten${s}">—</span><span class="p" id="whopays-donut-pct-maarten${s}">—</span></span>
+      </div>
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:${meta[1].color}"></span>Nicolas</span>
+        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas${s}">—</span><span class="p" id="whopays-donut-pct-nicolas${s}">—</span></span>
+      </div>
+    `;
+  }
+
+  const MORT_DONUT_META = (s) => [
+    { key: 'equity', id: `mort-donut-seg-equity${s}`, color: 'var(--status-good)', name: 'Equity' },
+    { key: 'carried', id: `mort-donut-seg-carried${s}`, color: 'var(--series-maarten)', name: 'Current mortgage (carried over)' },
+    { key: 'new', id: `mort-donut-seg-new${s}`, color: 'var(--status-critical)', name: 'New mortgage' },
+  ];
+
+  function mortgageScenario(scope) {
+    if (!scope.state.mortgageScenario || typeof scope.state.mortgageScenario !== 'object') {
+      scope.state.mortgageScenario = { purchasePrice: 450000, kkPct: 4, equity: 152647.84, carriedMortgage: 142352.16, newRate: 4.2, newTermYears: 30 };
+    }
+    return scope.state.mortgageScenario;
+  }
+
+  function buildMortgageDonut(scope) {
+    const s = scope.sfx;
+    const meta = MORT_DONUT_META(s);
+    buildDonutSegments(`mort-donut-segments${s}`, meta);
+    const legend = el(scope, 'mort-donut-legend');
+    legend.innerHTML = meta.map(m => `
+      <div class="drow">
+        <span class="name"><span class="dswatch" style="background:${m.color}"></span>${m.name}</span>
+        <span class="damt"><span class="v" id="mort-donut-amt-${m.key}${s}">—</span><span class="p" id="mort-donut-pct-${m.key}${s}">—</span></span>
+      </div>
+    `).join('');
+  }
+
+  const MORT_PRICE_FIELDS = [
+    { key: 'price', label: 'Purchase price', inputBase: 'in-mort-price', step: '1000' },
+  ];
+
+  function mortFieldValue(ms, key) { return key === 'price' ? ms.purchasePrice : ms.kkPct; }
+  function setMortFieldValue(ms, key, val) { if (key === 'price') ms.purchasePrice = val; else ms.kkPct = val; }
+
+  function buildMortgagePriceRows(scope) {
+    const s = scope.sfx;
+    const ms = mortgageScenario(scope);
+    const root = el(scope, 'mort-price-rows');
+    if (!root) return;
+    scope._mortUnlocked = scope._mortUnlocked || new Set();
+    scope._mortSnapshots = scope._mortSnapshots || {};
+
+    const f = MORT_PRICE_FIELDS[0];
+    const unlocked = scope._mortUnlocked.has(f.key);
+    const val = mortFieldValue(ms, f.key);
+    const readonlyAttr = unlocked ? '' : ' readonly';
+    const buttons = unlocked ? `
+        <button class="btn-edit-item active" type="button" data-mort-save="${f.key}" title="Save changes" aria-label="Save changes">✓</button>
+        <button class="btn-discard-item" type="button" data-mort-discard="${f.key}" title="Discard changes" aria-label="Discard changes">✕</button>
+        ` : `
+        <button class="btn-edit-item" type="button" data-mort-edit="${f.key}" title="Edit purchase price" aria-label="Edit purchase price">✎</button>
+        `;
+
+    root.innerHTML = `
+      <div class="mort-price-hero">
+        <div class="mort-price-hero-label">Purchase price <span class="mort-price-hero-tag">👉 fill this in</span></div>
+        <div class="mort-price-hero-row">
+          <div class="mort-price-hero-field">
+            <span class="euro-prefix">€</span>
+            <input class="mort-price-hero-input" type="text" inputmode="decimal" id="${f.inputBase}${s}" data-mort-field="${f.key}" value="${escapeAttr(formatDutchThousands(val))}"${readonlyAttr}>
+          </div>
+          <div class="mort-price-hero-actions">${buttons}</div>
+        </div>
+      </div>
+    `;
+
+    root.querySelectorAll('[data-mort-field]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const key = inp.getAttribute('data-mort-field');
+        setMortFieldValue(ms, key, parseDutchAmount(inp.value));
+        renderMortgageScenario(scope);
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+      bindDutchAmountReformat(inp, true);
+    });
+    root.querySelectorAll('[data-mort-edit]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-mort-edit');
+        scope._mortUnlocked.add(key);
+        scope._mortSnapshots[key] = mortFieldValue(ms, key);
+        buildMortgagePriceRows(scope);
+        const input = root.querySelector(`[data-mort-field="${key}"]`);
+        if (input) { input.focus(); input.select(); }
+      });
+    });
+    root.querySelectorAll('[data-mort-save]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-mort-save');
+        scope._mortUnlocked.delete(key);
+        buildMortgagePriceRows(scope);
+      });
+    });
+    root.querySelectorAll('[data-mort-discard]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-mort-discard');
+        if (key in scope._mortSnapshots) setMortFieldValue(ms, key, scope._mortSnapshots[key]);
+        scope._mortUnlocked.delete(key);
+        buildMortgagePriceRows(scope);
+        renderMortgageScenario(scope);
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+    });
+  }
+
+  function setMortgageInputValues(scope) {
+    const s = scope.sfx;
+    const ms = mortgageScenario(scope);
+    el(scope, 'in-mort-kk').value = ms.kkPct;
+    el(scope, 'in-mort-equity').value = formatDutchThousands2dp(ms.equity);
+    el(scope, 'in-mort-carried').value = formatDutchThousands2dp(ms.carriedMortgage);
+    el(scope, 'in-mort-rate').value = ms.newRate;
+    el(scope, 'in-mort-term').value = ms.newTermYears;
+  }
+
+  const MORT_RATE_STEP = 0.1;
+  const MORT_RATE_MIN = 0;
+  const MORT_RATE_MAX = 20;
+
+  function adjustMortgageRate(scope, delta) {
+    const ms = mortgageScenario(scope);
+    const current = Number(ms.newRate) || 0;
+    const next = Math.max(MORT_RATE_MIN, Math.min(MORT_RATE_MAX, Math.round((current + delta) * 10) / 10));
+    ms.newRate = next;
+    const rateInput = el(scope, 'in-mort-rate');
+    if (rateInput) rateInput.value = next;
+    renderMortgageScenario(scope);
+    document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+  }
+
+  function bindMortgageInputs(scope) {
+    if (scope._mortInputsBound) return;
+    scope._mortInputsBound = true;
+
+    const syncBtn = el(scope, 'btn-mort-sync');
+    if (syncBtn) syncBtn.addEventListener('click', () => syncMortgageFromHome(scope));
+
+    const rateUpBtn = el(scope, 'btn-mort-rate-up');
+    const rateDownBtn = el(scope, 'btn-mort-rate-down');
+    if (rateUpBtn) rateUpBtn.addEventListener('click', () => adjustMortgageRate(scope, MORT_RATE_STEP));
+    if (rateDownBtn) rateDownBtn.addEventListener('click', () => adjustMortgageRate(scope, -MORT_RATE_STEP));
+  }
+
+  function syncMortgageFromHome(scope) {
+    const s = scope.sfx;
+    const btn = el(scope, 'btn-mort-sync');
+    const note = el(scope, 'mort-sync-note');
+    if (btn) btn.disabled = true;
+    if (note) note.textContent = 'Syncing from house.html…';
+
+    const ifr = document.createElement('iframe');
+    ifr.style.display = 'none';
+    ifr.src = 'house.html';
+    const cleanup = (ok) => {
+      ifr.remove();
+      if (btn) btn.disabled = false;
+      if (note) note.textContent = ok
+        ? 'Equity and current mortgage updated from house.html.'
+        : "Couldn't reach house.html — figures left as they were.";
+    };
+    ifr.addEventListener('load', () => {
+      setTimeout(() => {
+        try {
+          const totals = ifr.contentWindow.houseTotals;
+          if (totals && typeof totals.equity === 'number' && typeof totals.mortgageRemaining === 'number') {
+            const ms = mortgageScenario(scope);
+            ms.equity = totals.equity;
+            ms.carriedMortgage = totals.mortgageRemaining;
+            setMortgageInputValues(scope);
+            renderMortgageScenario(scope);
+            document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+            cleanup(true);
+          } else {
+            cleanup(false);
+          }
+        } catch (e) {
+          cleanup(false);
+        }
+      }, 250);
+    });
+    ifr.addEventListener('error', () => cleanup(false));
+    document.body.appendChild(ifr);
+  }
+
+  function currentMortgagePayment() {
+    if (!currentBudgetState) return null;
+    const house = Array.isArray(currentBudgetState.household) && currentBudgetState.household.find(c => c.name === 'House');
+    const item = house && house.items.find(it => it.label === 'Mortgage');
+    return item ? (Number(item.amount) || 0) : null;
+  }
+
+  function syncMortgagePaymentToHousehold(scope, totalPayment) {
+    const house = scope.state.household.find(c => c.name === 'House');
+    if (!house) return;
+    const item = house.items.find(it => it.label === 'Mortgage');
+    if (!item) return;
+    const rounded = Math.round(totalPayment * 100) / 100;
+    if (item.amount === rounded) return;
+    item.amount = rounded;
+    const ci = scope.state.household.indexOf(house);
+    const ii = house.items.indexOf(item);
+    const inputEl = document.querySelector(`#household-rows${scope.sfx} [data-hh="${ci}.${ii}"]`);
+    if (inputEl && document.activeElement !== inputEl) inputEl.value = mortgageRowDisplayAmount(scope, house, item);
+    recalcAndRender(scope);
+  }
+
+  function renderMortgageScenario(scope) {
+    const s = scope.sfx;
+    const ms = mortgageScenario(scope);
+
+    const price = Math.max(0, Number(ms.purchasePrice) || 0);
+    const kkPct = Math.max(0, Number(ms.kkPct) || 0);
+    const kkAmount = price * kkPct / 100;
+    const totalCost = price + kkAmount;
+
+    setText(`out-mort-kk-amount${s}`, fmt(kkAmount));
+    setText(`out-mort-total-cost${s}`, fmt(totalCost));
+
+    const equity = Math.max(0, Number(ms.equity) || 0);
+    const carried = Math.max(0, Number(ms.carriedMortgage) || 0);
+    const equityPart = Math.min(equity, totalCost);
+    const carriedPart = Math.min(carried, Math.max(0, totalCost - equityPart));
+    const newMortgage = Math.max(0, totalCost - equityPart - carriedPart);
+
+    setText(`out-mort-new-inline${s}`, fmt(newMortgage));
+
+    const rate = Math.max(0, Number(ms.newRate) || 0);
+    const termYears = Math.max(1, Number(ms.newTermYears) || 1);
+    const n = Math.round(termYears * 12);
+    const r = rate / 100 / 12;
+    let monthly = 0;
+    if (newMortgage > 0) {
+      monthly = r > 0
+        ? newMortgage * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)
+        : newMortgage / n;
+    }
+    const DEDUCTION_RATE_PCT = 37.56;
+    const CURRENT_MORTGAGE_RATE_PCT = 1.49;
+    setText(`out-mort-current-rate${s}`, CURRENT_MORTGAGE_RATE_PCT.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    const newMonthlyInterest = newMortgage * r;
+    const currentMonthlyInterest = carried * (CURRENT_MORTGAGE_RATE_PCT / 100 / 12);
+    const totalMonthlyInterest = newMonthlyInterest + currentMonthlyInterest;
+    const estimatedDeduction = totalMonthlyInterest * (DEDUCTION_RATE_PCT / 100);
+    scope._mortgageDeductionMonthly = estimatedDeduction;
+
+    setText(`out-mort-deduct-monthly${s}`, fmt(estimatedDeduction));
+    setText(`out-mort-deduct-interest${s}`, fmt(totalMonthlyInterest));
+
+    const currentPayment = currentMortgagePayment();
+    const totalPayment = (currentPayment || 0) + monthly;
+    setText(`out-mort-total-payment${s}`, currentPayment == null ? '—' : fmt(totalPayment));
+    if (currentPayment != null) {
+      syncMortgagePaymentToHousehold(scope, totalPayment);
+    }
+
+    setText(`out-mort-deduct-net${s}`, currentPayment == null ? '—' : fmt(Math.max(0, totalPayment - estimatedDeduction)));
+
+    const values = { equity: equityPart, carried: carriedPart, new: newMortgage };
+    const meta = MORT_DONUT_META(s);
+    updateDonutSegments(meta, meta.map(m => values[m.key]), totalCost);
+    setText(`mort-donut-total${s}`, fmt(totalCost));
+    meta.forEach(m => {
+      setText(`mort-donut-amt-${m.key}${s}`, fmt(values[m.key]));
+      setText(`mort-donut-pct-${m.key}${s}`, pctFmt(totalCost > 0 ? values[m.key] / totalCost : 0));
+    });
+  }
+
+  function bindInputs(scope) {
+    const s = scope.sfx;
+
+    const salM = el(scope, 'in-salary-maarten');
+    if (salM) {
+      salM.addEventListener('input', e => {
+        scope.state.salary.maarten = parseDutchAmount(e.target.value);
+        recalcAndRender(scope);
+      });
+      bindDutchAmountReformat(salM);
+    }
+    const salN = el(scope, 'in-salary-nicolas');
+    if (salN) {
+      salN.addEventListener('input', e => {
+        scope.state.salary.nicolas = parseDutchAmount(e.target.value);
+        recalcAndRender(scope);
+      });
+      bindDutchAmountReformat(salN);
+    }
+    const adjEl = el(scope, 'in-adjustment');
+    if (adjEl) {
+      adjEl.addEventListener('input', e => {
+        scope.state.adjustment = parseDutchAmount(e.target.value);
+        recalcAndRender(scope);
+      });
+      bindDutchAmountReformat(adjEl);
+    }
+    const adjCorrEl = el(scope, 'in-adjustment-correction');
+    if (adjCorrEl) {
+      adjCorrEl.addEventListener('input', e => {
+        scope.state.adjustmentCorrection = parseDutchAmount(e.target.value);
+        recalcAndRender(scope);
+      });
+      bindDutchAmountReformat(adjCorrEl);
+    }
+
+    const hfSavedEl = el(scope, 'in-housefund-saved');
+    if (hfSavedEl) {
+      hfSavedEl.addEventListener('input', e => {
+        scope.state.houseFund.saved = parseDutchAmount(e.target.value);
+        recalcAndRender(scope);
+      });
+      bindDutchAmountReformat(hfSavedEl);
+    }
+    const hfMonthlyEl = el(scope, 'in-housefund-monthly');
+    if (hfMonthlyEl) {
+      hfMonthlyEl.addEventListener('input', e => {
+        scope.state.houseFund.monthlyContribution = parseDutchAmount(e.target.value);
+        recalcAndRender(scope);
+      });
+      bindDutchAmountReformat(hfMonthlyEl);
+    }
+
+    document.querySelectorAll(`#household-rows${s} [data-hh]`).forEach(elx => {
+      elx.addEventListener('input', e => {
+        const [ci, ii] = e.target.getAttribute('data-hh').split('.');
+        scope.state.household[+ci].items[+ii].amount = parseDutchAmount(e.target.value);
+        recalcAndRender(scope);
+      });
+      bindDutchAmountReformat(elx);
+    });
+
+    document.querySelectorAll(`#household-rows${s} [data-hh-label]`).forEach(elx => {
+      elx.addEventListener('input', e => {
+        const [ci, ii] = e.target.getAttribute('data-hh-label').split('.');
+        scope.state.household[+ci].items[+ii].label = e.target.value;
+        recalcAndRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#household-rows${s} [data-hh-del]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-hh-del').split('.');
+        scope.state.household[+ci].items.splice(+ii, 1);
+        fullRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#household-rows${s} [data-hh-edit]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-hh-edit').split('.');
+        const it = scope.state.household[+ci].items[+ii];
+        scope._editSnapshots.set(it, JSON.parse(JSON.stringify(it)));
+        scope._editUnlocked.add(it);
+        fullRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#household-rows${s} [data-hh-save]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-hh-save').split('.');
+        const it = scope.state.household[+ci].items[+ii];
+        scope._editUnlocked.delete(it);
+        scope._editSnapshots.delete(it);
+        fullRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#household-rows${s} [data-hh-discard]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-hh-discard').split('.');
+        const it = scope.state.household[+ci].items[+ii];
+        const snap = scope._editSnapshots.get(it);
+        if (snap) Object.assign(it, snap);
+        scope._editUnlocked.delete(it);
+        scope._editSnapshots.delete(it);
+        fullRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#household-rows${s} [data-hh-add]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const ci = +elx.getAttribute('data-hh-add');
+        const newItem = { label: 'New cost', amount: 0 };
+        scope._editUnlocked.add(newItem);
+        scope._editSnapshots.set(newItem, JSON.parse(JSON.stringify(newItem)));
+        scope.state.household[ci].items.push(newItem);
+        fullRender(scope);
+        const newIi = scope.state.household[ci].items.length - 1;
+        const input = document.querySelector(`#household-rows${s} [data-hh-label="${ci}.${newIi}"]`);
+        if (input) { input.focus(); input.select(); }
+      });
+    });
+
+    document.querySelectorAll(`#household-rows${s} [data-hh-net-toggle]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        scope.state.mortgageNetToggle = !scope.state.mortgageNetToggle;
+        const on = scope.state.mortgageNetToggle;
+        document.querySelectorAll(`#household-rows${s} [data-hh-net-toggle]`).forEach(btn => {
+          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+          const [ci, ii] = btn.getAttribute('data-hh-net-toggle').split('.');
+          const cat = scope.state.household[+ci];
+          const it = cat.items[+ii];
+          const inputEl = document.querySelector(`#household-rows${s} [data-hh="${ci}.${ii}"]`);
+          if (inputEl) inputEl.value = mortgageRowDisplayAmount(scope, cat, it);
+        });
+        document.querySelectorAll(`#household-rows${s} [data-hh-net-label]`).forEach(lbl => {
+          lbl.textContent = on ? 'Net, after tax benefit' : 'Show net (after tax benefit)';
+          lbl.classList.toggle('on', on);
+        });
+        recalcAndRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc]`).forEach(elx => {
+      elx.addEventListener('input', e => {
+        const [ci, ii, field] = e.target.getAttribute('data-pc').split('.');
+        scope.state.personal[+ci].items[+ii][field] = parseDutchAmount(e.target.value);
+        recalcAndRender(scope);
+      });
+      bindDutchAmountReformat(elx);
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc-label]`).forEach(elx => {
+      elx.addEventListener('input', e => {
+        const [ci, ii] = e.target.getAttribute('data-pc-label').split('.');
+        scope.state.personal[+ci].items[+ii].label = e.target.value;
+        recalcAndRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc-del]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-pc-del').split('.');
+        scope.state.personal[+ci].items.splice(+ii, 1);
+        fullRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc-edit]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-pc-edit').split('.');
+        const it = scope.state.personal[+ci].items[+ii];
+        scope._editSnapshots.set(it, JSON.parse(JSON.stringify(it)));
+        scope._editUnlocked.add(it);
+        fullRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc-save]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-pc-save').split('.');
+        const it = scope.state.personal[+ci].items[+ii];
+        scope._editUnlocked.delete(it);
+        scope._editSnapshots.delete(it);
+        fullRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc-discard]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const [ci, ii] = elx.getAttribute('data-pc-discard').split('.');
+        const it = scope.state.personal[+ci].items[+ii];
+        const snap = scope._editSnapshots.get(it);
+        if (snap) Object.assign(it, snap);
+        scope._editUnlocked.delete(it);
+        scope._editSnapshots.delete(it);
+        fullRender(scope);
+      });
+    });
+
+    document.querySelectorAll(`#personal-rows${s} [data-pc-add]`).forEach(elx => {
+      elx.addEventListener('click', () => {
+        const ci = +elx.getAttribute('data-pc-add');
+        const isLoans = scope.state.personal[ci].name === 'Loans';
+        const newItem = isLoans
+          ? { label: 'New loan', maarten: 0, nicolas: 0, debt: { nicolas: { total: 0, paid: 0, rate: 0, termMonths: 0 } } }
+          : { label: 'New cost', maarten: 0, nicolas: 0 };
+        scope._editUnlocked.add(newItem);
+        scope._editSnapshots.set(newItem, JSON.parse(JSON.stringify(newItem)));
+        scope.state.personal[ci].items.push(newItem);
+        fullRender(scope);
+        const newIi = scope.state.personal[ci].items.length - 1;
+        const input = document.querySelector(`#personal-rows${s} [data-pc-label="${ci}.${newIi}"]`);
+        if (input) { input.focus(); input.select(); }
+      });
+    });
+  }
+
+  function setInputValues(scope) {
+    const s = scope.sfx;
+    const salM = el(scope, 'in-salary-maarten');
+    if (salM) salM.value = scope.state.salary.maarten;
+    const salN = el(scope, 'in-salary-nicolas');
+    if (salN) salN.value = scope.state.salary.nicolas;
+    const adjEl = el(scope, 'in-adjustment');
+    if (adjEl) adjEl.value = scope.state.adjustment;
+    const adjCorrEl = el(scope, 'in-adjustment-correction');
+    if (adjCorrEl) adjCorrEl.value = scope.state.adjustmentCorrection;
+    if (scope.state.houseFund) {
+      const hfGoalEl = el(scope, 'in-housefund-goal');
+      if (hfGoalEl) hfGoalEl.value = scope.state.houseFund.goal;
+      const hfSavedEl = el(scope, 'in-housefund-saved');
+      if (hfSavedEl) hfSavedEl.value = scope.state.houseFund.saved;
+      const hfMonthlyEl = el(scope, 'in-housefund-monthly');
+      if (hfMonthlyEl) hfMonthlyEl.value = scope.state.houseFund.monthlyContribution;
+    }
+    document.querySelectorAll(`#household-rows${s} [data-hh]`).forEach(elx => {
+      const [ci, ii] = elx.getAttribute('data-hh').split('.');
+      const cat = scope.state.household[+ci];
+      const it = cat.items[+ii];
+      elx.value = mortgageRowDisplayAmount(scope, cat, it);
+    });
+    document.querySelectorAll(`#personal-rows${s} [data-pc]`).forEach(elx => {
+      const [ci, ii, field] = elx.getAttribute('data-pc').split('.');
+      elx.value = scope.state.personal[+ci].items[+ii][field];
+    });
+  }
+
+  function setText(id, text) { const elx = document.getElementById(id); if (elx) elx.textContent = text; }
+
+  function renderHouseFund(scope) {
+    if (!scope.state.houseFund) return;
+    const s = scope.sfx;
+    const hf = scope.state.houseFund;
+    const goal = Math.max(0, Number(hf.goal) || 0);
+    const saved = Math.max(0, Number(hf.saved) || 0);
+    const monthly = Math.max(0, Number(hf.monthlyContribution) || 0);
+    const pct = goal > 0 ? Math.min(100, (saved / goal) * 100) : 0;
+    const remaining = Math.max(0, goal - saved);
+
+    const fillEl = el(scope, 'housefund-progress-fill');
+    if (fillEl) fillEl.style.width = pct + '%';
+    setText(`housefund-progress-pct${s}`, Math.round(pct) + '%');
+    setText(`housefund-progress-remaining${s}`, remaining > 0 ? `${fmt(remaining)} to go` : 'Required savings reached 🎉');
+
+    let etaText = '—';
+    if (remaining <= 0) {
+      etaText = 'Required savings reached';
+    } else if (monthly > 0) {
+      const months = Math.ceil(remaining / monthly);
+      etaText = `~${months} month${months === 1 ? '' : 's'}`;
+    } else {
+      etaText = 'Add a monthly amount to estimate';
+    }
+    setText(`housefund-eta${s}`, etaText);
+
+    buildProcessChecklistRows(scope);
+  }
+
+  const BUFFER_FLAT_AMOUNT = 5000;
+  const TRANSPORT_FLAT_AMOUNT = 500;
+  const FIXED_CHECKLIST_ITEMS = [
+    { key: 'buffer', label: 'Buffer', computed: true },
+    { key: 'transport', label: 'Transport', computed: true },
+  ];
+
+  function checklistFixed(scope) {
+    if (!scope.state.houseFund) return {};
+    if (!scope.state.houseFund.fixed || typeof scope.state.houseFund.fixed !== 'object') {
+      scope.state.houseFund.fixed = { buffer: BUFFER_FLAT_AMOUNT, transport: TRANSPORT_FLAT_AMOUNT };
+    }
+    return scope.state.houseFund.fixed;
+  }
+
+  function checklistItems(scope) {
+    if (!scope.state.houseFund) return [];
+    if (!Array.isArray(scope.state.houseFund.items)) scope.state.houseFund.items = [];
+    return scope.state.houseFund.items;
+  }
+
+  function buildChecklistFixedRows(scope) {
+    const root = el(scope, 'checklist-fixed-rows');
+    if (!root) return;
+    const fixed = checklistFixed(scope);
+    root.innerHTML = FIXED_CHECKLIST_ITEMS.map(f => `
+      <tr>
+        <td class="drag-col"></td>
+        <td class="fixed-label">${f.label}${f.hint ? `<span class="fixed-hint">(${escapeAttr(f.hint)})</span>` : ''}${f.computed ? '<span class="fixed-lock" title="Fixed amount — not editable">🔒</span>' : ''}</td>
+        <td class="amt-col"><div class="num-field"><span class="unit">€</span><input class="num${f.computed ? ' fixed-locked' : ''}" type="number" step="10" min="0" data-cl-fixed="${f.key}" value="${Number(fixed[f.key]) || 0}" ${f.computed ? 'readonly title="A flat, fixed amount — not editable"' : ''}></div></td>
+        <td class="del-col"></td>
+      </tr>
+    `).join('');
+
+    root.querySelectorAll('[data-cl-fixed]').forEach(inp => {
+      const key = inp.getAttribute('data-cl-fixed');
+      const spec = FIXED_CHECKLIST_ITEMS.find(f => f.key === key);
+      if (spec && spec.computed) return;
+      inp.addEventListener('input', (e) => {
+        fixed[key] = parseDutchAmount(e.target.value);
+        renderChecklistTotals(scope);
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+      bindDutchAmountReformat(inp);
+    });
+  }
+
+  function buildChecklistRows(scope) {
+    const root = el(scope, 'checklist-rows');
+    if (!root) return;
+    const items = checklistItems(scope);
+    root.innerHTML = items.map((it, idx) => `
+      <tr data-checklist-row="${idx}">
+        <td class="drag-col"><span class="drag-handle" title="Drag to reorder">⠿</span></td>
+        <td><input class="name-input" type="text" data-cl-label="${idx}" value="${escapeAttr(it.label)}" placeholder="What's this for?"></td>
+        <td class="amt-col"><div class="num-field"><span class="unit">€</span><input class="num" type="number" step="10" min="0" data-cl-amount="${idx}" value="${Number(it.amount) || 0}"></div></td>
+        <td class="del-col"><button type="button" class="btn-del-item" data-cl-del="${idx}" title="Remove this item" aria-label="Remove this item">🗑</button></td>
+      </tr>
+    `).join('');
+
+    root.querySelectorAll('[data-cl-label]').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const idx = +e.target.getAttribute('data-cl-label');
+        items[idx].label = e.target.value;
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+    });
+    root.querySelectorAll('[data-cl-amount]').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const idx = +e.target.getAttribute('data-cl-amount');
+        items[idx].amount = parseDutchAmount(e.target.value);
+        renderChecklistTotals(scope);
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+      bindDutchAmountReformat(inp);
+    });
+    root.querySelectorAll('[data-cl-del]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = +e.target.closest('[data-cl-del]').getAttribute('data-cl-del');
+        items.splice(idx, 1);
+        renderChecklist(scope);
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      });
+    });
+  }
+
+  function renderChecklistTotals(scope) {
+    const s = scope.sfx;
+    const fixed = checklistFixed(scope);
+    const items = checklistItems(scope);
+
+    fixed.buffer = BUFFER_FLAT_AMOUNT;
+    fixed.transport = TRANSPORT_FLAT_AMOUNT;
+    const fixedRoot = el(scope, 'checklist-fixed-rows');
+    const bufferEl = fixedRoot && fixedRoot.querySelector('[data-cl-fixed="buffer"]');
+    if (bufferEl) bufferEl.value = fixed.buffer;
+    const transportEl = fixedRoot && fixedRoot.querySelector('[data-cl-fixed="transport"]');
+    if (transportEl) transportEl.value = fixed.transport;
+
+    const fixedTotal = FIXED_CHECKLIST_ITEMS.reduce((sum, f) => sum + (Number(fixed[f.key]) || 0), 0);
+    const itemsTotal = items.reduce((sum, it) => sum + (Number(it.amount) || 0), 0);
+    const total = fixedTotal + itemsTotal;
+    setText(`checklist-total${s}`, fmt(total));
+
+    if (scope.state.houseFund) {
+      scope.state.houseFund.goal = Math.round(total);
+      const goalEl = el(scope, 'in-housefund-goal');
+      if (goalEl) goalEl.value = scope.state.houseFund.goal;
+      renderHouseFund(scope);
+    }
+  }
+
+  function renderChecklist(scope) {
+    buildChecklistFixedRows(scope);
+    buildChecklistRows(scope);
+    renderChecklistTotals(scope);
+  }
+
+  const PROCESS_STEPS = [
+    { key: 'moneySaved', label: 'Money saved', auto: true, group: 0, hint: 'Fills up as you save, ticks off automatically once your required savings is reached' },
+    { key: 'bankAdvisor', label: 'Finance approved by bank', group: 0,
+      detail: 'A mortgage advisor or your bank reviews your income, existing debts, and savings to tell you exactly how much you’re allowed to borrow (your <em>maximale hypotheek</em>). This isn’t a mortgage yet — it’s confirmation of your budget, and it makes any offer you make far more credible to a seller.' },
+    { key: 'offerSubmitted', label: 'Put in offer on a house', group: 1, lockHint: 'Complete "Money saved" and "Finance approved by bank" first',
+      detail: 'Once you’ve found a house you like, you — usually through a buying agent (<em>aankoopmakelaar</em>) — submit a formal bid: the price you’re offering plus any conditions, such as being subject to financing or a technical inspection. The seller can accept, reject, or come back with a counter-offer.' },
+    { key: 'offerAccepted', label: 'Offer accepted', group: 2, lockHint: 'Complete "Put in offer on a house" first',
+      detail: 'The seller has agreed to your price and conditions in principle. It can feel like a done deal, but nothing is legally binding yet — that only happens once you sign the preliminary purchase agreement, the next step below.' },
+    { key: 'preliminaryAgreement', label: 'Sign the preliminary purchase agreement', group: 3, lockHint: 'Complete "Offer accepted" first',
+      detail: 'You sign the <em>koopovereenkomst</em> (preliminary purchase agreement) with the seller. It almost always includes a financing contingency — <em>onder voorbehoud van financiering</em> — that gives you about 6 weeks to arrange your mortgage. If your bank can’t (or won’t) finance the purchase within that window, you can cancel the deal without paying a penalty, as long as you can show you genuinely tried to get financing. There’s also a separate, shorter <em>bedenktijd</em> (3-day cooling-off period) right after signing, during which you can walk away for any reason at all.' },
+    { key: 'technicalInspection', label: 'Arrange a technical building inspection and property valuation', group: 4, lockHint: 'Complete "Sign the preliminary purchase agreement" first',
+      detail: 'A technical inspection (<em>bouwkundige keuring</em>) checks the house for structural problems, damp, roofing issues, or other defects that could be costly to fix — worth doing before your financing contingency runs out. A property valuation (<em>taxatierapport</em>) is a separate, required step: your mortgage lender needs it to confirm the home is actually worth what you’re paying, and won’t finalize your mortgage without one.' },
+    { key: 'mortgageArranged', label: 'Finalize our mortgage application', group: 5, lockHint: 'Complete "Arrange a technical building inspection and property valuation" first',
+      detail: 'With the valuation report and your financial details in hand, your advisor submits the complete mortgage application to the lender for final sign-off. Once approved, you get a <em>bindend aanbod</em> (binding offer) — your interest rate and terms are locked in from this point.' },
+    { key: 'deedsTransferred', label: 'Sign the official deed of transfer', group: 6, lockHint: 'Complete "Finalize our mortgage application" first',
+      detail: 'The final step. You sign the <em>akte van levering</em> (deed of transfer) at the notary, the remaining balance is paid — usually straight from your mortgage — and ownership officially transfers to you. You’ll get the keys right after signing.' },
+  ];
+
+  const expandedProcessSteps = new Set();
+
+  function showLockToast(scope, message) {
+    const toastEl = el(scope, 'process-lock-toast');
+    if (!toastEl) return;
+    toastEl.textContent = message;
+    toastEl.classList.add('visible');
+    clearTimeout(toastEl._hideTimer);
+    toastEl._hideTimer = setTimeout(() => { toastEl.classList.remove('visible'); }, 2600);
+  }
+
+  function processChecklistState(scope) {
+    if (!scope.state.processChecklist || typeof scope.state.processChecklist !== 'object') {
+      scope.state.processChecklist = { bankAdvisor: false, offerSubmitted: false, offerAccepted: false, preliminaryAgreement: false, technicalInspection: false, mortgageArranged: false, deedsTransferred: false };
+    }
+    return scope.state.processChecklist;
+  }
+
+  function moneySavedPct(scope) {
+    const hf = scope.state.houseFund;
+    if (!hf) return 0;
+    const goal = Math.max(0, Number(hf.goal) || 0);
+    const saved = Math.max(0, Number(hf.saved) || 0);
+    return goal > 0 ? Math.min(100, (saved / goal) * 100) : 0;
+  }
+
+  function moneySavedDone(scope) {
+    const hf = scope.state.houseFund;
+    if (!hf) return false;
+    const goal = Math.max(0, Number(hf.goal) || 0);
+    const saved = Math.max(0, Number(hf.saved) || 0);
+    return goal > 0 && saved >= goal;
+  }
+
+  function moneySavedRingSVG(pct) {
+    const r = 11, c = 2 * Math.PI * r;
+    const filled = Math.max(0, Math.min(100, pct)) / 100 * c;
+    return `
+      <svg viewBox="0 0 26 26" width="26" height="26">
+        <circle class="ring-track" cx="13" cy="13" r="${r}"></circle>
+        <circle class="ring-fill" cx="13" cy="13" r="${r}" stroke-dasharray="${filled.toFixed(2)} ${(c - filled).toFixed(2)}" transform="rotate(-90 13 13)"></circle>
+      </svg>
+    `;
+  }
+
+  function computeProcessSteps(scope) {
+    const pc = processChecklistState(scope);
+    const doneFlags = [];
+    const unlockedFlags = [];
+    PROCESS_STEPS.forEach((step) => {
+      const unlocked = step.group === 0 ? true : doneFlags.every(Boolean);
+      let done = step.auto ? moneySavedDone(scope) : !!pc[step.key];
+      if (!unlocked && done) {
+        done = false;
+        if (!step.auto) pc[step.key] = false;
+      }
+      unlockedFlags.push(unlocked);
+      doneFlags.push(done);
+    });
+    return { doneFlags, unlockedFlags };
+  }
+
+  function buildProcessChecklistRows(scope) {
+    const root = el(scope, 'process-list');
+    if (!root) return;
+    const pc = processChecklistState(scope);
+    const s = scope.sfx;
+
+    const { doneFlags, unlockedFlags } = computeProcessSteps(scope);
+    const doneCount = doneFlags.filter(Boolean).length;
+
+    const savedPct = moneySavedPct(scope);
+
+    function stepHTML(step, idx) {
+      const done = doneFlags[idx];
+      const unlocked = unlockedFlags[idx];
+      const locked = !done && !unlocked;
+      const expanded = expandedProcessSteps.has(`${scope.key}:${step.key}`);
+      const cls = ['process-step', done ? 'done' : '', step.auto ? 'auto' : 'manual', locked ? 'locked' : '', expanded ? 'expanded' : ''].filter(Boolean).join(' ');
+      const checkAttrs = (!step.auto && !locked)
+        ? `data-process-check="${step.key}" role="checkbox" aria-checked="${done}" tabindex="0"`
+        : (!step.auto ? `data-process-locked-check="${step.key}" role="checkbox" aria-checked="false" aria-disabled="true" tabindex="0"` : '');
+      const rowTitle = step.auto ? `title="${escapeAttr(step.hint)}"` : (locked ? `title="${escapeAttr(step.lockHint || 'Complete the step above first')}"` : '');
+      const checkInner = (step.key === 'moneySaved' && !done)
+        ? moneySavedRingSVG(savedPct)
+        : (done ? '✓' : '');
+      const checkCls = step.key === 'moneySaved'
+        ? (done ? 'step-check step-check-round' : 'step-check step-check-ring')
+        : 'step-check';
+
+      let detailHTML;
+      if (step.key === 'moneySaved') {
+        const hf = scope.state.houseFund;
+        const goal = Math.max(0, Number(hf && hf.goal) || 0);
+        const saved = Math.max(0, Number(hf && hf.saved) || 0);
+        const pctText = goal > 0 ? Math.min(100, Math.round((saved / goal) * 100)) : 0;
+        detailHTML = `You need to save ${fmt(goal)} in total — that covers your deposit, moving costs, and buffer. So far you and Nicolas have saved ${fmt(saved)} in your locked account, which is ${pctText}% of the way there. Keep this money somewhere you can’t easily dip into day-to-day, so it’s ready and waiting when you need it for the purchase.`;
+      } else {
+        detailHTML = step.detail || '';
+      }
+
+      return `
+        <div class="${cls}" data-process-expand="${step.key}" role="button" tabindex="0" aria-expanded="${expanded}" ${rowTitle}>
+          <span class="${checkCls}" aria-hidden="${step.auto ? 'true' : 'false'}" ${checkAttrs}>${checkInner}</span>
+          <div class="step-text">
+            <div class="step-label">${step.label}</div>
+            ${step.hint ? `<div class="step-hint">${step.hint}</div>` : ''}
+            <div class="step-detail">${detailHTML}</div>
+          </div>
+          <span class="step-chevron" aria-hidden="true">▾</span>
+        </div>
+      `;
+    }
+
+    const groups = [];
+    PROCESS_STEPS.forEach((step, idx) => {
+      const current = groups[groups.length - 1];
+      if (!current || current.group !== step.group) groups.push({ group: step.group, items: [{ step, idx }] });
+      else current.items.push({ step, idx });
+    });
+
+    function groupHTML(g) {
+      const groupDone = g.items.every(({ idx }) => doneFlags[idx]);
+      const groupLocked = g.items.every(({ idx }) => !doneFlags[idx] && !unlockedFlags[idx]);
+      const multi = g.items.length > 1;
+      const badgeCls = ['process-group-number', groupDone ? 'done' : '', groupLocked ? 'locked' : ''].filter(Boolean).join(' ');
+      const groupCls = ['process-group', multi ? 'multi' : '', groupDone ? 'done' : ''].filter(Boolean).join(' ');
+      return `
+        <div class="${groupCls}">
+          <div class="${badgeCls}" aria-hidden="true">${g.group + 1}</div>
+          <div class="process-group-body">
+            ${multi ? '<div class="process-group-caption">Complete both — in either order</div>' : ''}
+            ${g.items.map(({ step, idx }) => stepHTML(step, idx)).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    root.innerHTML = `
+      <div class="process-chain">${groups.map((g, gi) =>
+        groupHTML(g) + (gi < groups.length - 1 ? '<div class="process-connector-wrap"><div class="process-connector"></div></div>' : '')
+      ).join('')}</div>
+    `;
+
+    setText(`process-summary${s}`, `${doneCount} of ${PROCESS_STEPS.length} steps done`);
+
+    root.querySelectorAll('[data-process-check]').forEach(checkEl => {
+      const key = checkEl.getAttribute('data-process-check');
+      const idx = PROCESS_STEPS.findIndex(st => st.key === key);
+      const toggleDone = (e) => {
+        e.stopPropagation();
+        const current = computeProcessSteps(scope);
+        if (!current.doneFlags[idx] && !current.unlockedFlags[idx]) return;
+        pc[key] = !pc[key];
+        buildProcessChecklistRows(scope);
+        document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+      };
+      checkEl.addEventListener('click', toggleDone);
+      checkEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDone(e); }
+      });
+    });
+
+    root.querySelectorAll('[data-process-locked-check]').forEach(checkEl => {
+      const key = checkEl.getAttribute('data-process-locked-check');
+      const step = PROCESS_STEPS.find(st => st.key === key);
+      const showLocked = (e) => {
+        e.stopPropagation();
+        showLockToast(scope, step && step.lockHint ? step.lockHint : 'Complete the step above first');
+        checkEl.classList.remove('shake');
+        void checkEl.offsetWidth;
+        checkEl.classList.add('shake');
+      };
+      checkEl.addEventListener('click', showLocked);
+      checkEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showLocked(e); }
+      });
+    });
+
+    root.querySelectorAll('[data-process-expand]').forEach(rowEl => {
+      const key = rowEl.getAttribute('data-process-expand');
+      const toggleExpand = () => {
+        const storeKey = `${scope.key}:${key}`;
+        if (expandedProcessSteps.has(storeKey)) expandedProcessSteps.delete(storeKey);
+        else expandedProcessSteps.add(storeKey);
+        buildProcessChecklistRows(scope);
+      };
+      rowEl.addEventListener('click', toggleExpand);
+      rowEl.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target === rowEl) { e.preventDefault(); toggleExpand(); }
+      });
+    });
+  }
+
+  function computeCurrentBudget() {
+    if (!currentBudgetState) return null;
+    return compute({ state: currentBudgetState, mode: 'fixed' });
+  }
+
+  function compareLineHTML(currentValue, newValue, betterWhen) {
+    const delta = newValue - currentValue;
+    if (Math.abs(delta) < 0.005) {
+      return `Currently ${fmt(currentValue)} · <span class="delta">no change</span>`;
+    }
+    const isGood = betterWhen === 'lower' ? delta < 0 : delta > 0;
+    const sign = delta > 0 ? '+' : '−';
+    const word = delta > 0 ? 'more' : 'less';
+    return `Currently ${fmt(currentValue)} · <span class="delta ${isGood ? 'good' : 'bad'}">${sign}${fmt(Math.abs(delta))} ${word}</span>`;
+  }
+
+  function recalcAndRender(scope) {
+    const s = scope.sfx;
+    const r = compute(scope);
+
+    setText(`out-salary-total${s}`, fmt((Number(scope.state.salary.maarten)||0) + (Number(scope.state.salary.nicolas)||0)));
+
+    r.catTotals.forEach((c, ci) => {
+      setText(`hh-cat-${ci}${s}`, fmt(c.total));
+    });
+    setText(`out-hh-total${s}`, fmt(r.total));
+
+    setText(`out-adjustment-net${s}`, fmt(netAdjustment(scope.state)));
+    setText(`out-pays-maarten${s}`, fmt(r.maartenPays));
+    setText(`out-pays-nicolas${s}`, fmt(r.nicolasPays));
+    setText(`out-pct-maarten${s}`, pctFmt(r.splitMaartenPct) + ' of joint costs');
+    setText(`out-pct-nicolas${s}`, pctFmt(r.splitNicolasPct) + ' of joint costs');
+
+    const current = computeCurrentBudget();
+    const compareMaartenPaysEl = document.getElementById(`compare-pays-maarten${s}`);
+    const compareNicolasPaysEl = document.getElementById(`compare-pays-nicolas${s}`);
+    if (current) {
+      if (compareMaartenPaysEl) compareMaartenPaysEl.innerHTML = compareLineHTML(current.maartenPays, r.maartenPays, 'lower');
+      if (compareNicolasPaysEl) compareNicolasPaysEl.innerHTML = compareLineHTML(current.nicolasPays, r.nicolasPays, 'lower');
+    } else {
+      if (compareMaartenPaysEl) compareMaartenPaysEl.textContent = '';
+      if (compareNicolasPaysEl) compareNicolasPaysEl.textContent = '';
+    }
+
+    updateDonutSegments(
+      [{ id: `whopays-donut-seg-maarten${s}`, name: 'Maarten' }, { id: `whopays-donut-seg-nicolas${s}`, name: 'Nicolas' }],
+      [r.maartenPays, r.nicolasPays], r.total
+    );
+    setText(`whopays-donut-total${s}`, fmt(r.total));
+    setText(`whopays-donut-amt-maarten${s}`, fmt(r.maartenPays));
+    setText(`whopays-donut-amt-nicolas${s}`, fmt(r.nicolasPays));
+    setText(`whopays-donut-pct-maarten${s}`, pctFmt(r.splitMaartenPct));
+    setText(`whopays-donut-pct-nicolas${s}`, pctFmt(r.splitNicolasPct));
+
+    r.pcCategoryTotals.forEach((c, ci) => {
+      setText(`pc-cat-${ci}-m${s}`, fmt(c.maarten));
+      setText(`pc-cat-${ci}-n${s}`, fmt(c.nicolas));
+    });
+    setText(`out-pc-total-maarten${s}`, fmt(r.personalMaartenTotal));
+    setText(`out-pc-total-nicolas${s}`, fmt(r.personalNicolasTotal));
+
+    updateLoanDetails(scope);
+
+    setText(`sum-m-salary${s}`, fmt(Number(scope.state.salary.maarten) || 0));
+    setText(`sum-m-household${s}`, fmt(r.maartenPays));
+    setText(`sum-m-personal${s}`, fmt(r.personalMaartenTotal));
+    const mLeftEl = el(scope, 'sum-m-left');
+    mLeftEl.textContent = fmt(r.moneyLeftMaarten);
+    mLeftEl.className = 'v ' + (r.moneyLeftMaarten >= 0 ? 'good' : 'bad');
+
+    setText(`sum-n-salary${s}`, fmt(Number(scope.state.salary.nicolas) || 0));
+    setText(`sum-n-household${s}`, fmt(r.nicolasPays));
+    setText(`sum-n-personal${s}`, fmt(r.personalNicolasTotal));
+    const nLeftEl = el(scope, 'sum-n-left');
+    nLeftEl.textContent = fmt(r.moneyLeftNicolas);
+    nLeftEl.className = 'v ' + (r.moneyLeftNicolas >= 0 ? 'good' : 'bad');
+
+    const sumMCompareEl = document.getElementById(`sum-m-left-compare${s}`);
+    const sumNCompareEl = document.getElementById(`sum-n-left-compare${s}`);
+    const bottomLineCompareEl = document.getElementById(`bottomline-compare${s}`);
+    setText(`bottomline-left${s}`, fmt(r.moneyLeftMaarten + r.moneyLeftNicolas));
+    if (current) {
+      if (sumMCompareEl) sumMCompareEl.innerHTML = compareLineHTML(current.moneyLeftMaarten, r.moneyLeftMaarten, 'higher');
+      if (sumNCompareEl) sumNCompareEl.innerHTML = compareLineHTML(current.moneyLeftNicolas, r.moneyLeftNicolas, 'higher');
+      if (bottomLineCompareEl) {
+        bottomLineCompareEl.innerHTML = 'Combined, ' + compareLineHTML(
+          current.moneyLeftMaarten + current.moneyLeftNicolas,
+          r.moneyLeftMaarten + r.moneyLeftNicolas,
+          'higher'
+        ) + ' left over each month than your current budget.';
+      }
+    } else {
+      if (sumMCompareEl) sumMCompareEl.textContent = '';
+      if (sumNCompareEl) sumNCompareEl.textContent = '';
+      if (bottomLineCompareEl) bottomLineCompareEl.textContent = 'Sign in to compare against your current budget.';
+    }
+
+    renderHouseFund(scope);
+
+    document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+  }
+
+  function updateSplitDonut(scope, personKey, joint, personal, left, salary) {
+    const s = scope.sfx;
+    const leftPositive = Math.max(0, left);
+    const ringTotal = joint + personal + leftPositive;
+    updateDonutSegments(
+      [
+        { id: `split-donut-seg-${personKey}-joint${s}`, name: 'Joint costs' },
+        { id: `split-donut-seg-${personKey}-personal${s}`, name: 'Personal costs' },
+        { id: `split-donut-seg-${personKey}-left${s}`, name: 'Left over' },
+      ],
+      [joint, personal, leftPositive], ringTotal
+    );
+    setText(`split-donut-total-${personKey}${s}`, fmt(salary));
+    setText(`split-donut-amt-${personKey}-joint${s}`, fmt(joint));
+    setText(`split-donut-amt-${personKey}-personal${s}`, fmt(personal));
+    const leftAmtEl = document.getElementById(`split-donut-amt-${personKey}-left${s}`);
+    leftAmtEl.textContent = fmt(left);
+    leftAmtEl.className = 'v' + (left < 0 ? ' bad' : '');
+    setText(`split-donut-pct-${personKey}-joint${s}`, ringTotal > 0 ? pctFmt(joint / ringTotal) : '—');
+    setText(`split-donut-pct-${personKey}-personal${s}`, ringTotal > 0 ? pctFmt(personal / ringTotal) : '—');
+    setText(`split-donut-pct-${personKey}-left${s}`, ringTotal > 0 ? pctFmt(leftPositive / ringTotal) : '—');
+  }
+
+  function updateLoanDetails(scope) {
+    const s = scope.sfx;
+    scope.state.personal.forEach((cat, ci) => {
+      if (cat.name !== 'Loans') return;
+      cat.items.forEach((it, ii) => {
+        ['nicolas'].forEach(person => {
+          const debt = it.debt && it.debt[person];
+          if (!debt) return;
+          const total = Number(debt.total) || 0;
+          const paid = Math.max(0, Number(debt.paid) || 0);
+          const ring = document.getElementById(`debt-ring-${ci}-${ii}-${person}${s}`);
+          if (!ring) return;
+          if (total <= 0) { ring.style.display = 'none'; return; }
+          const pct = Math.min(100, (paid / total) * 100);
+          ring.style.display = '';
+          const ringFill = document.getElementById(`debt-ring-fill-${ci}-${ii}-${person}${s}`);
+          if (ringFill) ringFill.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
+          setText(`debt-ring-pct-${ci}-${ii}-${person}${s}`, Math.round(pct) + '%');
+        });
+      });
+    });
+  }
+
+  function fullRender(scope) {
+    buildHouseholdRows(scope);
+    buildPersonalRows(scope);
+    buildWhoPaysDonut(scope);
+    buildMortgageDonut(scope);
+    buildMortgagePriceRows(scope);
+    bindInputs(scope);
+    bindMortgageInputs(scope);
+    setInputValues(scope);
+    setMortgageInputValues(scope);
+    renderChecklist(scope);
+    recalcAndRender(scope);
+    renderMortgageScenario(scope);
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-tab');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
+      document.getElementById(`screen-${key}`).classList.add('active');
+    });
+  });
+
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    const root = document.documentElement;
+    const current = root.getAttribute('data-theme');
+    if (current === 'dark') root.setAttribute('data-theme', 'light');
+    else if (current === 'light') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', 'dark');
+  });
+
+  function bindAdjLockToggle(btnId, inputId) {
+    const btn = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    if (!btn || !input) return;
+    btn.addEventListener('click', () => {
+      const isLocked = input.hasAttribute('readonly');
+      if (isLocked) {
+        input.removeAttribute('readonly');
+        btn.classList.add('active');
+        btn.textContent = '✓';
+        btn.title = 'Save changes';
+        btn.setAttribute('aria-label', 'Save changes');
+        input.focus();
+      } else {
+        input.setAttribute('readonly', '');
+        btn.classList.remove('active');
+        btn.textContent = '✎';
+        btn.title = 'Edit this amount';
+        btn.setAttribute('aria-label', 'Edit this amount');
+      }
+    });
+  }
+  bindAdjLockToggle('btn-adj-edit', 'in-adjustment');
+  bindAdjLockToggle('btn-adj-correction-edit', 'in-adjustment-correction');
+
+  (function () {
+    const tip = document.getElementById('chart-tooltip');
+    if (!tip) return;
+    document.addEventListener('pointermove', (e) => {
+      const c = e.target.closest && e.target.closest('circle[data-tip-label]');
+      if (!c) { tip.hidden = true; return; }
+      tip.innerHTML = `${c.getAttribute('data-tip-label')}: <strong>${c.getAttribute('data-tip-amount')}</strong><span class="tip-pct">${c.getAttribute('data-tip-pct')}</span>`;
+      tip.style.left = e.clientX + 'px';
+      tip.style.top = e.clientY + 'px';
+      tip.hidden = false;
+    });
+    document.addEventListener('pointerleave', () => { tip.hidden = true; });
+  })();
+
+  document.getElementById('btn-export').addEventListener('click', () => {
+    const payload = Object.assign({ scenario: 'b' }, scopeB.state);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'potential-new-house-values.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btn-undo').addEventListener('click', () => {
+    if (confirm('Discard all unsaved changes and reload the last saved values from the database?')) {
+      if (window.__undoAllChanges) {
+        window.__undoAllChanges();
+      } else {
+        scopeB.state = defaultStateB();
+        fullRender(scopeB);
+      }
+    }
+  });
+
+  const equityAgreementDialog = document.getElementById('equity-agreement-dialog');
+  const btnEquityAgreement = document.getElementById('btn-equity-agreement');
+  if (btnEquityAgreement) btnEquityAgreement.addEventListener('click', () => equityAgreementDialog.showModal());
+  const btnCloseEquityAgreement = document.getElementById('btn-close-equity-agreement');
+  if (btnCloseEquityAgreement) btnCloseEquityAgreement.addEventListener('click', () => equityAgreementDialog.close());
+  equityAgreementDialog.addEventListener('click', (e) => {
+    if (e.target === equityAgreementDialog) equityAgreementDialog.close();
+  });
+
+  const loanInfoDialog = document.getElementById('loan-info-dialog');
+  function openLoanInfo(scopeKey, ci, ii) {
+    const scope = scopeB;
+    const it = scope.state.personal[ci] && scope.state.personal[ci].items[ii];
+    if (!it || !it.debt || !it.debt.nicolas) return;
+    const debt = it.debt.nicolas;
+
+    document.getElementById('loan-info-title').textContent = it.label || 'Loan details';
+    document.getElementById('loan-info-rows').innerHTML = `
+      <div class="line"><span>Amount loaned</span><span class="v"><span class="loan-info-field"><span class="unit">€</span><input class="loan-info-input" type="number" step="0.01" min="0" data-info-field="total" value="${Number(debt.total) || 0}"></span></span></div>
+      <div class="line"><span>Paid so far</span><span class="v"><span class="loan-info-field"><span class="unit">€</span><input class="loan-info-input" type="number" step="0.01" min="0" data-info-field="paid" value="${Number(debt.paid) || 0}"></span></span></div>
+      <div class="line"><span>Remaining</span><span class="v" id="loan-info-remaining">—</span></div>
+      <div class="line"><span>Interest rate</span><span class="v"><span class="loan-info-field pct"><input class="loan-info-input" type="number" step="0.1" min="0" data-info-field="rate" value="${Number(debt.rate) || 0}"><span class="unit">%</span></span></span></div>
+      <div class="line"><span>Run time</span><span class="v"><span class="loan-info-field months"><input class="loan-info-input" type="number" step="1" min="0" data-info-field="termMonths" value="${Number(debt.termMonths) || 0}"><span class="unit">mo.</span></span></span></div>
+      <div class="line final"><span>Monthly payment</span><span class="v">${fmt(Number(it.nicolas) || 0)} <span id="loan-info-months-left" style="font-weight:500;color:var(--text-muted);font-size:12px;"></span></span></div>
+    `;
+
+    function updateDerived() {
+      const total = Number(debt.total) || 0;
+      const paid = Math.max(0, Number(debt.paid) || 0);
+      const remaining = Math.max(0, total - paid);
+      const monthly = Number(it.nicolas) || 0;
+      const monthsLeft = monthly > 0 && remaining > 0 ? Math.ceil(remaining / monthly) : null;
+      document.getElementById('loan-info-remaining').textContent = fmt(remaining);
+      document.getElementById('loan-info-months-left').textContent = monthsLeft != null ? `(~${monthsLeft} mo. left)` : '';
+    }
+    updateDerived();
+
+    document.querySelectorAll('#loan-info-rows [data-info-field]').forEach(inputEl => {
+      inputEl.addEventListener('input', (e) => {
+        debt[e.target.getAttribute('data-info-field')] = parseDutchAmount(e.target.value);
+        recalcAndRender(scope);
+        updateDerived();
+      });
+      bindDutchAmountReformat(inputEl);
+    });
+
+    loanInfoDialog.showModal();
+  }
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest && e.target.closest('[data-loan-info]');
+    if (!btn) return;
+    const [scopeKey, ci, ii] = btn.getAttribute('data-loan-info').split('.');
+    openLoanInfo(scopeKey, +ci, +ii);
+  });
+  document.getElementById('btn-close-loan-info').addEventListener('click', () => loanInfoDialog.close());
+  loanInfoDialog.addEventListener('click', (e) => {
+    if (e.target === loanInfoDialog) loanInfoDialog.close();
+  });
+
+  function initDragReorder(scope, containerId, getCategories) {
+    const root = el(scope, containerId);
+    if (!root || root._dragInit) return;
+    root._dragInit = true;
+
+    let drag = null;
+
+    root.addEventListener('pointerdown', (e) => {
+      const handle = e.target.closest('.drag-handle');
+      if (!handle) return;
+      const rowEl = handle.closest('[data-drag-row]');
+      if (!rowEl) return;
+      e.preventDefault();
+      const [ci, ii] = rowEl.getAttribute('data-drag-row').split('.').map(Number);
+      drag = { fromCi: ci, fromIi: ii, rowEl, startY: e.clientY, toCi: null, toIi: null };
+      rowEl.classList.add('dragging');
+      rowEl.style.position = 'relative';
+      rowEl.style.zIndex = '5';
+      try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    root.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      drag.rowEl.style.transform = `translateY(${e.clientY - drag.startY}px)`;
+
+      root.querySelectorAll('.drop-before, .drop-after').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+
+      const groups = Array.from(root.querySelectorAll('.cat-group'));
+      if (!groups.length) return;
+      let targetGroup = groups[groups.length - 1];
+      for (const g of groups) {
+        if (e.clientY < g.getBoundingClientRect().bottom) { targetGroup = g; break; }
+      }
+      const toCi = groups.indexOf(targetGroup);
+      const rowsInGroup = Array.from(targetGroup.querySelectorAll('[data-drag-row]')).filter(r => r !== drag.rowEl);
+
+      let toIi = rowsInGroup.length;
+      let indicatorEl = null, indicatorPos = null;
+      for (let i = 0; i < rowsInGroup.length; i++) {
+        const rect = rowsInGroup[i].getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) {
+          toIi = i;
+          indicatorEl = rowsInGroup[i]; indicatorPos = 'drop-before';
+          break;
+        }
+      }
+      if (!indicatorEl && rowsInGroup.length) {
+        indicatorEl = rowsInGroup[rowsInGroup.length - 1];
+        indicatorPos = 'drop-after';
+      }
+      if (indicatorEl) indicatorEl.classList.add(indicatorPos);
+
+      drag.toCi = toCi;
+      drag.toIi = toIi;
+    });
+
+    function endDrag() {
+      if (!drag) return;
+      root.querySelectorAll('.drop-before, .drop-after').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+      drag.rowEl.classList.remove('dragging');
+      drag.rowEl.style.transform = '';
+      drag.rowEl.style.position = '';
+      drag.rowEl.style.zIndex = '';
+
+      const { fromCi, fromIi, toCi, toIi } = drag;
+      drag = null;
+      if (toCi == null || (fromCi === toCi && fromIi === toIi)) return;
+
+      const categories = getCategories(scope);
+      const [item] = categories[fromCi].items.splice(fromIi, 1);
+      categories[toCi].items.splice(toIi, 0, item);
+      fullRender(scope);
+    }
+
+    root.addEventListener('pointerup', endDrag);
+    root.addEventListener('pointercancel', endDrag);
+  }
+
+  function initChecklistDragReorder(scope) {
+    const root = el(scope, 'checklist-rows');
+    if (!root || root._dragInit) return;
+    root._dragInit = true;
+
+    let drag = null;
+
+    root.addEventListener('pointerdown', (e) => {
+      const handle = e.target.closest('.drag-handle');
+      if (!handle) return;
+      const rowEl = handle.closest('[data-checklist-row]');
+      if (!rowEl) return;
+      e.preventDefault();
+      const fromIdx = +rowEl.getAttribute('data-checklist-row');
+      drag = { fromIdx, rowEl, startY: e.clientY, toIdx: null };
+      rowEl.classList.add('dragging');
+      rowEl.style.position = 'relative';
+      rowEl.style.zIndex = '5';
+      try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    root.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      drag.rowEl.style.transform = `translateY(${e.clientY - drag.startY}px)`;
+      root.querySelectorAll('.drop-before, .drop-after').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+
+      const rows = Array.from(root.querySelectorAll('[data-checklist-row]')).filter(r => r !== drag.rowEl);
+      let toIdx = rows.length;
+      let indicatorEl = null, indicatorPos = null;
+      for (let i = 0; i < rows.length; i++) {
+        const rect = rows[i].getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) {
+          toIdx = i;
+          indicatorEl = rows[i]; indicatorPos = 'drop-before';
+          break;
+        }
+      }
+      if (!indicatorEl && rows.length) {
+        indicatorEl = rows[rows.length - 1];
+        indicatorPos = 'drop-after';
+      }
+      if (indicatorEl) indicatorEl.classList.add(indicatorPos);
+      drag.toIdx = toIdx;
+    });
+
+    function endDrag() {
+      if (!drag) return;
+      root.querySelectorAll('.drop-before, .drop-after').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+      drag.rowEl.classList.remove('dragging');
+      drag.rowEl.style.transform = '';
+      drag.rowEl.style.position = '';
+      drag.rowEl.style.zIndex = '';
+
+      const { fromIdx, toIdx } = drag;
+      drag = null;
+      if (toIdx == null || fromIdx === toIdx) return;
+
+      const items = checklistItems(scope);
+      const [item] = items.splice(fromIdx, 1);
+      items.splice(toIdx, 0, item);
+      renderChecklist(scope);
+      document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
+    }
+
+    root.addEventListener('pointerup', endDrag);
+    root.addEventListener('pointercancel', endDrag);
+  }
+
+  fullRender(scopeB);
+
+  initDragReorder(scopeB, 'household-rows', sc => sc.state.household);
+  initDragReorder(scopeB, 'personal-rows', sc => sc.state.personal);
+  initChecklistDragReorder(scopeB);
+
+  const clAddBtn = document.getElementById('btn-checklist-add-b');
+  if (clAddBtn) clAddBtn.addEventListener('click', () => {
+    checklistItems(scopeB).push({ label: '', amount: 0 });
+    renderChecklist(scopeB);
+    document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scopeB.key } }));
+  });
+})();
+</script>
+
+
+<script>
+(function() {
+  // No sign-in gate anymore — this just opens a plain (anonymous) Supabase client so the
+  // cloud-sync script below has something to load/save through.
+  var SUPABASE_URL = "https://gtdzuuvlluyofkvbpusx.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0ZHp1dXZsbHV5b2ZrdmJwdXN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTUwMjAsImV4cCI6MjA2NzYzMTAyMH0.DcHwCLuyyVJvs0Ugpr7bE0Az5_tkES4kE_P0SUFOyus";
+  window.__sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+})();
+</script>
+
+<script>
+(function() {
+  var statusEl = document.getElementById('sync-status');
+  var saveBtn = document.getElementById('btn-save');
+  var undoBtn = document.getElementById('btn-undo');
+  var loadedOnce = { b: false };
+
+  function setStatus(text, cls) {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.className = 'sync-status' + (cls ? ' ' + cls : '');
+  }
+
+  function waitForSb(cb) {
+    if (window.__sb) { cb(window.__sb); return; }
+    setTimeout(function() { waitForSb(cb); }, 50);
+  }
+
+  function loadScopeB(sb) {
+    return sb.from('budget_dashboard_state').select('state').eq('scenario', 'b').maybeSingle()
+      .then(function(res) {
+        if (res.error) throw res.error;
+        if (res.data && res.data.state) {
+          window.__applyScopeState('b', res.data.state);
+        }
+        loadedOnce.b = true;
+      });
+  }
+
+  function loadCurrentBudgetSnapshot(sb) {
+    return sb.from('budget_dashboard_state').select('state').eq('scenario', 'a').maybeSingle()
+      .then(function(res) {
+        if (res.error) throw res.error;
+        if (res.data && res.data.state) {
+          window.__applyCurrentBudgetSnapshot(res.data.state);
+        }
+      })
+      .catch(function(err) {
+        console.error('Could not load Current Budget for comparison', err);
+      });
+  }
+
+  function loadAll(sb) {
+    setStatus('☁️ Loading…', 'saving');
+    Promise.all([loadScopeB(sb), loadCurrentBudgetSnapshot(sb)]).then(function() {
+      setStatus('☁️ Synced');
+    }).catch(function(err) {
+      console.error('Budget cloud load failed', err);
+      setStatus('⚠️ Could not load', 'error');
+    });
+  }
+
+  document.addEventListener('app:statechanged', function(e) {
+    var key = e.detail && e.detail.key;
+    if (!key || !loadedOnce[key]) return;
+    setStatus('● Unsaved changes', 'saving');
+  });
+
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+      waitForSb(function(sb) {
+        setStatus('☁️ Saving…', 'saving');
+        saveBtn.disabled = true;
+        var now = new Date().toISOString();
+        sb.from('budget_dashboard_state')
+          .upsert({ scenario: 'b', state: window.scopeB.state, updated_at: now })
+          .then(function(res) {
+            saveBtn.disabled = false;
+            if (res.error) {
+              console.error('Budget cloud save failed', res.error);
+              setStatus('⚠️ Could not save', 'error');
+            } else {
+              setStatus('☁️ Synced');
+            }
+          });
+      });
+    });
+  }
+
+  window.__undoAllChanges = function() {
+    waitForSb(function(sb) {
+      setStatus('☁️ Loading…', 'saving');
+      if (undoBtn) undoBtn.disabled = true;
+      loadScopeB(sb).then(function() {
+        if (undoBtn) undoBtn.disabled = false;
+        setStatus('☁️ Synced');
+      }).catch(function(err) {
+        if (undoBtn) undoBtn.disabled = false;
+        console.error('Budget cloud reload failed', err);
+        setStatus('⚠️ Could not load', 'error');
+      });
+    });
+  };
+
+  // No sign-in required anymore — load straight away as soon as the Supabase client exists.
+  waitForSb(function(sb) {
+    loadAll(sb);
+  });
+})();
+</script>
+
+
+
+</body></html>

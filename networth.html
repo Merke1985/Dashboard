@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Net Worth Overview</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root {
     color-scheme: light;
@@ -170,8 +169,6 @@
   }
   input.num:hover { border-color: var(--border); }
   input.num:focus { border-color: var(--series-maarten); background: var(--surface-2); }
-  input.num::-webkit-outer-spin-button, input.num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  input.num[type=number] { -moz-appearance: textfield; }
   .subtotal-row {
     display: grid; grid-template-columns: 1fr 150px;
     gap: 8px; padding: 9px 0 4px; margin-top: 2px; border-top: 1px solid var(--baseline);
@@ -187,57 +184,9 @@
     max-width: 1000px; margin: 24px auto 0; padding: 0 20px;
     font-size: 12px; color: var(--text-muted); line-height: 1.6;
   }
-
-  /* ---- Auth gate ---- */
-  .auth-gate {
-    position: fixed; inset: 0; z-index: 9999;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--page);
-    padding: 20px;
-  }
-  .auth-gate.hidden { display: none; }
-  .auth-card {
-    width: 100%; max-width: 340px;
-    background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
-    box-shadow: var(--shadow);
-    padding: 28px 26px;
-  }
-  .auth-card h1 { font-size: 18px; margin: 0 0 4px; font-weight: 650; }
-  .auth-sub { margin: 0 0 20px; font-size: 13px; color: var(--text-secondary); }
-  .auth-card label { display: block; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; }
-  .auth-card input {
-    display: block; width: 100%; margin-top: 6px;
-    font: inherit; font-size: 14px; padding: 9px 11px;
-    background: var(--surface-1); color: var(--text-primary);
-    border: 1px solid var(--border); border-radius: 8px;
-  }
-  .auth-error { min-height: 16px; font-size: 12.5px; color: #d03b3b; margin-bottom: 4px; }
-  .auth-submit {
-    width: 100%; font: inherit; font-size: 14px; font-weight: 600;
-    background: var(--text-primary); color: var(--page);
-    border: none; border-radius: 8px; padding: 10px 12px; cursor: pointer; margin-top: 4px;
-  }
-  .auth-submit:disabled { opacity: 0.6; cursor: default; }
-
 </style>
 </head>
 <body>
-
-
-<div id="auth-gate" class="auth-gate">
-  <form id="auth-form" class="auth-card">
-    <h1>Financiën</h1>
-    <p class="auth-sub">Sign in to continue</p>
-    <label>Email
-      <input type="email" id="auth-email" autocomplete="username" required>
-    </label>
-    <label>Password
-      <input type="password" id="auth-password" autocomplete="current-password" required>
-    </label>
-    <div id="auth-error" class="auth-error"></div>
-    <button type="submit" class="auth-submit">Log in</button>
-  </form>
-</div>
 
 <header class="top">
   <div class="inner">
@@ -248,11 +197,10 @@
     </div>
     <div class="controls">
       <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
-      <button class="ctl" id="btn-sync">↻ Sync from Portfolio, Budget &amp; Home</button>
+      <button class="ctl" id="btn-sync">↻ Sync from Portfolio &amp; Home</button>
       <button class="ctl" id="btn-export">⭳ Export</button>
       <button class="ctl" id="btn-import">⭱ Import</button>
       <button class="ctl" id="btn-reset">↺ Reset</button>
-      <button class="ctl" id="btn-logout" style="display:none" title="Sign out">⎋ Log out</button>
       <input type="file" id="file-import" accept="application/json">
     </div>
   </div>
@@ -262,10 +210,10 @@
 
   <div class="hero">
     <div class="muted">Net worth</div>
-    <div class="total" id="nw-total">€ 160.478,52</div>
+    <div class="total" id="nw-total">€ 167.176,21</div>
     <div class="breakdown">
-      <span>Assets <b id="nw-assets-inline">€ 160.478,52</b></span>
-      <span>Liabilities <b id="nw-liab-inline">€ 0,00</b></span>
+      <span>Assets <b id="nw-assets-inline">€ 308.604,57</b></span>
+      <span>Liabilities <b id="nw-liab-inline">€ 141.428,36</b></span>
     </div>
     <div class="compare">
       <div class="compare-row">
@@ -274,7 +222,7 @@
       </div>
       <div class="compare-row">
         <span class="clabel">Liabilities</span>
-        <div class="compare-track"><div class="compare-fill liab" id="bar-liab" style="width:0%"></div></div>
+        <div class="compare-track"><div class="compare-fill liab" id="bar-liab" style="width:45.83%"></div></div>
       </div>
     </div>
     <div class="sync-note" id="sync-note"></div>
@@ -282,49 +230,53 @@
 
   <section class="card">
     <h2>Assets</h2>
-    <p class="desc">What you own. Investments can be pulled from the Portfolio page and Equity from the Home &amp; Mortgage page — everything else you fill in yourself.</p>
+    <p class="desc">What you own. Investments and savings can be pulled straight from the Portfolio page — everything else you fill in yourself.</p>
     <div class="row-head"><div>Item</div><div>Amount €</div></div>
     <div class="row">
-      <div class="name">Cash &amp; savings<span class="hint">Bank balances outside your investment portfolio</span></div>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" id="in-cash" value="0"></div>
+      <div class="name">House value<span class="hint">Estimated current market value, if you own one</span></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="text" inputmode="decimal" id="in-house" value="295.000,00"></div>
     </div>
     <div class="row">
       <div class="name">Investments<span class="hint">ETF's, aandelen, crypto — from the Portfolio page</span></div>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" id="in-investments" value="7830.68"></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="text" inputmode="decimal" id="in-investments" value="11.723,63"></div>
     </div>
     <div class="row">
-      <div class="name">Equity<span class="hint">House value minus mortgage remaining — from the Home &amp; Mortgage page</span></div>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" id="in-equity" value="152647.84"></div>
+      <div class="name">Savings<span class="hint">Uninvested cash — from the Portfolio (BUX) page</span></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="text" inputmode="decimal" id="in-savings" value="1.880,94"></div>
     </div>
     <div class="row">
       <div class="name">Other assets<span class="hint">Car, valuables, anything else worth counting</span></div>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" id="in-other-assets" value="0"></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="text" inputmode="decimal" id="in-other-assets" value="0,00"></div>
     </div>
     <div class="subtotal-row assets">
       <div>Total assets</div>
-      <div class="computed" id="out-assets-total">€ 160.478,52</div>
+      <div class="computed" id="out-assets-total">€ 308.604,57</div>
     </div>
   </section>
 
   <section class="card">
     <h2>Liabilities</h2>
-    <p class="desc">What you owe. Nicolas's loan balances can be pulled from the Budget dashboard — everything else you fill in yourself. Your mortgage isn't listed separately here since it's already netted into Equity above.</p>
+    <p class="desc">What you owe. Each mortgage loan part can be pulled from the Home &amp; Mortgage page — everything else you fill in yourself.</p>
     <div class="row-head"><div>Item</div><div>Amount €</div></div>
     <div class="row">
-      <div class="name">Nicolas — Student loan<span class="hint">Remaining balance — from the Budget dashboard</span></div>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" id="in-student-loan" value="0"></div>
+      <div class="name">Mortgage — Leningdeel 1.0<span class="hint">Remaining balance — from the Home &amp; Mortgage page</span></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="text" inputmode="decimal" id="in-mortgage-1" value="91.831,43"></div>
     </div>
     <div class="row">
-      <div class="name">Nicolas — Credit card<span class="hint">Remaining balance — from the Budget dashboard</span></div>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" id="in-credit-card" value="0"></div>
+      <div class="name">Mortgage — Leningdeel 1.1<span class="hint">Remaining balance — from the Home &amp; Mortgage page</span></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="text" inputmode="decimal" id="in-mortgage-2" value="49.596,93"></div>
+    </div>
+    <div class="row">
+      <div class="name">Credit card<span class="hint">Outstanding balance</span></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="text" inputmode="decimal" id="in-credit-card" value="0,00"></div>
     </div>
     <div class="row">
       <div class="name">Other debts<span class="hint">Anything else you owe</span></div>
-      <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" id="in-other-debts" value="0"></div>
+      <div class="num-field"><span class="unit">€</span><input class="num" type="text" inputmode="decimal" id="in-other-debts" value="0,00"></div>
     </div>
     <div class="subtotal-row liab">
       <div>Total liabilities</div>
-      <div class="computed" id="out-liab-total">€ 0,00</div>
+      <div class="computed" id="out-liab-total">€ 141.428,36</div>
     </div>
   </section>
 
@@ -333,27 +285,26 @@
 <footer class="note">
   All figures are editable and recalculate live in your browser — nothing is sent anywhere, and nothing is saved automatically
   (no browser storage is used). The starting figures above are today's known numbers baked directly into the page, so it
-  reads correctly even without JavaScript running. Use <strong>Sync</strong> to refresh the Investments figure from Portfolio,
-  Nicolas's loan balances from the Budget dashboard, and Equity (house value minus mortgage remaining) from the Home &amp;
-  Mortgage page (all files need to be in the same folder as this page). Use <strong>Export</strong> to save a snapshot as a
-  file — exporting one periodically lets you build a net worth history by keeping the dated files. Use <strong>Import</strong>
-  to load a snapshot back, and <strong>Reset</strong> to restore the default starting figures.
+  reads correctly even without JavaScript running. Use <strong>Sync</strong> to refresh the Investments and Savings figures from Portfolio, and each mortgage loan part's
+  remaining balance from the Home &amp; Mortgage page (all files need to be in the same folder as this page). House value
+  stays manual — enter it yourself above.
+  Use <strong>Export</strong> to save a snapshot as a file — exporting one periodically lets you build a net worth history by
+  keeping the dated files. Use <strong>Import</strong> to load a snapshot back, and <strong>Reset</strong> to restore the
+  default starting figures.
 </footer>
 
 <script>
 (function () {
   "use strict";
 
-  // These starting figures match what's baked into the HTML above (investments and equity
-  // as of today) so the page reads correctly even before JavaScript runs — e.g. in a phone
-  // preview that doesn't execute scripts. When JS does run, this re-renders the same
-  // numbers, then Sync/manual edits take over from here. Equity (house value minus mortgage
-  // remaining) stands in for a separate house value asset and mortgage liability, since
-  // netting them here would double-count against the Home & Mortgage page's own totals.
+  // These starting figures match what's baked into the HTML above (investments, house
+  // value, and mortgage parts as of today) so the page reads correctly even before
+  // JavaScript runs — e.g. in a phone preview that doesn't execute scripts. When JS does
+  // run, this re-renders the same numbers, then Sync/manual edits take over from here.
   function defaultState() {
     return {
-      assets: { cash: 0, investments: 7830.68, equity: 152647.84, other: 0 },
-      liabilities: { studentLoan: 0, creditCard: 0, other: 0 },
+      assets: { savings: 1880.94, investments: 11723.63, house: 295000, other: 0 },
+      liabilities: { mortgagePart1: 91831.43, mortgagePart2: 49596.93, creditCard: 0, other: 0 },
     };
   }
 
@@ -363,32 +314,52 @@
     n = Number(n) || 0;
     return '€ ' + n.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
+  // Same as fmt() but without the € prefix, for the editable amount fields — keeps the
+  // "." thousands / "," decimals formatting uniform across every number on the page.
+  function fmtInput(n) {
+    n = Number(n) || 0;
+    return n.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  // Parses a Dutch-formatted string ("11.516,96") back into a plain float.
+  function parseInputNumber(str) {
+    if (typeof str !== 'string') return Number(str) || 0;
+    const cleaned = str.trim().replace(/\./g, '').replace(',', '.');
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+  }
   function setText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; }
 
   function setInputValues() {
-    document.getElementById('in-cash').value = state.assets.cash;
-    document.getElementById('in-investments').value = state.assets.investments;
-    document.getElementById('in-equity').value = state.assets.equity;
-    document.getElementById('in-other-assets').value = state.assets.other;
-    document.getElementById('in-student-loan').value = state.liabilities.studentLoan;
-    document.getElementById('in-credit-card').value = state.liabilities.creditCard;
-    document.getElementById('in-other-debts').value = state.liabilities.other;
+    document.getElementById('in-house').value = fmtInput(state.assets.house);
+    document.getElementById('in-investments').value = fmtInput(state.assets.investments);
+    document.getElementById('in-savings').value = fmtInput(state.assets.savings);
+    document.getElementById('in-other-assets').value = fmtInput(state.assets.other);
+    document.getElementById('in-mortgage-1').value = fmtInput(state.liabilities.mortgagePart1);
+    document.getElementById('in-mortgage-2').value = fmtInput(state.liabilities.mortgagePart2);
+    document.getElementById('in-credit-card').value = fmtInput(state.liabilities.creditCard);
+    document.getElementById('in-other-debts').value = fmtInput(state.liabilities.other);
   }
 
   function bindInputs() {
-    document.getElementById('in-cash').addEventListener('input', e => { state.assets.cash = parseFloat(e.target.value) || 0; recalcAndRender(); });
-    document.getElementById('in-investments').addEventListener('input', e => { state.assets.investments = parseFloat(e.target.value) || 0; recalcAndRender(); });
-    document.getElementById('in-equity').addEventListener('input', e => { state.assets.equity = parseFloat(e.target.value) || 0; recalcAndRender(); });
-    document.getElementById('in-other-assets').addEventListener('input', e => { state.assets.other = parseFloat(e.target.value) || 0; recalcAndRender(); });
-    document.getElementById('in-student-loan').addEventListener('input', e => { state.liabilities.studentLoan = parseFloat(e.target.value) || 0; recalcAndRender(); });
-    document.getElementById('in-credit-card').addEventListener('input', e => { state.liabilities.creditCard = parseFloat(e.target.value) || 0; recalcAndRender(); });
-    document.getElementById('in-other-debts').addEventListener('input', e => { state.liabilities.other = parseFloat(e.target.value) || 0; recalcAndRender(); });
+    document.getElementById('in-house').addEventListener('input', e => { state.assets.house = parseInputNumber(e.target.value); recalcAndRender(); });
+    document.getElementById('in-investments').addEventListener('input', e => { state.assets.investments = parseInputNumber(e.target.value); recalcAndRender(); });
+    document.getElementById('in-savings').addEventListener('input', e => { state.assets.savings = parseInputNumber(e.target.value); recalcAndRender(); });
+    document.getElementById('in-other-assets').addEventListener('input', e => { state.assets.other = parseInputNumber(e.target.value); recalcAndRender(); });
+    document.getElementById('in-mortgage-1').addEventListener('input', e => { state.liabilities.mortgagePart1 = parseInputNumber(e.target.value); recalcAndRender(); });
+    document.getElementById('in-mortgage-2').addEventListener('input', e => { state.liabilities.mortgagePart2 = parseInputNumber(e.target.value); recalcAndRender(); });
+    document.getElementById('in-credit-card').addEventListener('input', e => { state.liabilities.creditCard = parseInputNumber(e.target.value); recalcAndRender(); });
+    document.getElementById('in-other-debts').addEventListener('input', e => { state.liabilities.other = parseInputNumber(e.target.value); recalcAndRender(); });
+
+    // Reformat to the uniform "." thousands / "," decimals style once the person leaves
+    // the field, so mid-typing states (e.g. "1150") don't get forced into that shape.
+    ['in-house', 'in-investments', 'in-savings', 'in-other-assets', 'in-mortgage-1', 'in-mortgage-2', 'in-credit-card', 'in-other-debts']
+      .forEach(id => document.getElementById(id).addEventListener('blur', e => { e.target.value = fmtInput(parseInputNumber(e.target.value)); }));
   }
 
   function recalcAndRender() {
     const a = state.assets, l = state.liabilities;
-    const totalAssets = (Number(a.cash) || 0) + (Number(a.investments) || 0) + (Number(a.equity) || 0) + (Number(a.other) || 0);
-    const totalLiab = (Number(l.studentLoan) || 0) + (Number(l.creditCard) || 0) + (Number(l.other) || 0);
+    const totalAssets = (Number(a.savings) || 0) + (Number(a.investments) || 0) + (Number(a.house) || 0) + (Number(a.other) || 0);
+    const totalLiab = (Number(l.mortgagePart1) || 0) + (Number(l.mortgagePart2) || 0) + (Number(l.creditCard) || 0) + (Number(l.other) || 0);
     const netWorth = totalAssets - totalLiab;
 
     setText('out-assets-total', fmt(totalAssets));
@@ -456,38 +427,38 @@
   });
 
   document.getElementById('btn-reset').addEventListener('click', () => {
-    if (confirm('Reset to the default starting figures (today\'s investments and equity; cash and other fields cleared)?')) {
+    if (confirm('Reset to the default starting figures (today\'s investments, savings, house value, and mortgage)?')) {
       state = defaultState();
       fullRender();
     }
   });
 
-  // ---------- Sync: pull Investments from portfolio.html and Nicolas's debts from
-  // budget.html via hidden iframes. Both files need to sit next to this one. This is a
+  // ---------- Sync: pull Investments/Savings from portfolio.html and mortgage loan parts
+  // from house.html via hidden iframes. Both files need to sit next to this one. This is a
   // one-time pull on click, not a live link — nothing here is saved or shared automatically.
   function setSyncNote(msg) { document.getElementById('sync-note').textContent = msg || ''; }
 
   document.getElementById('btn-sync').addEventListener('click', () => {
     const btn = document.getElementById('btn-sync');
     btn.disabled = true;
-    setSyncNote('Syncing from portfolio.html, budget.html, and house.html…');
+    setSyncNote('Syncing from portfolio.html and house.html…');
 
-    let pending = 3;
-    const got = { investments: null, debts: null, house: null };
+    let pending = 2;
+    const got = { investments: null, savings: null, house: null };
     function finish() {
       pending--;
       if (pending > 0) return;
       let msgs = [];
-      if (got.investments != null) { state.assets.investments = got.investments; msgs.push('investments updated'); }
-      else msgs.push("couldn't reach portfolio.html");
-      if (got.debts != null) {
-        state.liabilities.studentLoan = got.debts.studentLoan;
-        state.liabilities.creditCard = got.debts.creditCard;
-        msgs.push("Nicolas's debts updated");
-      } else msgs.push("couldn't reach budget.html");
-      if (got.house != null && typeof got.house.equity === 'number') {
-        state.assets.equity = got.house.equity;
-        msgs.push('equity updated');
+      if (got.investments != null) {
+        state.assets.investments = got.investments;
+        if (got.savings != null) state.assets.savings = got.savings;
+        msgs.push('investments and savings updated');
+      } else msgs.push("couldn't reach portfolio.html");
+      if (got.house != null && Array.isArray(got.house.loanParts)) {
+        const parts = got.house.loanParts;
+        if (parts[0]) state.liabilities.mortgagePart1 = parts[0].remaining;
+        if (parts[1]) state.liabilities.mortgagePart2 = parts[1].remaining;
+        msgs.push('mortgage loan parts updated');
       } else msgs.push("couldn't reach house.html");
       fullRender();
       setSyncNote(msgs.join(' · '));
@@ -495,7 +466,8 @@
     }
 
     // Portfolio: poll for window.portfolioTotals, which is only set once its (possibly
-    // slow, possibly failing) live price fetch completes.
+    // slow, possibly failing) live price fetch completes. Uninvested cash is split out
+    // into Savings so it isn't double-counted under Investments.
     const ifrPortfolio = document.createElement('iframe');
     ifrPortfolio.style.display = 'none';
     ifrPortfolio.src = 'portfolio.html';
@@ -506,7 +478,12 @@
         let totals = null;
         try { totals = ifrPortfolio.contentWindow.portfolioTotals; } catch (e) {}
         if (totals && typeof totals.grand === 'number') {
-          got.investments = totals.grand;
+          if (typeof totals.cash === 'number') {
+            got.savings = totals.cash;
+            got.investments = totals.grand - totals.cash;
+          } else {
+            got.investments = totals.grand;
+          }
           clearInterval(poll);
           ifrPortfolio.remove();
           finish();
@@ -520,35 +497,7 @@
     ifrPortfolio.addEventListener('error', () => { got.investments = null; finish(); });
     document.body.appendChild(ifrPortfolio);
 
-    // Budget: renders synchronously on load, so scopeA is available right after the
-    // iframe's load event (small delay as a safety margin).
-    const ifrBudget = document.createElement('iframe');
-    ifrBudget.style.display = 'none';
-    ifrBudget.src = 'budget.html';
-    ifrBudget.addEventListener('load', () => {
-      setTimeout(() => {
-        try {
-          const scopeA = ifrBudget.contentWindow.scopeA;
-          const loans = scopeA && scopeA.state.personal.find(c => c.name === 'Loans');
-          let studentLoan = 0, creditCard = 0;
-          if (loans) {
-            loans.items.forEach(it => {
-              const d = it.debt && it.debt.nicolas;
-              const remaining = d ? Math.max(0, (Number(d.total) || 0) - (Number(d.paid) || 0)) : 0;
-              if (/student/i.test(it.label)) studentLoan = remaining;
-              else if (/credit/i.test(it.label)) creditCard = remaining;
-            });
-            got.debts = { studentLoan, creditCard };
-          }
-        } catch (e) { /* leave got.debts null */ }
-        ifrBudget.remove();
-        finish();
-      }, 250);
-    });
-    ifrBudget.addEventListener('error', () => { got.debts = null; finish(); });
-    document.body.appendChild(ifrBudget);
-
-    // Home: renders synchronously on load, same pattern as budget.html above.
+    // Home: renders synchronously on load.
     const ifrHouse = document.createElement('iframe');
     ifrHouse.style.display = 'none';
     ifrHouse.src = 'house.html';
@@ -568,58 +517,6 @@
 
   bindInputs();
   fullRender();
-})();
-</script>
-
-
-<script>
-(function() {
-  var SUPABASE_URL = "https://gtdzuuvlluyofkvbpusx.supabase.co";
-  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0ZHp1dXZsbHV5b2ZrdmJwdXN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTUwMjAsImV4cCI6MjA2NzYzMTAyMH0.DcHwCLuyyVJvs0Ugpr7bE0Az5_tkES4kE_P0SUFOyus";
-  var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  var gate = document.getElementById('auth-gate');
-  var form = document.getElementById('auth-form');
-  var emailInput = document.getElementById('auth-email');
-  var passInput = document.getElementById('auth-password');
-  var errorEl = document.getElementById('auth-error');
-  var logoutBtn = document.getElementById('btn-logout');
-
-  function showApp() {
-    gate.classList.add('hidden');
-    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
-  }
-  function showGate() {
-    gate.classList.remove('hidden');
-    if (logoutBtn) logoutBtn.style.display = 'none';
-  }
-
-  sb.auth.getSession().then(function(res) {
-    if (res.data.session) showApp(); else showGate();
-  });
-
-  sb.auth.onAuthStateChange(function(event, session) {
-    if (session) showApp(); else showGate();
-  });
-
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    errorEl.textContent = '';
-    var email = emailInput.value.trim();
-    var password = passInput.value;
-    var btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.textContent = 'Logging in…';
-    sb.auth.signInWithPassword({ email: email, password: password }).then(function(res) {
-      btn.disabled = false; btn.textContent = 'Log in';
-      if (res.error) {
-        errorEl.textContent = 'Wrong email or password.';
-      }
-    });
-  });
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', function() { sb.auth.signOut(); });
-  }
 })();
 </script>
 

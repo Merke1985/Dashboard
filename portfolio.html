@@ -1,10 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="nl" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Portfolio Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root {
     color-scheme: light;
@@ -23,9 +22,8 @@
     --hero-muted: #b8c6da;
     /* categorical accents, shared visual language with the budget dashboard */
     --port-dist:   #2a78d6; /* same blue as Maarten's series in the budget dashboard */
-    --port-acc:    #6fa1e8; /* lighter tint of the same blue */
     --port-stock:  #1baf7a; /* same green as "joint costs" segments */
-    --port-crypto: #eb6834; /* same orange as Nicolas's series in the budget dashboard */
+    --port-crypto: #eb6834; /* same orange as Nicolas' series in the budget dashboard */
     --port-cash:   #eda100; /* same gold as "personal costs" segments */
   }
   @media (prefers-color-scheme: dark) {
@@ -45,7 +43,6 @@
       --hero-text:  #ffffff;
       --hero-muted: #9fb3cf;
       --port-dist:   #3987e5;
-      --port-acc:    #6fa1e8;
       --port-stock:  #199e70;
       --port-crypto: #d95926;
       --port-cash:   #c98500;
@@ -67,7 +64,6 @@
     --hero-text:  #ffffff;
     --hero-muted: #9fb3cf;
     --port-dist:   #3987e5;
-    --port-acc:    #6fa1e8;
     --port-stock:  #199e70;
     --port-crypto: #d95926;
     --port-cash:   #c98500;
@@ -145,18 +141,13 @@
   .heroChg { display: inline-block; margin-left: 10px; font-size: 14px; font-weight: 700; vertical-align: middle; }
   .heroChg.up { color: #6fe3a0; }
   .heroChg.down { color: #ff9b9b; }
-  .goalWrap { margin-top: 14px; }
-  .goalTop { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-  .goalTop input { width: 66px; background: transparent; border: 1px solid rgba(255,255,255,.35); border-radius: 6px; color: var(--hero-text); font-size: 12px; padding: 3px 6px; }
-  .goalTrack { height: 8px; background: rgba(255,255,255,.18); border-radius: 4px; margin-top: 6px; overflow: hidden; }
-  .goalFill { height: 100%; background: #fff; border-radius: 4px; transition: width .3s; }
   .donutrow { display: flex; gap: 24px; align-items: center; margin-top: 14px; }
   .donut {
     width: 170px; height: 170px; border-radius: 50%; position: relative; flex: none; cursor: pointer;
     /* Static fallback matching the default figures above — shown immediately on load and
        replaced by the JS-computed gradient once live prices resolve (or on failure, stays
        accurate since the underlying numbers are unchanged). */
-    background: conic-gradient(var(--port-dist) 0 67.8%, var(--port-acc) 67.8% 82.9%, var(--port-stock) 82.9% 85.6%, var(--port-crypto) 85.6% 99.5%, var(--port-cash) 99.5% 100%);
+    background: conic-gradient(var(--port-dist) 0 64.45%, var(--port-stock) 64.45% 73.1%, var(--port-crypto) 73.1% 86.17%, var(--port-cash) 86.17% 100%);
   }
   .donut:after { content: ""; position: absolute; inset: 32px; background: var(--surface-2); border-radius: 50%; }
   .legend { flex: 1; }
@@ -164,7 +155,6 @@
   .legend div.seg-hover { background: color-mix(in srgb, var(--port-dist) 6%, transparent); }
   .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
   .dot.dist   { background: var(--port-dist); }
-  .dot.acc    { background: var(--port-acc); }
   .dot.stock  { background: var(--port-stock); }
   .dot.crypto { background: var(--port-crypto); }
   .dot.cash   { background: var(--port-cash); }
@@ -195,7 +185,6 @@
   .big { font-size: 30px; font-weight: bold; color: var(--port-dist); margin-top: 3px; }
   .row { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding: 10px 0; font-size: 13px; }
   .row:first-child { margin-top: 8px; }
-  .profit-amount { color: var(--status-good); }
   @media(max-width:720px) {
     .proggrid { grid-template-columns: 1fr; }
     .controls-grid { grid-template-columns: 1fr; }
@@ -203,137 +192,123 @@
     .donut { width: 145px; height: 145px; } .donut:after { inset: 28px; }
   }
 
-  /* ---- Auth gate ---- */
-  .auth-gate {
-    position: fixed; inset: 0; z-index: 9999;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--page);
-    padding: 20px;
-  }
-  .auth-gate.hidden { display: none; }
-  .auth-card {
-    width: 100%; max-width: 340px;
-    background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
-    box-shadow: var(--shadow);
-    padding: 28px 26px;
-  }
-  .auth-card h1 { font-size: 18px; margin: 0 0 4px; font-weight: 650; }
-  .auth-sub { margin: 0 0 20px; font-size: 13px; color: var(--text-secondary); }
-  .auth-card label { display: block; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; }
-  .auth-card input {
-    display: block; width: 100%; margin-top: 6px;
-    font: inherit; font-size: 14px; padding: 9px 11px;
+  /* schenkingen modal — overview of tax-free gifts from parents, kept on this personal portfolio page */
+  dialog.modal {
+    color-scheme: inherit;
     background: var(--surface-1); color: var(--text-primary);
-    border: 1px solid var(--border); border-radius: 8px;
+    border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow);
+    padding: 22px; width: min(520px, calc(100vw - 40px)); max-height: min(640px, calc(100vh - 64px));
+    margin: auto;
   }
-  .auth-error { min-height: 16px; font-size: 12.5px; color: #d03b3b; margin-bottom: 4px; }
-  .auth-submit {
-    width: 100%; font: inherit; font-size: 14px; font-weight: 600;
-    background: var(--text-primary); color: var(--page);
-    border: none; border-radius: 8px; padding: 10px 12px; cursor: pointer; margin-top: 4px;
+  dialog.modal::backdrop { background: rgba(11,11,11,0.45); backdrop-filter: blur(1px); }
+  :root[data-theme="dark"] dialog.modal::backdrop,
+  :root:where(:not([data-theme="light"])) dialog.modal::backdrop { background: rgba(0,0,0,0.6); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .modal-header h3 { font-size: 15px; font-weight: 650; margin: 0; display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    font: inherit; font-size: 13px; line-height: 1; color: var(--text-secondary);
+    background: transparent; border: none; cursor: pointer; padding: 6px; border-radius: 7px;
   }
-  .auth-submit:disabled { opacity: 0.6; cursor: default; }
-
+  .icon-btn:hover { background: color-mix(in srgb, var(--text-primary) 8%, transparent); color: var(--text-primary); }
+  .modal-desc { font-size: 12.5px; color: var(--text-secondary); margin: 6px 0 16px; line-height: 1.5; }
+  .gift-total {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .gift-total .lbl { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .gift-total .val { font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  table.gift-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.gift-table th {
+    text-align: right; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--text-muted); padding: 8px 10px; border-bottom: 1px solid var(--border);
+  }
+  table.gift-table th:first-child { text-align: left; }
+  table.gift-table td {
+    padding: 8px 10px; text-align: right; font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid var(--border); color: var(--text-secondary);
+  }
+  table.gift-table tr:last-child td { border-bottom: none; }
+  table.gift-table td:first-child { text-align: left; color: var(--text-primary); font-weight: 550; }
+  table.gift-table td.amt { color: var(--text-primary); font-weight: 650; }
 </style>
 </head>
 <body>
-
-
-<div id="auth-gate" class="auth-gate">
-  <form id="auth-form" class="auth-card">
-    <h1>Financiën</h1>
-    <p class="auth-sub">Sign in to continue</p>
-    <label>Email
-      <input type="email" id="auth-email" autocomplete="username" required>
-    </label>
-    <label>Password
-      <input type="password" id="auth-password" autocomplete="current-password" required>
-    </label>
-    <div id="auth-error" class="auth-error"></div>
-    <button type="submit" class="auth-submit">Log in</button>
-  </form>
-</div>
 
 <header class="top">
   <div class="inner">
     <div>
       <a class="home-link" href="index.html">← Financiën</a>
       <h1>Portfolio Dashboard</h1>
-      <div class="sub">ETFs, stocks, crypto and savings — live prices, allocation and growth forecast</div>
+      <div class="sub">ETF's, aandelen, crypto en spaargeld — live koersen, verdeling en groeiprognose</div>
     </div>
     <div class="controls">
       <button class="ctl" id="btn-theme" title="Toggle light/dark">🌓 Theme</button>
-      <button class="ctl" id="btn-logout" style="display:none" title="Sign out">⎋ Log out</button>
+      <button class="ctl" id="btn-schenkingen" title="Overzicht schenkingen van ouders">🎁 Schenkingen</button>
     </div>
   </div>
 </header>
 
 <div class="wrap">
 
-<div class="hero"><div class="muted">Total value</div><div class="total"><span id="heroTotalAmount">€ 7.830,68</span><span class="heroChg" id="heroChg" style="display:none"></span></div><div class="muted" id="liveStatus" style="margin-top:8px">Loading live prices…</div>
-<div class="goalWrap">
-<div class="goalTop"><span>Goal: € <input type="number" id="goalInput" value="10000" min="0" step="500"></span><span id="goalPctText">0%</span></div>
-<div class="goalTrack"><div class="goalFill" id="goalFill" style="width:0%"></div></div>
-</div>
+<div class="hero"><div class="muted">Totale waarde</div><div class="total"><span id="heroTotalAmount">€ 13.604,57</span><span class="heroChg" id="heroChg" style="display:none"></span></div><div class="muted" id="liveStatus" style="margin-top:8px">Live koersen laden…</div>
 </div>
 
 <div class="card">
 <h2>Portfolio</h2>
 
 <div class="group">
-<div class="head"><div class="cat"><div class="ico">◔</div><div><div class="catname">ETFs</div><div class="muted">4 positions</div></div></div><div class="headright"><b id="totEtf">€ 6.488,54</b><span class="chev">▶</span></div></div>
+<div class="head"><div class="cat"><div class="ico">◔</div><div><div class="catname">ETF's</div><div class="muted">4 posities</div></div></div><div class="headright"><b id="totEtf">€ 8.768,67</b><span class="chev">▶</span></div></div>
 <div class="items">
-<div class="item" data-shares="33.602582" data-ticker="VWRL.AS" data-ccy="EUR"><div><div class="name">Vanguard All-World — Distributing</div><div class="muted">33.602582 shares</div></div><div class="valueWrap"><div class="value" id="v-vwrl">€ 2.746,34</div><div class="chg" id="chg-vwrl">—</div></div></div>
-<div class="item" data-shares="3.629927" data-ticker="VWCE.DE" data-ccy="EUR"><div><div class="name">Vanguard All-World — Accumulating</div><div class="muted">3.629927 shares</div></div><div class="valueWrap"><div class="value" id="v-vwce">€ 613,09</div><div class="chg" id="chg-vwce">—</div></div></div>
-<div class="item" data-shares="20.041111" data-ticker="VUSA.AS" data-ccy="EUR"><div><div class="name">Vanguard S&amp;P 500 — Distributing</div><div class="muted">20.041111 shares</div></div><div class="valueWrap"><div class="value" id="v-vusa">€ 2.557,83</div><div class="chg" id="chg-vusa">—</div></div></div>
-<div class="item" data-shares="4.392755" data-ticker="VUAA.DE" data-ccy="EUR"><div><div class="name">Vanguard S&amp;P 500 — Accumulating</div><div class="muted">4.392755 shares</div></div><div class="valueWrap"><div class="value" id="v-vuaa">€ 571,28</div><div class="chg" id="chg-vuaa">—</div></div></div>
+<div class="item" data-shares="13.629927" data-ticker="VWRL.AS" data-ccy="EUR"><div><div class="name">Vanguard All-World — Distribuerend</div><div class="muted">13,629927 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vwrl">€ 2.315,72</div><div class="chg" id="chg-vwrl">—</div></div></div>
+<div class="item" data-shares="24.602582" data-ticker="VHYL.AS" data-ccy="EUR"><div><div class="name">Vanguard All-World High Dividend Yield — Distribuerend</div><div class="muted">24,602582 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vhyl">€ 1.985,18</div><div class="chg" id="chg-vhyl">—</div></div></div>
+<div class="item" data-shares="18.041111" data-ticker="VUSA.AS" data-ccy="EUR"><div><div class="name">Vanguard S&amp;P 500 — Distribuerend</div><div class="muted">18,041111 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vusa">€ 2.317,53</div><div class="chg" id="chg-vusa">—</div></div></div>
+<div class="item" data-shares="16.392755" data-ticker="VUAA.DE" data-ccy="EUR"><div><div class="name">Vanguard S&amp;P 500 — Accumulerend</div><div class="muted">16,392755 aandelen</div></div><div class="valueWrap"><div class="value" id="v-vuaa">€ 2.150,24</div><div class="chg" id="chg-vuaa">—</div></div></div>
 </div>
 </div>
 
 <div class="group">
-<div class="head"><div class="cat"><div class="ico green">▥</div><div><div class="catname">Stocks</div><div class="muted">1 position</div></div></div><div class="headright"><b id="totStock">€ 212,21</b><span class="chev">▶</span></div></div>
+<div class="head"><div class="cat"><div class="ico green">▥</div><div><div class="catname">Aandelen</div><div class="muted">1 positie</div></div></div><div class="headright"><b id="totStock">€ 1.176,37</b><span class="chev">▶</span></div></div>
 <div class="items">
-<div class="item" data-shares="1.125466" data-ticker="NVDA" data-ccy="USD"><div><div class="name">NVIDIA</div><div class="muted">1.125466 shares</div></div><div class="valueWrap"><div class="value" id="v-nvda">€ 212,21</div><div class="chg" id="chg-nvda">—</div></div></div>
+<div class="item" data-shares="5.746463" data-ticker="NVDA" data-ccy="USD"><div><div class="name">NVIDIA</div><div class="muted">5,746463 aandelen</div></div><div class="valueWrap"><div class="value" id="v-nvda">€ 1.176,37</div><div class="chg" id="chg-nvda">—</div></div></div>
 </div>
 </div>
 
 <div class="group">
-<div class="head"><div class="cat"><div class="ico orange">₿</div><div><div class="catname">Crypto</div><div class="muted">2 positions</div></div></div><div class="headright"><b id="totCrypto">€ 1.090,69</b><span class="chev">▶</span></div></div>
+<div class="head"><div class="cat"><div class="ico orange">₿</div><div><div class="catname">Crypto</div><div class="muted">2 posities · Kraken</div></div></div><div class="headright"><b id="totCrypto">€ 1.778,59</b><span class="chev">▶</span></div></div>
 <div class="items">
-<div class="item" data-shares="0.38487" data-coingecko="ethereum"><div><div class="name">Ethereum</div><div class="muted">0.38487 ETH</div></div><div class="valueWrap"><div class="value" id="v-eth">€ 628,66</div><div class="chg" id="chg-eth">—</div></div></div>
-<div class="item" data-shares="0.008319" data-coingecko="bitcoin"><div><div class="name">Bitcoin</div><div class="muted">0.008319 BTC</div></div><div class="valueWrap"><div class="value" id="v-btc">€ 462,03</div><div class="chg" id="chg-btc">—</div></div></div>
+<div class="item" data-shares="0.42803" data-coingecko="ethereum"><div><div class="name">Ethereum</div><div class="muted">0,42803 ETH</div></div><div class="valueWrap"><div class="value" id="v-eth">€ 1.015,41</div><div class="chg" id="chg-eth">—</div></div></div>
+<div class="item" data-shares="0.01036" data-coingecko="bitcoin"><div><div class="name">Bitcoin</div><div class="muted">0,01036 BTC</div></div><div class="valueWrap"><div class="value" id="v-btc">€ 763,18</div><div class="chg" id="chg-btc">—</div></div></div>
 </div>
 </div>
 
 <div class="group">
-<div class="head"><div class="cat"><div class="ico gold">▣</div><div><div class="catname">Savings</div><div class="muted">Available balance</div></div></div><div class="headright"><b id="totCash">€ 1.000,00</b><span class="chev">▶</span></div></div>
+<div class="head"><div class="cat"><div class="ico gold">▣</div><div><div class="catname">Spaargeld</div><div class="muted">Beschikbaar saldo</div></div></div><div class="headright"><b id="totCash">€ 1.880,94</b><span class="chev">▶</span></div></div>
 <div class="items">
-<div class="item"><div class="name">Available balance</div><div class="value">€ 1.000,00</div></div>
+<div class="item"><div class="name">Beschikbaar saldo</div><div class="value">€ 1.880,94</div></div>
 </div>
 </div>
 
-<h3 style="margin-top:20px">Allocation</h3>
+<h3 style="margin-top:20px">Verdeling</h3>
 <div class="donutrow">
 <div class="donut" id="donut"><div class="donutHighlight" id="donutHighlight"></div></div>
 <div class="donutTip" id="donutTip"></div>
 <div class="legend">
-<div><span><i class="dot dist"></i>ETF — Distributing</span><b id="pctDist">67,8%</b></div>
-<div><span><i class="dot acc"></i>ETF — Accumulating</span><b id="pctAcc">15,1%</b></div>
-<div><span><i class="dot stock"></i>Stocks</span><b id="pctStock">2,7%</b></div>
-<div><span><i class="dot crypto"></i>Crypto</span><b id="pctCrypto">13,9%</b></div>
-<div><span><i class="dot cash"></i>Savings</span><b id="pctCash">0,5%</b></div>
+<div><span><i class="dot dist"></i>ETF's</span><b id="pctEtf">64,5%</b></div>
+<div><span><i class="dot stock"></i>Aandelen</span><b id="pctStock">8,6%</b></div>
+<div><span><i class="dot crypto"></i>Crypto</span><b id="pctCrypto">13,1%</b></div>
+<div><span><i class="dot cash"></i>Spaargeld</span><b id="pctCash">13,8%</b></div>
 </div></div>
 
 <div class="dividend">
-<div class="divtop"><div><h3>Next dividend</h3><div class="muted">Combined for the distributing ETFs.</div></div><div class="divamount">± € 32</div></div>
-<div class="row"><span>Expected date</span><b>1 October 2026</b></div>
+<div class="divtop"><div><h3>Volgende dividend</h3><div class="muted">Gecombineerd voor de distribuerende ETF's — schatting nog niet bijgewerkt na de nieuwe VHYL-positie.</div></div><div class="divamount">± € 32</div></div>
+<div class="row"><span>Verwachte datum</span><b>1 oktober 2026</b></div>
 </div>
 </div>
 
 <div class="card">
-<h2>Forecast</h2>
+<h2>Prognose</h2>
 <div class="controls-grid">
-<div class="control"><label>Monthly contribution</label><div class="pills" id="monthly" data-value="0" style="grid-template-columns:repeat(6,1fr)">
+<div class="control"><label>Maandelijkse inleg</label><div class="pills" id="monthly" data-value="0" style="grid-template-columns:repeat(6,1fr)">
 <button type="button" class="pill active" data-val="0">€0</button>
 <button type="button" class="pill" data-val="100">€100</button>
 <button type="button" class="pill" data-val="200">€200</button>
@@ -341,11 +316,11 @@
 <button type="button" class="pill" data-val="400">€400</button>
 <button type="button" class="pill" data-val="500">€500</button>
 </div></div>
-<div class="control"><label>Number of years — <span id="yearsLabel">1</span> <span id="yearsUnit">year</span></label>
+<div class="control"><label>Aantal jaren — <span id="yearsLabel">1</span> jaar</label>
 <input type="range" id="years" min="1" max="5" step="1" value="1" class="slider">
 <div class="sliderticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 </div>
-<div class="control"><label>Expected return</label><div class="pills" id="rate" data-value="5" style="grid-template-columns:repeat(6,1fr)">
+<div class="control"><label>Verwacht rendement</label><div class="pills" id="rate" data-value="5" style="grid-template-columns:repeat(6,1fr)">
 <button type="button" class="pill active" data-val="5">5%</button>
 <button type="button" class="pill" data-val="6">6%</button>
 <button type="button" class="pill" data-val="7">7%</button>
@@ -355,24 +330,39 @@
 </div></div>
 </div>
 <div class="result">
-<div class="muted">Expected value</div><div id="future" class="big">€ 7.831</div>
-<div class="row"><span>After</span><b id="yearsText">1 year</b></div>
-<div class="row"><span>Total extra contributions</span><b id="extra">€ 0</b></div>
-<div class="row"><span>Estimated profit</span><b id="profit" class="profit-amount">€ 0</b></div>
+<div class="muted">Verwachte waarde</div><div id="future" class="big">€ 13.605</div>
+<div class="row"><span>Na</span><b id="yearsText">1 jaar</b></div>
+<div class="row"><span>Totale extra inleg</span><b id="extra">€ 0</b></div>
+<div class="row"><span>Geschatte winst</span><b id="profit">€ 0</b></div>
 </div>
 </div>
 
 </div>
+
+<dialog id="schenkingen-dialog" class="modal">
+  <div class="modal-header">
+    <h3>🎁 Schenkingen van ouders</h3>
+    <button class="icon-btn" id="btn-close-schenkingen" type="button" aria-label="Sluiten">✕</button>
+  </div>
+  <div class="gift-total" style="margin-top:14px;">
+    <span class="lbl">Totaal ontvangen</span>
+    <span class="val" id="gift-total-amount">—</span>
+  </div>
+  <table class="gift-table">
+    <thead><tr><th>Jaar</th><th>Datum</th><th>Bedrag</th></tr></thead>
+    <tbody id="gift-table-body"></tbody>
+  </table>
+</dialog>
+
 <script>
 (function(){
-var start=7830.68;
+var start=13604.57;
 function euro(n){return "€ "+Math.round(n).toLocaleString("nl-NL");}
 function calc(monthly,rate,years){
 var r=rate/100/12,n=years*12;
 if(r===0)return start+monthly*n;
 return start*Math.pow(1+r,n)+monthly*(Math.pow(1+r,n)-1)/r;
 }
-function yearWord(n){return n===1?"year":"years";}
 function update(){
 var rate=Number(document.getElementById("rate").getAttribute("data-value"));
 var years=Number(document.getElementById("years").value);
@@ -381,9 +371,8 @@ var finalValue=calc(monthly,rate,years);
 var extra=monthly*12*years;
 var profit=finalValue-start-extra;
 document.getElementById("future").textContent=euro(finalValue);
-document.getElementById("yearsText").textContent=years+" "+yearWord(years);
+document.getElementById("yearsText").textContent=years+" jaar";
 document.getElementById("yearsLabel").textContent=years;
-document.getElementById("yearsUnit").textContent=yearWord(years);
 document.getElementById("extra").textContent=euro(extra);
 document.getElementById("profit").textContent=euro(profit);
 }
@@ -420,8 +409,8 @@ document.getElementById('btn-theme').addEventListener('click', () => {
   recomputeTotals(); // repaint the donut with the new theme's category colors
 });
 
-// ---- Live prices ----
-var cashValue=1000;
+// ---- Live koersen ----
+var cashValue=1880.94;
 function fmtEuro(n){return "€ "+n.toLocaleString("nl-NL",{minimumFractionDigits:2,maximumFractionDigits:2});}
 
 // Reads the current theme's category colors from CSS custom properties, so the donut and
@@ -441,7 +430,7 @@ var proxied="https://api.allorigins.win/raw?url="+encodeURIComponent(target);
 var data=await fetchJson(proxied);
 var meta=data.chart.result[0].meta;
 var price=meta.regularMarketPrice;
-if(typeof price!=="number")throw new Error("no price");
+if(typeof price!=="number")throw new Error("geen koers");
 var prevClose=meta.chartPreviousClose||meta.previousClose;
 var changePct=(typeof prevClose==="number"&&prevClose)?(price/prevClose-1)*100:null;
 return {price:price,changePct:changePct};
@@ -449,7 +438,7 @@ return {price:price,changePct:changePct};
 
 async function refreshLive(){
 var statusEl=document.getElementById("liveStatus");
-statusEl.textContent="Loading live prices…";
+statusEl.textContent="Live koersen laden…";
 var failed=[];
 window.dayChanges={};
 
@@ -457,12 +446,12 @@ var usdToEur=null;
 try{
 var fx=await fetchJson("https://api.frankfurter.app/latest?from=USD&to=EUR");
 usdToEur=fx.rates.EUR;
-}catch(e){failed.push("USD/EUR rate");}
+}catch(e){failed.push("USD/EUR-koers");}
 
 try{
 var cg=await fetchJson("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=eur&include_24hr_change=true");
-setItemValue("v-eth",0.38487*cg.ethereum.eur);
-setItemValue("v-btc",0.008319*cg.bitcoin.eur);
+setItemValue("v-eth",0.42803*cg.ethereum.eur);
+setItemValue("v-btc",0.01036*cg.bitcoin.eur);
 setChangeBadge("chg-eth",cg.ethereum.eur_24h_change);
 setChangeBadge("chg-btc",cg.bitcoin.eur_24h_change);
 window.dayChanges.eth=cg.ethereum.eur_24h_change;
@@ -470,10 +459,10 @@ window.dayChanges.btc=cg.bitcoin.eur_24h_change;
 }catch(e){failed.push("crypto");}
 
 var etfItems=[
-{id:"v-vwrl",chgId:"chg-vwrl",key:"vwrl",ticker:"VWRL.AS",shares:33.602582,ccy:"EUR"},
-{id:"v-vwce",chgId:"chg-vwce",key:"vwce",ticker:"VWCE.DE",shares:3.629927,ccy:"EUR"},
-{id:"v-vusa",chgId:"chg-vusa",key:"vusa",ticker:"VUSA.AS",shares:20.041111,ccy:"EUR"},
-{id:"v-vuaa",chgId:"chg-vuaa",key:"vuaa",ticker:"VUAA.DE",shares:4.392755,ccy:"EUR"}
+{id:"v-vwrl",chgId:"chg-vwrl",key:"vwrl",ticker:"VWRL.AS",shares:13.629927,ccy:"EUR"},
+{id:"v-vhyl",chgId:"chg-vhyl",key:"vhyl",ticker:"VHYL.AS",shares:24.602582,ccy:"EUR"},
+{id:"v-vusa",chgId:"chg-vusa",key:"vusa",ticker:"VUSA.AS",shares:18.041111,ccy:"EUR"},
+{id:"v-vuaa",chgId:"chg-vuaa",key:"vuaa",ticker:"VUAA.DE",shares:16.392755,ccy:"EUR"}
 ];
 for(var i=0;i<etfItems.length;i++){
 var it=etfItems[i];
@@ -488,7 +477,7 @@ window.dayChanges[it.key]=r.changePct;
 try{
 var nvda=await fetchYahoo("NVDA");
 var nvdaEur=usdToEur?nvda.price*usdToEur:nvda.price;
-setItemValue("v-nvda",1.125466*nvdaEur);
+setItemValue("v-nvda",5.746463*nvdaEur);
 setChangeBadge("chg-nvda",nvda.changePct);
 window.dayChanges.nvda=nvda.changePct;
 }catch(e){failed.push("NVDA");}
@@ -496,9 +485,9 @@ window.dayChanges.nvda=nvda.changePct;
 recomputeTotals();
 
 if(failed.length===0){
-statusEl.textContent="Live — updated "+new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+statusEl.textContent="Live — bijgewerkt "+new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
 }else{
-statusEl.textContent="Partially updated live (rest shows last known value) — "+new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+statusEl.textContent="Deels live bijgewerkt (rest toont laatst bekende waarde) — "+new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
 }
 }
 
@@ -514,7 +503,7 @@ function updateHeroChange(){
 var dc=window.dayChanges||{};
 var weights=[
 {key:"vwrl",amount:parseEuro(document.getElementById("v-vwrl").textContent)},
-{key:"vwce",amount:parseEuro(document.getElementById("v-vwce").textContent)},
+{key:"vhyl",amount:parseEuro(document.getElementById("v-vhyl").textContent)},
 {key:"vusa",amount:parseEuro(document.getElementById("v-vusa").textContent)},
 {key:"vuaa",amount:parseEuro(document.getElementById("v-vuaa").textContent)},
 {key:"nvda",amount:parseEuro(document.getElementById("v-nvda").textContent)},
@@ -533,20 +522,10 @@ var heroChgEl=document.getElementById("heroChg");
 if(sumAmt===0){heroChgEl.style.display="none";return;}
 var avgPct=sumWeighted/sumAmt;
 var arrow=avgPct>0?"▲":(avgPct<0?"▼":"–");
-heroChgEl.textContent=arrow+" "+Math.abs(avgPct).toLocaleString("nl-NL",{minimumFractionDigits:1,maximumFractionDigits:1})+"% today";
+heroChgEl.textContent=arrow+" "+Math.abs(avgPct).toLocaleString("nl-NL",{minimumFractionDigits:1,maximumFractionDigits:1})+"% vandaag";
 heroChgEl.className="heroChg "+(avgPct>0?"up":(avgPct<0?"down":""));
 heroChgEl.style.display="inline-block";
 }
-
-function updateGoal(grandTotal){
-var goal=Number(document.getElementById("goalInput").value)||0;
-var pct=goal>0?Math.min(100,grandTotal/goal*100):0;
-document.getElementById("goalFill").style.width=pct+"%";
-document.getElementById("goalPctText").textContent=pct.toLocaleString("nl-NL",{minimumFractionDigits:0,maximumFractionDigits:0})+"%";
-}
-document.getElementById("goalInput").addEventListener("input",function(){
-updateGoal(window.portfolioTotals?window.portfolioTotals.grand:start);
-});
 
 function parseEuro(text){
 return Number(text.replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",", "."));
@@ -556,7 +535,7 @@ var el=document.getElementById(id);
 if(el)el.textContent=fmtEuro(val);
 }
 function recomputeTotals(){
-var etfIds=["v-vwrl","v-vwce","v-vusa","v-vuaa"];
+var etfIds=["v-vwrl","v-vhyl","v-vusa","v-vuaa"];
 var etfTotal=0;
 etfIds.forEach(function(id){etfTotal+=parseEuro(document.getElementById(id).textContent);});
 var stockTotal=parseEuro(document.getElementById("v-nvda").textContent);
@@ -571,31 +550,27 @@ document.getElementById("totCash").textContent=fmtEuro(cashTotal);
 var grandTotal=etfTotal+stockTotal+cryptoTotal+cashTotal;
 document.getElementById("heroTotalAmount").textContent=fmtEuro(grandTotal);
 updateHeroChange();
-updateGoal(grandTotal);
 
-var distTotal=parseEuro(document.getElementById("v-vwrl").textContent)+parseEuro(document.getElementById("v-vusa").textContent);
-var accTotal=parseEuro(document.getElementById("v-vwce").textContent)+parseEuro(document.getElementById("v-vuaa").textContent);
-var pDist=grandTotal?distTotal/grandTotal*100:0;
-var pAcc=grandTotal?accTotal/grandTotal*100:0;
+// ETF total already combines both distributing (VWRL, VHYL, VUSA) and accumulating (VUAA)
+// share classes — the donut shows them as a single "ETF's" segment.
+var pEtf=grandTotal?etfTotal/grandTotal*100:0;
 var pStock=grandTotal?stockTotal/grandTotal*100:0;
 var pCrypto=grandTotal?cryptoTotal/grandTotal*100:0;
 var pCash=grandTotal?cashTotal/grandTotal*100:0;
 
 function pf(n){return n.toLocaleString("nl-NL",{minimumFractionDigits:1,maximumFractionDigits:1})+"%";}
-document.getElementById("pctDist").textContent=pf(pDist);
-document.getElementById("pctAcc").textContent=pf(pAcc);
+document.getElementById("pctEtf").textContent=pf(pEtf);
 document.getElementById("pctStock").textContent=pf(pStock);
 document.getElementById("pctCrypto").textContent=pf(pCrypto);
 document.getElementById("pctCash").textContent=pf(pCash);
-document.getElementById("pctDist").setAttribute("data-amount",distTotal);
-document.getElementById("pctAcc").setAttribute("data-amount",accTotal);
+document.getElementById("pctEtf").setAttribute("data-amount",etfTotal);
 document.getElementById("pctStock").setAttribute("data-amount",stockTotal);
 document.getElementById("pctCrypto").setAttribute("data-amount",cryptoTotal);
 document.getElementById("pctCash").setAttribute("data-amount",cashTotal);
 
-var cDist=categoryColor('--port-dist'), cAcc=categoryColor('--port-acc'), cStock=categoryColor('--port-stock'), cCrypto=categoryColor('--port-crypto'), cCash=categoryColor('--port-cash');
-var c1=pDist,c2=c1+pAcc,c3=c2+pStock,c4=c3+pCrypto;
-document.getElementById("donut").style.background="conic-gradient("+cDist+" 0 "+c1+"%,"+cAcc+" "+c1+"% "+c2+"%,"+cStock+" "+c2+"% "+c3+"%,"+cCrypto+" "+c3+"% "+c4+"%,"+cCash+" "+c4+"% 100%)";
+var cEtf=categoryColor('--port-dist'), cStock=categoryColor('--port-stock'), cCrypto=categoryColor('--port-crypto'), cCash=categoryColor('--port-cash');
+var c1=pEtf,c2=c1+pStock,c3=c2+pCrypto;
+document.getElementById("donut").style.background="conic-gradient("+cEtf+" 0 "+c1+"%,"+cStock+" "+c1+"% "+c2+"%,"+cCrypto+" "+c2+"% "+c3+"%,"+cCash+" "+c3+"% 100%)";
 
 window.portfolioTotals={etf:etfTotal,stock:stockTotal,crypto:cryptoTotal,cash:cashTotal,grand:grandTotal};
 start=grandTotal;
@@ -603,16 +578,15 @@ update();
 }
 refreshLive();
 
-// ---- Donut hover interaction (both directions) ----
+// ---- Donut hover interactie (beide richtingen) ----
 var donutEl=document.getElementById("donut");
 var highlightEl=document.getElementById("donutHighlight");
 var tipEl=document.getElementById("donutTip");
 var segMeta=[
-{pctId:"pctDist",label:"ETF — Distributing"},
-{pctId:"pctAcc",label:"ETF — Accumulating"},
-{pctId:"pctStock",label:"Stocks"},
+{pctId:"pctEtf",label:"ETF's"},
+{pctId:"pctStock",label:"Aandelen"},
 {pctId:"pctCrypto",label:"Crypto"},
-{pctId:"pctCash",label:"Savings"}
+{pctId:"pctCash",label:"Spaargeld"}
 ];
 function getSegments(){
 var cum=0;
@@ -666,60 +640,32 @@ applyHighlight(segs[idx],e.clientX,e.clientY);
 });
 rowEl.addEventListener("mouseleave",clearHover);
 });
+
+// ---- Schenkingen van ouders — jaarlijkse belastingvrije schenking, vanaf 2027 elk jaar in januari ----
+var SCHENKINGEN=[
+{jaar:2026,datum:"2026-09-03",bedrag:6497.00}
+];
+function renderSchenkingen(){
+var tbody=document.getElementById("gift-table-body");
+tbody.innerHTML=SCHENKINGEN.slice().reverse().map(function(g){
+var d=new Date(g.datum+"T00:00:00");
+var datumTekst=d.toLocaleDateString("nl-NL",{day:"numeric",month:"long",year:"numeric"});
+return "<tr><td>"+g.jaar+"</td><td>"+datumTekst+"</td><td class=\"amt\">"+fmtEuro(g.bedrag)+"</td></tr>";
+}).join("");
+var total=SCHENKINGEN.reduce(function(s,g){return s+g.bedrag;},0);
+document.getElementById("gift-total-amount").textContent=fmtEuro(total);
+}
+var schenkingenDialog=document.getElementById("schenkingen-dialog");
+document.getElementById("btn-schenkingen").addEventListener("click",function(){
+renderSchenkingen();
+schenkingenDialog.showModal();
+});
+document.getElementById("btn-close-schenkingen").addEventListener("click",function(){schenkingenDialog.close();});
+schenkingenDialog.addEventListener("click",function(e){
+if(e.target===schenkingenDialog)schenkingenDialog.close();
+});
 })();
 
 </script>
-
-<script>
-(function() {
-  var SUPABASE_URL = "https://gtdzuuvlluyofkvbpusx.supabase.co";
-  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0ZHp1dXZsbHV5b2ZrdmJwdXN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTUwMjAsImV4cCI6MjA2NzYzMTAyMH0.DcHwCLuyyVJvs0Ugpr7bE0Az5_tkES4kE_P0SUFOyus";
-  var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  var gate = document.getElementById('auth-gate');
-  var form = document.getElementById('auth-form');
-  var emailInput = document.getElementById('auth-email');
-  var passInput = document.getElementById('auth-password');
-  var errorEl = document.getElementById('auth-error');
-  var logoutBtn = document.getElementById('btn-logout');
-
-  function showApp() {
-    gate.classList.add('hidden');
-    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
-  }
-  function showGate() {
-    gate.classList.remove('hidden');
-    if (logoutBtn) logoutBtn.style.display = 'none';
-  }
-
-  sb.auth.getSession().then(function(res) {
-    if (res.data.session) showApp(); else showGate();
-  });
-
-  sb.auth.onAuthStateChange(function(event, session) {
-    if (session) showApp(); else showGate();
-  });
-
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    errorEl.textContent = '';
-    var email = emailInput.value.trim();
-    var password = passInput.value;
-    var btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.textContent = 'Logging in…';
-    sb.auth.signInWithPassword({ email: email, password: password }).then(function(res) {
-      btn.disabled = false; btn.textContent = 'Log in';
-      if (res.error) {
-        errorEl.textContent = 'Wrong email or password.';
-      }
-    });
-  });
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', function() { sb.auth.signOut(); });
-  }
-})();
-</script>
-
 </body>
 </html>
