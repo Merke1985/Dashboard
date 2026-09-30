@@ -478,10 +478,6 @@
       <input type="file" id="file-import" accept="application/json" value="">
     </div>
   </div>
-  <div class="tab-bar">
-    <button class="tab-btn active" id="tab-btn-a" type="button" data-tab="a">Current Budget</button>
-    <button class="tab-btn" id="tab-btn-b" type="button" data-tab="b">Potential new house calculation</button>
-  </div>
 </header>
 
 <main class="wrap">
@@ -904,419 +900,6 @@
 
 </div>
 
-<div id="screen-b" class="screen">
-
-  <!-- SCENARIO INTRO -->
-  <section class="card scenario-intro">
-    <h2>Potential new house calculation</h2>
-    <p class="desc">A separate what-if scenario, fully independent from the current budget: a €1.700 mortgage (your current €700 plus roughly what a €200k top-up adds), no ownership fee, and Nicolas contributing an even 50% of the joint costs instead of a fixed monthly transfer. Everything below is editable on its own — nothing here affects the Current Budget tab.</p>
-  </section>
-
-  <!-- INCOME -->
-  <section class="card">
-    <h2>Income</h2>
-    <p class="desc">Monthly net salary for each of you. Edit the numbers — everything below recalculates instantly.</p>
-    <div class="equation-row">
-      <div class="tile input">
-        <div class="label"><span class="swatch maarten"></span>Maarten's salary</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten-b" value="3200"></div>
-      </div>
-      <div class="op">+</div>
-      <div class="tile input">
-        <div class="label"><span class="swatch nicolas"></span>Nicolas' salary</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas-b" value="3200"></div>
-      </div>
-      <div class="op">=</div>
-      <div class="tile total">
-        <div class="label">Combined household income</div>
-        <div class="value" id="out-salary-total-b">€&nbsp;6.400,00</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- JOINT COSTS -->
-  <section class="card">
-    <h2>Joint costs</h2>
-    <p class="desc">Same categories as the current budget, but with a €1.700 mortgage and no ownership fee. Edit any amount and the totals below update instantly.</p>
-
-    <div class="row-head">
-      <div>Item</div><div style="text-align:right">Amount €</div>
-    </div>
-    <div id="household-rows-b"><div class="cat-group"><div class="cat-title">House</div><div class="row">
-          <div class="name">Mortgage</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.0" value="1700"></div>
-        </div><div class="row">
-          <div class="name">Gas</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.1" value="117.24"></div>
-        </div><div class="row">
-          <div class="name">Energy</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.2" value="150"></div>
-        </div><div class="row">
-          <div class="name">County and city taxes</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.3" value="71.59"></div>
-        </div><div class="row">
-          <div class="name">House insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="0.4" value="11.97"></div>
-        </div><div class="subtotal-row">
-        <div>Subtotal — House</div>
-        <div class="computed" id="hh-cat-0-b">€&nbsp;2.050,80</div>
-      </div></div><div class="cat-group"><div class="cat-title">Transport</div><div class="row">
-          <div class="name">Car fuel</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.0" value="100"></div>
-        </div><div class="row">
-          <div class="name">Car insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.1" value="75.25"></div>
-        </div><div class="row">
-          <div class="name">Road taxes</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.2" value="42"></div>
-        </div><div class="row">
-          <div class="name">Maintenance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.3" value="50"></div>
-        </div><div class="row">
-          <div class="name">Road service contract</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="1.4" value="13.62"></div>
-        </div><div class="subtotal-row">
-        <div>Subtotal — Transport</div>
-        <div class="computed" id="hh-cat-1-b">€&nbsp;280,87</div>
-      </div></div><div class="cat-group"><div class="cat-title">Subscriptions (joint)</div><div class="row">
-          <div class="name">Gym</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.0" value="167.5"></div>
-        </div><div class="row">
-          <div class="name">Ziggo</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.1" value="98.11"></div>
-        </div><div class="row">
-          <div class="name">Netflix</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.2" value="20.99"></div>
-        </div><div class="row">
-          <div class="name">Disney+</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="2.3" value="0"></div>
-        </div><div class="subtotal-row">
-        <div>Subtotal — Subscriptions (joint)</div>
-        <div class="computed" id="hh-cat-2-b">€&nbsp;286,60</div>
-      </div></div><div class="cat-group"><div class="cat-title">Pets</div><div class="row">
-          <div class="name">Max — Insurance</div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-hh="3.0" value="43.15"></div>
-        </div><div class="subtotal-row">
-        <div>Subtotal — Pets</div>
-        <div class="computed" id="hh-cat-3-b">€&nbsp;43,15</div>
-      </div></div></div>
-
-    <div class="grand-total">
-      <div>Total joint costs</div>
-      <div class="value" id="out-hh-total-b">€&nbsp;2.661,42</div>
-    </div>
-  </section>
-
-  <!-- WHO PAYS WHAT -->
-  <section class="card">
-    <h2>Who pays what</h2>
-    <p class="desc">In this scenario Nicolas pays an even 50% of the joint costs — no fixed monthly adjustment, just a straight split.</p>
-
-    <div class="tiles" style="margin-bottom:20px;">
-      <div class="tile">
-        <div class="label"><span class="swatch maarten"></span>Maarten pays</div>
-        <div class="value" id="out-pays-maarten-b">€&nbsp;1.330,71</div>
-        <div class="hint" id="out-pct-maarten-b">50.0% of joint costs</div>
-      </div>
-      <div class="tile">
-        <div class="label"><span class="swatch nicolas"></span>Nicolas pays</div>
-        <div class="value" id="out-pays-nicolas-b">€&nbsp;1.330,71</div>
-        <div class="hint" id="out-pct-nicolas-b">50.0% of joint costs</div>
-      </div>
-    </div>
-
-    <div class="donut-row">
-      <div class="donut-figure">
-        <svg viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
-          <g id="whopays-donut-segments-b">
-      <circle id="whopays-donut-seg-maarten-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="50 50" stroke-dashoffset="25" stroke-linecap="butt"></circle>
-
-      <circle id="whopays-donut-seg-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="50 50" stroke-dashoffset="-25" stroke-linecap="butt"></circle>
-    </g>
-        </svg>
-        <div class="donut-center">
-          <div class="val" id="whopays-donut-total-b">€&nbsp;2.661,42</div>
-          <div class="lbl">joint costs</div>
-        </div>
-      </div>
-      <div class="donut-legend" id="whopays-donut-legend-b">
-      <div class="drow">
-        <span class="name"><span class="dswatch" style="background:var(--series-maarten)"></span>Maarten</span>
-        <span class="damt"><span class="v" id="whopays-donut-amt-maarten-b">€&nbsp;1.330,71</span><span class="p" id="whopays-donut-pct-maarten-b">50.0%</span></span>
-      </div>
-      <div class="drow">
-        <span class="name"><span class="dswatch" style="background:var(--series-nicolas)"></span>Nicolas</span>
-        <span class="damt"><span class="v" id="whopays-donut-amt-nicolas-b">€&nbsp;1.330,71</span><span class="p" id="whopays-donut-pct-nicolas-b">50.0%</span></span>
-      </div>
-    </div>
-    </div>
-  </section>
-
-  <!-- PERSONAL COSTS -->
-  <section class="card">
-    <h2>Personal costs <span class="badge">individual</span></h2>
-    <p class="desc">Loans, insurance, subscriptions, groceries and savings — tracked separately per person.</p>
-    <div class="legend">
-      <span class="item"><span class="swatch maarten"></span>Maarten</span>
-      <span class="item"><span class="swatch nicolas"></span>Nicolas</span>
-    </div>
-    <div class="row-head personal">
-      <div>Item</div><div style="text-align:right">Maarten €</div><div style="text-align:right">Nicolas €</div><div style="text-align:right">Total €</div>
-    </div>
-    <div id="personal-rows-b"><div class="cat-group"><div class="cat-title">Fixed costs</div><div class="row personal">
-            <div class="name">Health insurance</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.maarten" value="173.4"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.0.nicolas" value="155.45"></div>
-            <div class="computed" id="pc-0-0-t-b">€&nbsp;328,85</div>
-          </div><div class="row personal">
-            <div class="name">Health costs</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.maarten" value="50"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.1.nicolas" value="50"></div>
-            <div class="computed" id="pc-0-1-t-b">€&nbsp;100,00</div>
-          </div><div class="row personal">
-            <div class="name">Other insurance</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.maarten" value="5.09"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="0.2.nicolas" value="0"></div>
-            <div class="computed" id="pc-0-2-t-b">€&nbsp;5,09</div>
-          </div><div class="subtotal-row personal">
-        <div>Subtotal — Fixed costs</div>
-        <div class="computed maarten" id="pc-cat-0-m-b">€&nbsp;228,49</div>
-        <div class="computed nicolas" id="pc-cat-0-n-b">€&nbsp;205,45</div>
-        <div class="computed" id="pc-cat-0-t-b">€&nbsp;433,94</div>
-      </div></div><div class="cat-group"><div class="cat-title">Subscriptions</div><div class="row personal">
-            <div class="name">Phone contract</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.maarten" value="20"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.0.nicolas" value="20"></div>
-            <div class="computed" id="pc-1-0-t-b">€&nbsp;40,00</div>
-          </div><div class="row personal">
-            <div class="name">Spotify</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.maarten" value="12.99"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.1.nicolas" value="12.99"></div>
-            <div class="computed" id="pc-1-1-t-b">€&nbsp;25,98</div>
-          </div><div class="row personal">
-            <div class="name">World of Warcraft</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.maarten" value="12.99"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="1.2.nicolas" value="12.99"></div>
-            <div class="computed" id="pc-1-2-t-b">€&nbsp;25,98</div>
-          </div><div class="subtotal-row personal">
-        <div>Subtotal — Subscriptions</div>
-        <div class="computed maarten" id="pc-cat-1-m-b">€&nbsp;45,98</div>
-        <div class="computed nicolas" id="pc-cat-1-n-b">€&nbsp;45,98</div>
-        <div class="computed" id="pc-cat-1-t-b">€&nbsp;91,96</div>
-      </div></div><div class="cat-group"><div class="cat-title">Other</div><div class="row personal">
-            <div class="name">Groceries</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.maarten" value="550"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.0.nicolas" value="550"></div>
-            <div class="computed" id="pc-2-0-t-b">€&nbsp;1.100,00</div>
-          </div><div class="row personal">
-            <div class="name">Saving</div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.maarten" value="200"></div>
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="2.1.nicolas" value="200"></div>
-            <div class="computed" id="pc-2-1-t-b">€&nbsp;400,00</div>
-          </div><div class="subtotal-row personal">
-        <div>Subtotal — Other</div>
-        <div class="computed maarten" id="pc-cat-2-m-b">€&nbsp;750,00</div>
-        <div class="computed nicolas" id="pc-cat-2-n-b">€&nbsp;750,00</div>
-        <div class="computed" id="pc-cat-2-t-b">€&nbsp;1.500,00</div>
-      </div></div><div class="cat-group"><div class="cat-title">Loans</div><div class="loan-item"><div class="row personal">
-          <div class="name">
-            Student loan
-            <span class="debt-ring" id="debt-ring-3-0-nicolas-b" style="display:none">
-              <svg viewBox="0 0 36 36" class="debt-ring-svg">
-                <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
-                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-0-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
-              </svg>
-              <span class="debt-ring-pct" id="debt-ring-pct-3-0-nicolas-b">0%</span>
-            </span>
-          </div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.maarten" value="0"></div>
-          <div class="loan-amt-cell">
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.0.nicolas" value="80"></div>
-            <button class="loan-toggle-link nicolas" id="loan-toggle-3-0-nicolas-b" type="button" data-loan-toggle="3.0.nicolas" aria-expanded="false" style="display:">Debt <span class="chevron">▾</span></button>
-            <div class="loan-mini" id="loan-details-3-0-nicolas-b" hidden="">
-      <div class="loan-mini-field">
-        <span class="lbl">Total</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.0.nicolas.total" value="0"></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Paid</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.0.nicolas.paid" value="0"></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Rate</span>
-        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.0.nicolas.rate" value="0"></div>
-      </div>
-      <div class="loan-progress-row" id="loan-progress-row-3-0-nicolas-b" style="display: none;">
-        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-0-nicolas-b" style="width:0%"></div></div>
-        <div class="loan-mini-caption">
-          <span class="remaining" id="loan-remaining-3-0-nicolas-b">—</span>
-          <span id="loan-pct-3-0-nicolas-b">—</span>
-        </div>
-      </div>
-      <div class="loan-mini-empty-hint" id="loan-empty-3-0-nicolas-b">Add total debt to track</div>
-    </div>
-          </div>
-          <div class="computed" id="pc-3-0-t-b">€&nbsp;80,00</div>
-        </div></div><div class="loan-item"><div class="row personal">
-          <div class="name">
-            Credit card
-            <span class="debt-ring" id="debt-ring-3-1-nicolas-b" style="display:none">
-              <svg viewBox="0 0 36 36" class="debt-ring-svg">
-                <circle class="debt-ring-track" cx="18" cy="18" r="15.915" fill="none" stroke-width="4"></circle>
-                <circle class="debt-ring-fill nicolas" id="debt-ring-fill-3-1-nicolas-b" cx="18" cy="18" r="15.915" fill="none" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"></circle>
-              </svg>
-              <span class="debt-ring-pct" id="debt-ring-pct-3-1-nicolas-b">0%</span>
-            </span>
-          </div>
-          <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.maarten" value="0"></div>
-          <div class="loan-amt-cell">
-            <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-pc="3.1.nicolas" value="0"></div>
-            <button class="loan-toggle-link nicolas" id="loan-toggle-3-1-nicolas-b" type="button" data-loan-toggle="3.1.nicolas" aria-expanded="false" style="display:none">Debt <span class="chevron">▾</span></button>
-            <div class="loan-mini" id="loan-details-3-1-nicolas-b" hidden="">
-      <div class="loan-mini-field">
-        <span class="lbl">Total</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.1.nicolas.total" value="0"></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Paid</span>
-        <div class="num-field"><span class="unit">€</span><input class="num" type="number" step="0.01" min="0" data-loan="3.1.nicolas.paid" value="0"></div>
-      </div>
-      <div class="loan-mini-field">
-        <span class="lbl">Rate</span>
-        <div class="num-field pct"><span class="unit">%</span><input class="num" type="number" step="0.1" min="0" data-loan="3.1.nicolas.rate" value="0"></div>
-      </div>
-      <div class="loan-progress-row" id="loan-progress-row-3-1-nicolas-b" style="display: none;">
-        <div class="loan-mini-progress-track"><div class="loan-mini-progress-fill nicolas" id="loan-progress-3-1-nicolas-b" style="width:0%"></div></div>
-        <div class="loan-mini-caption">
-          <span class="remaining" id="loan-remaining-3-1-nicolas-b">—</span>
-          <span id="loan-pct-3-1-nicolas-b">—</span>
-        </div>
-      </div>
-      <div class="loan-mini-empty-hint" id="loan-empty-3-1-nicolas-b">Add total debt to track</div>
-    </div>
-          </div>
-          <div class="computed" id="pc-3-1-t-b">€&nbsp;0,00</div>
-        </div></div><div class="subtotal-row personal">
-        <div>Subtotal — Loans</div>
-        <div class="computed maarten" id="pc-cat-3-m-b">€&nbsp;0,00</div>
-        <div class="computed nicolas" id="pc-cat-3-n-b">€&nbsp;80,00</div>
-        <div class="computed" id="pc-cat-3-t-b">€&nbsp;80,00</div>
-      </div></div></div>
-    <div class="subtotal-row personal">
-      <div>Total personal costs</div>
-      <div class="computed maarten" id="out-pc-total-maarten-b">€&nbsp;1.024,47</div>
-      <div class="computed nicolas" id="out-pc-total-nicolas-b">€&nbsp;1.081,43</div>
-      <div class="computed" id="out-pc-total-total-b">€&nbsp;2.105,90</div>
-    </div>
-  </section>
-
-  <!-- SUMMARY -->
-  <section class="card">
-    <h2>Summary</h2>
-    <p class="desc">How each salary splits into joint costs, personal costs, and what's left to spend.</p>
-    <div class="summary-grid">
-      <div class="person-card">
-        <h3><span class="swatch maarten"></span>Maarten</h3>
-        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary-b">€&nbsp;3.200,00</span></div>
-        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-m-household-b">€&nbsp;1.330,71</span></div>
-        <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal-b">€&nbsp;1.024,47</span></div>
-        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left-b">€&nbsp;844,82</span></div>
-      </div>
-      <div class="person-card">
-        <h3><span class="swatch nicolas"></span>Nicolas</h3>
-        <div class="line"><span>Salary</span><span class="v" id="sum-n-salary-b">€&nbsp;3.200,00</span></div>
-        <div class="line"><span>Joint costs (50/50 split)</span><span class="v" id="sum-n-household-b">€&nbsp;1.330,71</span></div>
-        <div class="line"><span>Personal costs</span><span class="v" id="sum-n-personal-b">€&nbsp;1.081,43</span></div>
-        <div class="line final"><span>Left over</span><span class="v good" id="sum-n-left-b">€&nbsp;787,86</span></div>
-      </div>
-    </div>
-
-    <div class="category-legend">
-      <span class="item"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
-      <span class="item"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
-      <span class="item"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
-    </div>
-
-    <div class="donut-pair">
-      <div class="donut-person">
-        <div class="donut-person-title"><span class="swatch maarten"></span>Maarten's salary</div>
-        <div class="donut-row">
-          <div class="donut-figure">
-            <svg viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
-              <g id="split-donut-segments-maarten-b">
-      <circle id="split-donut-seg-maarten-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="41.584687499999994 58.415312500000006" stroke-dashoffset="25" stroke-linecap="butt"></circle>
-
-      <circle id="split-donut-seg-maarten-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="32.0146875 67.98531249999999" stroke-dashoffset="-16.584687499999994" stroke-linecap="butt"></circle>
-
-      <circle id="split-donut-seg-maarten-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="26.400625000000005 73.599375" stroke-dashoffset="-48.599374999999995" stroke-linecap="butt"></circle>
-    </g>
-            </svg>
-            <div class="donut-center">
-              <div class="val" id="split-donut-total-maarten-b">€&nbsp;3.200,00</div>
-              <div class="lbl">salary</div>
-            </div>
-          </div>
-          <div class="donut-legend" id="split-donut-legend-maarten-b">
-      <div class="drow">
-        <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-joint-b">€&nbsp;1.330,71</span><span class="p" id="split-donut-pct-maarten-joint-b">41.6%</span></span>
-      </div>
-
-      <div class="drow">
-        <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-personal-b">€&nbsp;1.024,47</span><span class="p" id="split-donut-pct-maarten-personal-b">32.0%</span></span>
-      </div>
-
-      <div class="drow">
-        <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-left-b">€&nbsp;844,82</span><span class="p" id="split-donut-pct-maarten-left-b">26.4%</span></span>
-      </div>
-    </div>
-        </div>
-      </div>
-      <div class="donut-person">
-        <div class="donut-person-title"><span class="swatch nicolas"></span>Nicolas' salary</div>
-        <div class="donut-row">
-          <div class="donut-figure">
-            <svg viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
-              <g id="split-donut-segments-nicolas-b">
-      <circle id="split-donut-seg-nicolas-joint-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="41.584687499999994 58.415312500000006" stroke-dashoffset="25" stroke-linecap="butt"></circle>
-
-      <circle id="split-donut-seg-nicolas-personal-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="33.7946875 66.20531249999999" stroke-dashoffset="-16.584687499999994" stroke-linecap="butt"></circle>
-
-      <circle id="split-donut-seg-nicolas-left-b" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="24.620625000000004 75.379375" stroke-dashoffset="-50.379374999999996" stroke-linecap="butt"></circle>
-    </g>
-            </svg>
-            <div class="donut-center">
-              <div class="val" id="split-donut-total-nicolas-b">€&nbsp;3.200,00</div>
-              <div class="lbl">salary</div>
-            </div>
-          </div>
-          <div class="donut-legend" id="split-donut-legend-nicolas-b">
-      <div class="drow">
-        <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-nicolas-joint-b">€&nbsp;1.330,71</span><span class="p" id="split-donut-pct-nicolas-joint-b">41.6%</span></span>
-      </div>
-
-      <div class="drow">
-        <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-nicolas-personal-b">€&nbsp;1.081,43</span><span class="p" id="split-donut-pct-nicolas-personal-b">33.8%</span></span>
-      </div>
-
-      <div class="drow">
-        <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
-        <span class="damt"><span class="v" id="split-donut-amt-nicolas-left-b">€&nbsp;787,86</span><span class="p" id="split-donut-pct-nicolas-left-b">24.6%</span></span>
-      </div>
-    </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-</div>
 
 </main>
 
@@ -1385,45 +968,7 @@
     };
   }
 
-  // ---------- Default data — Potential new house scenario ----------
-  // Same joint-cost categories, but the mortgage is €1.700/month (current €700 mortgage
-  // plus roughly what a €200k top-up at ~4% adds on a ~25-year term) and there is no
-  // ownership fee. Personal costs start from the same numbers as the current budget but
-  // are a fully independent, separately-editable copy.
-  function defaultStateB() {
-    return {
-      salary: { maarten: 3200, nicolas: 3200 },
-      household: [
-        { name: "House", items: [
-          { label: "Mortgage", amount: 1700 },
-          { label: "Gas", amount: 117.24 },
-          { label: "Energy", amount: 150 },
-          { label: "County and city taxes", amount: 71.59 },
-          { label: "House insurance", amount: 11.97 },
-        ]},
-        { name: "Transport", items: [
-          { label: "Car fuel", amount: 100 },
-          { label: "Car insurance", amount: 75.25 },
-          { label: "Road taxes", amount: 42 },
-          { label: "Maintenance", amount: 50 },
-          { label: "Road service contract", amount: 13.62 },
-        ]},
-        { name: "Subscriptions (joint)", items: [
-          { label: "Gym", amount: 167.5 },
-          { label: "Ziggo", amount: 98.11 },
-          { label: "Netflix", amount: 20.99 },
-          { label: "Disney+", amount: 0 },
-        ]},
-        { name: "Pets", items: [
-          { label: "Max — Insurance", amount: 43.15 },
-        ]},
-      ],
-      personal: defaultPersonal(),
-    };
-  }
-
-  // Personal costs are the same starting point for both scenarios (each scenario then
-  // owns its own independent copy). Debt tracking is Nicolas-only — Maarten carries no debt.
+  // Debt tracking is Nicolas-only — Maarten carries no debt.
   function defaultPersonal() {
     return [
       { name: "Fixed costs", items: [
@@ -1451,21 +996,18 @@
     ];
   }
 
-  // ---------- Scopes ----------
-  // 'a' is the current budget: Nicolas pays a fixed monthly adjustment, Maarten fronts the rest.
-  // 'b' is the potential-new-house what-if: Nicolas pays a flat 50% of joint costs, and has
-  // no logged-contributions modal. Each scope owns its own state and DOM (element ids
-  // suffixed with the scope's `sfx`) and is fully independent of the other.
+  // ---------- Scope ----------
+  // Nicolas pays a fixed monthly adjustment, Maarten fronts the rest. State and DOM element
+  // ids carry no suffix (the site used to have a second "potential new house" scope here,
+  // now covered by new_house.html instead).
   const scopeA = { key: 'a', sfx: '', mode: 'fixed', state: defaultStateA() };
-  const scopeB = { key: 'b', sfx: '-b', mode: 'split50', state: defaultStateB() };
-  const scopes = [scopeA, scopeB];
+  const scopes = [scopeA];
   let activeScope = scopeA;
 
   // Exposed (read-only in practice) so net-worth.html can pull Nicolas' current debt
   // balances via a hidden iframe, without needing a shared backend. Nothing reads this
   // from outside except that opt-in "sync" button on the net worth page.
   window.scopeA = scopeA;
-  window.scopeB = scopeB;
 
   function el(scope, base) { return document.getElementById(base + scope.sfx); }
 
@@ -2003,20 +1545,7 @@
     recalcAndRender(scope);
   }
 
-  // ---------- Screen tabs ----------
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const key = btn.getAttribute('data-tab');
-      const target = scopes.find(sc => sc.key === key);
-      if (!target) return;
-      activeScope = target;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
-      document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
-      document.getElementById(`screen-${key}`).classList.add('active');
-    });
-  });
-
-  // ---------- Controls: theme, export, import, reset (act on whichever screen is active) ----------
+  // ---------- Controls: theme, export, import, reset ----------
   document.getElementById('btn-theme').addEventListener('click', () => {
     const root = document.documentElement;
     const current = root.getAttribute('data-theme');
@@ -2131,7 +1660,6 @@
   });
 
   fullRender(scopeA);
-  fullRender(scopeB);
 })();
 </script>
 
