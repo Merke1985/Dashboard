@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
+<html lang="en" data-theme="light"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Joint Costs Dashboard 2026 — Maarten &amp; Nicolas</title>
@@ -491,17 +490,17 @@
     <div class="equation-row">
       <div class="tile input">
         <div class="label"><span class="swatch maarten"></span>Maarten's salary</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-maarten" value="3200"></div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num money" type="text" inputmode="decimal" autocomplete="off" id="in-salary-maarten" value="3.404,40"></div>
       </div>
       <div class="op">+</div>
       <div class="tile input">
         <div class="label"><span class="swatch nicolas"></span>Nicolas' salary</div>
-        <div class="value"><span class="euro-prefix">€</span><input class="num" type="number" step="0.01" min="0" id="in-salary-nicolas" value="3200"></div>
+        <div class="value"><span class="euro-prefix">€</span><input class="num money" type="text" inputmode="decimal" autocomplete="off" id="in-salary-nicolas" value="3.200,00"></div>
       </div>
       <div class="op">=</div>
       <div class="tile total">
         <div class="label">Combined household income</div>
-        <div class="value" id="out-salary-total">€&nbsp;6.400,00</div>
+        <div class="value" id="out-salary-total">€&nbsp;6.604,40</div>
       </div>
     </div>
   </section>
@@ -613,7 +612,7 @@
           <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
           <g id="whopays-donut-segments">
       <circle id="whopays-donut-seg-maarten" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-maarten)" stroke-width="4" stroke-dasharray="63.95717002789161 36.04282997210839" stroke-dashoffset="25" stroke-linecap="butt"></circle>
-
+    
       <circle id="whopays-donut-seg-nicolas" cx="18" cy="18" r="15.915" fill="none" stroke="var(--series-nicolas)" stroke-width="4" stroke-dasharray="36.0428299721084 63.9571700278916" stroke-dashoffset="-38.95717002789161" stroke-linecap="butt"></circle>
     </g>
         </svg>
@@ -800,10 +799,10 @@
     <div class="summary-grid">
       <div class="person-card">
         <h3><span class="swatch maarten"></span>Maarten</h3>
-        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary">€&nbsp;3.200,00</span></div>
+        <div class="line"><span>Salary</span><span class="v" id="sum-m-salary">€&nbsp;3.404,40</span></div>
         <div class="line"><span>Joint costs (after adjustment)</span><span class="v" id="sum-m-household">€&nbsp;1.153,41</span></div>
         <div class="line"><span>Personal costs</span><span class="v" id="sum-m-personal">€&nbsp;1.024,47</span></div>
-        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left">€&nbsp;1.022,12</span></div>
+        <div class="line final"><span>Left over</span><span class="v good" id="sum-m-left">€&nbsp;1.226,52</span></div>
       </div>
       <div class="person-card">
         <h3><span class="swatch nicolas"></span>Nicolas</h3>
@@ -828,32 +827,32 @@
             <svg viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
               <g id="split-donut-segments-maarten">
-      <circle id="split-donut-seg-maarten-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="36.044062499999995 63.955937500000005" stroke-dashoffset="25" stroke-linecap="butt"></circle>
-
-      <circle id="split-donut-seg-maarten-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="32.0146875 67.98531249999999" stroke-dashoffset="-11.044062499999995" stroke-linecap="butt"></circle>
-
-      <circle id="split-donut-seg-maarten-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="31.941250000000004 68.05875" stroke-dashoffset="-43.05875" stroke-linecap="butt"></circle>
+      <circle id="split-donut-seg-maarten-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="33.87997885089883 66.12002114910118" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+    
+      <circle id="split-donut-seg-maarten-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="30.092527317588996 69.907472682411" stroke-dashoffset="-8.87997885089883" stroke-linecap="butt"></circle>
+    
+      <circle id="split-donut-seg-maarten-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="36.02749383151216 63.97250616848784" stroke-dashoffset="-38.972506168487826" stroke-linecap="butt"></circle>
     </g>
             </svg>
             <div class="donut-center">
-              <div class="val" id="split-donut-total-maarten">€&nbsp;3.200,00</div>
+              <div class="val" id="split-donut-total-maarten">€&nbsp;3.404,40</div>
               <div class="lbl">salary</div>
             </div>
           </div>
           <div class="donut-legend" id="split-donut-legend-maarten">
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-joint">€&nbsp;1.153,41</span><span class="p" id="split-donut-pct-maarten-joint">36.0%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-joint">€&nbsp;1.153,41</span><span class="p" id="split-donut-pct-maarten-joint">33.9%</span></span>
       </div>
-
+    
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-personal">€&nbsp;1.024,47</span><span class="p" id="split-donut-pct-maarten-personal">32.0%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-personal">€&nbsp;1.024,47</span><span class="p" id="split-donut-pct-maarten-personal">30.1%</span></span>
       </div>
-
+    
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
-        <span class="damt"><span class="v" id="split-donut-amt-maarten-left">€&nbsp;1.022,12</span><span class="p" id="split-donut-pct-maarten-left">31.9%</span></span>
+        <span class="damt"><span class="v" id="split-donut-amt-maarten-left">€&nbsp;1.226,52</span><span class="p" id="split-donut-pct-maarten-left">36.0%</span></span>
       </div>
     </div>
         </div>
@@ -866,9 +865,9 @@
               <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--gridline)" stroke-width="4"></circle>
               <g id="split-donut-segments-nicolas">
       <circle id="split-donut-seg-nicolas-joint" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-joint)" stroke-width="4" stroke-dasharray="20.3125 79.6875" stroke-dashoffset="25" stroke-linecap="butt"></circle>
-
+    
       <circle id="split-donut-seg-nicolas-personal" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-personal)" stroke-width="4" stroke-dasharray="33.7946875 66.20531249999999" stroke-dashoffset="4.6875" stroke-linecap="butt"></circle>
-
+    
       <circle id="split-donut-seg-nicolas-left" cx="18" cy="18" r="15.915" fill="none" stroke="var(--seg-left)" stroke-width="4" stroke-dasharray="45.8928125 54.1071875" stroke-dashoffset="-29.107187500000002" stroke-linecap="butt"></circle>
     </g>
             </svg>
@@ -882,12 +881,12 @@
         <span class="name"><span class="dswatch" style="background:var(--seg-joint)"></span>Joint costs</span>
         <span class="damt"><span class="v" id="split-donut-amt-nicolas-joint">€&nbsp;650,00</span><span class="p" id="split-donut-pct-nicolas-joint">20.3%</span></span>
       </div>
-
+    
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-personal)"></span>Personal costs</span>
         <span class="damt"><span class="v" id="split-donut-amt-nicolas-personal">€&nbsp;1.081,43</span><span class="p" id="split-donut-pct-nicolas-personal">33.8%</span></span>
       </div>
-
+    
       <div class="drow">
         <span class="name"><span class="dswatch" style="background:var(--seg-left)"></span>Left over</span>
         <span class="damt"><span class="v" id="split-donut-amt-nicolas-left">€&nbsp;1.468,57</span><span class="p" id="split-donut-pct-nicolas-left">45.9%</span></span>
@@ -934,9 +933,11 @@
   "use strict";
 
   // ---------- Default data — Current Budget (from Budgetplan 2026.xlsx, Overview sheet) ----------
+  // Maarten's salary: estimated net after the cao mbo raise of 4% per 1 Jul 2026 (was €3.323,10 net on
+  // the Sept 2026 payslip; a further 3% follows per 1 Jan 2027). Replace with the exact payslip amount.
   function defaultStateA() {
     return {
-      salary: { maarten: 3200, nicolas: 3200 },
+      salary: { maarten: 3404.40, nicolas: 3200 },
       adjustment: 650,
       household: [
         { name: "House", items: [
@@ -1056,6 +1057,17 @@
   const EUR = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmt = (n) => EUR.format(Number.isFinite(n) ? n : 0);
   const pctFmt = (n) => (Number.isFinite(n) ? (n * 100).toFixed(1) : "0.0") + "%";
+
+  // Salary fields are text inputs so they can show Dutch formatting ("3.486,00").
+  // Parsing accepts both "3486,5", "3.486,50" and "3486.50".
+  const NUM_NL = new Intl.NumberFormat('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtMoneyInput = (n) => NUM_NL.format(Number.isFinite(n) ? n : 0);
+  function parseMoney(str) {
+    let t = String(str || '').trim().replace(/[€\s]/g, '');
+    if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+    const n = parseFloat(t);
+    return Number.isFinite(n) ? n : 0;
+  }
 
   // ---------- Computation (mirrors the spreadsheet's formulas) ----------
   // mode 'fixed': Nicolas transfers a fixed monthly amount to Maarten, who fronts the rest.
@@ -1310,15 +1322,21 @@
     const s = scope.sfx;
 
     const salM = el(scope, 'in-salary-maarten');
-    if (salM) salM.addEventListener('input', e => {
-      scope.state.salary.maarten = parseFloat(e.target.value) || 0;
-      recalcAndRender(scope);
-    });
+    if (salM) {
+      salM.addEventListener('input', e => {
+        scope.state.salary.maarten = parseMoney(e.target.value);
+        recalcAndRender(scope);
+      });
+      salM.addEventListener('blur', e => { e.target.value = fmtMoneyInput(scope.state.salary.maarten); });
+    }
     const salN = el(scope, 'in-salary-nicolas');
-    if (salN) salN.addEventListener('input', e => {
-      scope.state.salary.nicolas = parseFloat(e.target.value) || 0;
-      recalcAndRender(scope);
-    });
+    if (salN) {
+      salN.addEventListener('input', e => {
+        scope.state.salary.nicolas = parseMoney(e.target.value);
+        recalcAndRender(scope);
+      });
+      salN.addEventListener('blur', e => { e.target.value = fmtMoneyInput(scope.state.salary.nicolas); });
+    }
     const adjEl = el(scope, 'in-adjustment');
     if (adjEl) adjEl.addEventListener('input', e => {
       scope.state.adjustment = parseFloat(e.target.value) || 0;
@@ -1364,9 +1382,9 @@
   function setInputValues(scope) {
     const s = scope.sfx;
     const salM = el(scope, 'in-salary-maarten');
-    if (salM) salM.value = scope.state.salary.maarten;
+    if (salM) salM.value = fmtMoneyInput(Number(scope.state.salary.maarten) || 0);
     const salN = el(scope, 'in-salary-nicolas');
-    if (salN) salN.value = scope.state.salary.nicolas;
+    if (salN) salN.value = fmtMoneyInput(Number(scope.state.salary.nicolas) || 0);
     const adjEl = el(scope, 'in-adjustment');
     if (adjEl) adjEl.value = scope.state.adjustment;
     document.querySelectorAll(`#household-rows${s} [data-hh]`).forEach(elx => {
@@ -1665,5 +1683,6 @@
 
 
 
-</body>
-</html>
+
+
+</body></html>
