@@ -1626,6 +1626,30 @@
     <p class="desc" style="margin:16px 0 0;">Only the new mortgage part is estimated here — your carried-over mortgage keeps its own existing rate, term, and payments, tracked on the <a href="house.html">Home &amp; Mortgage</a> page.</p>
   </section>
 
+  <!-- SINGLE-INCOME CHECK -->
+  <section class="card">
+    <h2>Single-income check <span class="badge">stress test</span></h2>
+    <p class="desc">What if one income falls away for a while? This shows whether each of you could pay <strong>all</strong> joint costs of this house plus your own personal costs from one salary. It uses the figures from the Budget plan tab and the full (gross) mortgage payment above, and updates as you change the purchase price or interest rate.</p>
+    <div class="summary-grid">
+      <div class="person-card">
+        <h3><span class="swatch maarten"></span>Maarten alone</h3>
+        <div class="line"><span>Salary</span><span class="v" id="solo-m-salary-b">—</span></div>
+        <div class="line"><span>All joint costs</span><span class="v" id="solo-m-joint-b">—</span></div>
+        <div class="line"><span>Own personal costs</span><span class="v" id="solo-m-personal-b">—</span></div>
+        <div class="line final"><span id="solo-m-label-b">Left over per month</span><span class="v" id="solo-m-left-b">—</span></div>
+        <div class="line compare" id="solo-m-max-b"></div>
+      </div>
+      <div class="person-card">
+        <h3><span class="swatch nicolas"></span>Nicolas alone</h3>
+        <div class="line"><span>Salary</span><span class="v" id="solo-n-salary-b">—</span></div>
+        <div class="line"><span>All joint costs</span><span class="v" id="solo-n-joint-b">—</span></div>
+        <div class="line"><span>Own personal costs</span><span class="v" id="solo-n-personal-b">—</span></div>
+        <div class="line final"><span id="solo-n-label-b">Left over per month</span><span class="v" id="solo-n-left-b">—</span></div>
+        <div class="line compare" id="solo-n-max-b"></div>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 </main>
@@ -2384,6 +2408,63 @@
       setText(`mort-donut-amt-${m.key}${s}`, fmt(values[m.key]));
       setText(`mort-donut-pct-${m.key}${s}`, pctFmt(totalCost > 0 ? values[m.key] / totalCost : 0));
     });
+
+    renderSoloCheck(scope);
+  }
+
+  // Single-income check (Mortgage tab): could each person pay ALL joint costs plus their own
+  // personal costs from one salary? Always uses the gross mortgage payment (ignores the
+  // "show net" toggle), so it errs on the careful side. Also works back to the highest
+  // purchase price that one salary could carry, given the equity, carried-over mortgage,
+  // rate and term on this tab. Read-only: it never changes the saved state.
+  function renderSoloCheck(scope) {
+    const s = scope.sfx;
+    const st = scope.state;
+    if (!document.getElementById(`solo-m-left${s}`)) return;
+
+    let joint = 0;
+    st.household.forEach(cat => cat.items.forEach(it => { joint += Number(it.amount) || 0; }));
+    const personal = { maarten: 0, nicolas: 0 };
+    st.personal.forEach(cat => cat.items.forEach(it => {
+      personal.maarten += Number(it.maarten) || 0;
+      personal.nicolas += Number(it.nicolas) || 0;
+    }));
+
+    const ms = mortgageScenario(scope);
+    const price = Math.max(0, Number(ms.purchasePrice) || 0);
+    const kkPct = Math.max(0, Number(ms.kkPct) || 0);
+    const totalCost = price * (1 + kkPct / 100);
+    const equity = Math.max(0, Number(ms.equity) || 0);
+    const carried = Math.max(0, Number(ms.carriedMortgage) || 0);
+    const newMortgage = Math.max(0, totalCost - Math.min(equity, totalCost) - Math.min(carried, Math.max(0, totalCost - Math.min(equity, totalCost))));
+    const n = Math.round(Math.max(1, Number(ms.newTermYears) || 1) * 12);
+    const r = Math.max(0, Number(ms.newRate) || 0) / 100 / 12;
+    const perEuro = r > 0 ? (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : 1 / n; // monthly payment per euro borrowed
+    const newMonthly = newMortgage * perEuro;
+    const havePayment = currentMortgagePayment() != null;
+
+    [['m', 'maarten'], ['n', 'nicolas']].forEach(([k, person]) => {
+      const salary = Number(st.salary[person]) || 0;
+      const left = salary - joint - personal[person];
+      setText(`solo-${k}-salary${s}`, fmt(salary));
+      setText(`solo-${k}-joint${s}`, fmt(joint));
+      setText(`solo-${k}-personal${s}`, fmt(personal[person]));
+      setText(`solo-${k}-label${s}`, left >= 0 ? 'Left over per month' : 'Short per month');
+      const leftEl = document.getElementById(`solo-${k}-left${s}`);
+      leftEl.textContent = fmt(Math.abs(left));
+      leftEl.className = 'v ' + (left >= 0 ? 'good' : 'bad');
+
+      const maxEl = document.getElementById(`solo-${k}-max${s}`);
+      if (!havePayment || salary <= 0) { maxEl.textContent = ''; return; }
+      const affordableNew = newMonthly + left; // what this salary could put towards the new mortgage part
+      if (affordableNew <= 0) {
+        maxEl.textContent = 'Not possible on this salary alone, even without a new mortgage part.';
+        return;
+      }
+      const maxPrice = (affordableNew / perEuro + equity + carried) / (1 + kkPct / 100);
+      const rounded = Math.floor(maxPrice / 1000) * 1000;
+      maxEl.innerHTML = `<span>Could carry alone up to a purchase price of about <strong style="color:var(--text-primary)">${fmt(rounded).replace(/,00$/, '')}</strong></span>`;
+    });
   }
 
   function bindInputs(scope) {
@@ -3094,6 +3175,7 @@
     }
 
     renderHouseFund(scope);
+    renderSoloCheck(scope);
 
     document.dispatchEvent(new CustomEvent('app:statechanged', { detail: { key: scope.key } }));
   }
