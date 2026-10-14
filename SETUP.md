@@ -2,7 +2,7 @@
 
 A 6-page site:
 
-- **`index.html`** — the landing page, with tiles linking to the other five
+- **`fin-88yihnu9.html`** — the landing page, with tiles linking to the other five
 - **`budget.html`** — the joint/personal budget dashboard with Maarten and Nicolas
 - **`portfolio.html`** — your investment portfolio (fetches live prices in-browser)
 - **`networth.html`** — assets vs. liabilities, pulled together into one net worth figure
@@ -21,7 +21,7 @@ no sign-in needed. See "About new_house.html's cloud sync" below.
 All six share the same look — fonts, colors, header style, and card design — so they read
 as one product. Keep all six files together in the same folder; the landing page links to
 the others by filename, so if you rename any of them you'll need to update the links in
-`index.html` to match.
+`fin-88yihnu9.html` to match.
 
 ## About new_house.html's cloud sync
 
@@ -50,7 +50,7 @@ won't be able to edit anything until it's open in an actual browser.
 
 ## Using it now
 
-Just open `index.html` in your browser — no setup needed for five of the six pages:
+Just open `fin-88yihnu9.html` in your browser — no setup needed for five of the six pages:
 
 - The budget dashboard, net worth page, and home & mortgage page all have **Export**,
   **Import**, and **Reset** buttons for manually backing up or restoring your edited numbers.
